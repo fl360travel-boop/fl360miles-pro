@@ -198,6 +198,25 @@ export async function createClient(clientData: Omit<Client, 'id'>): Promise<Clie
         if (cardsError) console.error('Error inserting cards:', cardsError);
     }
 
+    // Insert history (new movements)
+    // Fix: Ensure initial history (like bonus) is saved upon creation
+    if (clientData.history?.length) {
+        const movementsToInsert = clientData.history.map(m => ({
+            client_id: client.id,
+            date: m.date,
+            type: m.type,
+            program: m.program,
+            amount: m.amount,
+            description: m.description,
+            observation: m.observation,
+            negotiated_value: m.negotiatedValue,
+            economy_generated: m.economyGenerated
+        }));
+
+        const { error: movError } = await supabase.from('movements').insert(movementsToInsert);
+        if (movError) console.error('Error inserting movements:', movError);
+    }
+
     return getClient(client.id);
 }
 
@@ -266,10 +285,17 @@ export async function updateClient(id: string, clientData: Partial<Client>): Pro
     }
 
     // Sync History/Movements
-    // We only insert NEW movements (temp IDs starting with 'H-'). 
+    // We only insert NEW movements (temp IDs starting with known prefixes). 
     // Existing movements (UUIDs) are considered immutable logs and are ignored here.
     if (clientData.history && clientData.history.length > 0) {
-        const newMovements = clientData.history.filter(h => h.id.startsWith('H-'));
+        // Fix: Allow TRF-, SALE-, RES-, BONUS- prefixes as well
+        const newMovements = clientData.history.filter(h =>
+            h.id.startsWith('H-') ||
+            h.id.startsWith('TRF-') ||
+            h.id.startsWith('SALE-') ||
+            h.id.startsWith('RES-') ||
+            h.id.startsWith('BONUS-')
+        );
 
         if (newMovements.length > 0) {
             const movementsToInsert = newMovements.map(m => ({
