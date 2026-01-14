@@ -499,7 +499,7 @@ const Dashboard: React.FC = () => {
               </section>
 
               <div className="pt-40 text-center opacity-40">
-                <p className="display-font text-slate-400 text-[11px] tracking-[1.2em] uppercase italic">FL360MILES TERMINAL ANALYTICS — CONFIDENTIAL DOCUMENT</p>
+                <p className="display-font text-slate-400 text-[11px] tracking-[1.2em] uppercase italic">FL360MILES TERMINAL ANALYTICS — CONFIDENTIAL DOCUMENT — v2.0</p>
               </div>
             </div>
 
