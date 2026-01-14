@@ -669,26 +669,58 @@ const Clients: React.FC = () => {
         <>
           <style>{`
             @media print {
-              @page { margin: 0; size: auto; }
-              body { visibility: hidden !important; height: auto !important; overflow: visible !important; }
-              html { height: auto !important; overflow: visible !important; }
-              #wealth-report-root { 
-                visibility: visible !important; 
-                position: absolute !important; 
-                left: 0 !important; 
-                top: 0 !important; 
-                width: 100% !important; 
+              @page { margin: 1cm; size: auto; }
+              
+              /* Hide everything by default */
+              body * {
+                visibility: hidden;
+              }
+
+              /* Reset root containers to allow flow */
+              html, body, #root {
                 height: auto !important;
+                overflow: visible !important;
+                position: static !important;
+              }
+
+              /* Show only the report and reset its layout */
+              #wealth-report-root, #wealth-report-root * {
+                visibility: visible !important;
+              }
+
+              #wealth-report-root {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                background: white !important;
+                display: block !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                overflow: visible !important;
               }
-              #wealth-report-root * { visibility: visible !important; }
+
+              /* Remove scroll/fixed behavior from the modal wrapper */
+              .fixed, .absolute, .overflow-y-auto, .overflow-hidden {
+                position: static !important;
+                overflow: visible !important;
+                transform: none !important;
+              }
+              
+              /* Ensure table headers repeat (optional) or at least don't break weirdly */
+              thead { display: table-header-group; }
+              tr { break-inside: avoid; page-break-inside: avoid; }
             }
+
+            /* Hide scrollbar for screen */
+            .custom-scrollbar::-webkit-scrollbar { display: none; }
+            .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           `}</style>
           <div id="wealth-report-root" className="fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-10 animate-in zoom-in duration-300 print:relative print:p-0 print:m-0 print:block print:inset-auto print:z-auto print:h-auto">
             <div className="absolute inset-0 bg-bg-dark/98 backdrop-blur-2xl print:hidden" onClick={() => setShowReport(false)}></div>
-            <div className="relative w-full max-w-5xl bg-white text-slate-900 h-full overflow-y-auto shadow-2xl flex flex-col custom-scrollbar print:bg-white print:shadow-none print:overflow-visible print:w-full print:h-auto print:max-w-none print:rounded-none">
+            {/* Main Container: Reset overflow for print */}
+            <div className="relative w-full max-w-5xl bg-white text-slate-900 h-full overflow-y-auto shadow-2xl flex flex-col custom-scrollbar print:bg-white print:shadow-none print:overflow-visible print:w-full print:h-auto print:max-w-none print:rounded-none print:block">
 
               <div className="sticky top-0 z-[210] bg-bg-dark p-6 border-b border-white/10 flex items-center justify-between print:hidden">
                 <div className="flex gap-4">
@@ -794,27 +826,64 @@ const Clients: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 print:divide-slate-200">
-                        {reportMetrics.filteredHistory
-                          // Show ALL history items in the report, sorted by date (newest first)
-                          // The filter below was too restrictive. We want full transparency.
-                          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                          .map((h, i) => (
-                            <tr key={i} className="hover:bg-slate-50/50 transition-colors break-inside-avoid page-break-inside-avoid print:bg-white">
-                              <td className="px-8 py-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest print:px-4 print:py-2">{new Date(h.date).toLocaleDateString()}</td>
-                              <td className="px-8 py-6 print:px-4 print:py-2">
-                                <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest print:border print:px-2 ${['Venda', 'Resgate'].includes(h.type) ? 'bg-red-100 text-red-600 print:border-red-600 print:bg-transparent' : 'bg-emerald-100 text-emerald-600 print:border-emerald-600 print:bg-transparent'}`}>
-                                  {h.type}
-                                </span>
-                              </td>
-                              <td className="px-8 py-6 text-[11px] font-black text-slate-900 uppercase italic print:px-4 print:py-2">{h.program}</td>
-                              <td className={`px-8 py-6 text-[12px] font-black italic tracking-tight print:px-4 print:py-2 ${['Venda', 'Resgate'].includes(h.type) ? 'text-red-500' : 'text-slate-900'}`}>
-                                {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString()}
-                              </td>
-                              <td className="px-8 py-6 text-right text-[12px] font-black text-slate-900 italic tracking-tight print:px-4 print:py-2">
-                                {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : h.economyGenerated ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}` : '-'}
-                              </td>
-                            </tr>
-                          ))}
+                        {(() => {
+                          // 1. Separate items
+                          const allItems = reportMetrics.filteredHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                          const conciergeItems = allItems.filter(h => h.id.startsWith('CONC-') || h.program === 'Concierge VIP' || h.type === 'Concierge');
+                          const standardItems = allItems.filter(h => !conciergeItems.includes(h));
+
+                          return (
+                            <>
+                              {standardItems.map((h, i) => (
+                                <tr key={i} className="hover:bg-slate-50/50 transition-colors break-inside-avoid page-break-inside-avoid print:bg-white">
+                                  <td className="px-8 py-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest print:px-4 print:py-2">{new Date(h.date).toLocaleDateString()}</td>
+                                  <td className="px-8 py-6 print:px-4 print:py-2">
+                                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest print:border print:px-2 ${['Venda', 'Resgate'].includes(h.type) ? 'bg-red-100 text-red-600 print:border-red-600 print:bg-transparent' : 'bg-emerald-100 text-emerald-600 print:border-emerald-600 print:bg-transparent'}`}>
+                                      {h.type}
+                                    </span>
+                                  </td>
+                                  <td className="px-8 py-6 text-[11px] font-black text-slate-900 uppercase italic print:px-4 print:py-2">{h.program}</td>
+                                  <td className={`px-8 py-6 text-[12px] font-black italic tracking-tight print:px-4 print:py-2 ${['Venda', 'Resgate'].includes(h.type) ? 'text-red-500' : 'text-slate-900'}`}>
+                                    {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString()}
+                                  </td>
+                                  <td className="px-8 py-6 text-right text-[12px] font-black text-slate-900 italic tracking-tight print:px-4 print:py-2">
+                                    {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : h.economyGenerated ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}` : '-'}
+                                  </td>
+                                </tr>
+                              ))}
+
+                              {/* Concierge Section - Only if exists */}
+                              {conciergeItems.length > 0 && (
+                                <>
+                                  <tr className="bg-slate-50 print:bg-slate-50 break-inside-avoid">
+                                    <td colSpan={5} className="py-6 px-8 print:px-4">
+                                      <div className="flex items-center gap-4">
+                                        <span className="material-symbols-outlined text-primary">diamond</span>
+                                        <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-800">Concierge & Lifestyle Services</span>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  {conciergeItems.map((h, i) => (
+                                    <tr key={`conc-${i}`} className="hover:bg-slate-50/50 transition-colors break-inside-avoid page-break-inside-avoid print:bg-white border-l-4 border-primary/20">
+                                      <td className="px-8 py-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest print:px-4 print:py-2">{new Date(h.date).toLocaleDateString()}</td>
+                                      <td className="px-8 py-6 print:px-4 print:py-2">
+                                        <span className="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
+                                          Lifestyle
+                                        </span>
+                                      </td>
+                                      <td className="px-8 py-6 text-[11px] font-black text-slate-900 uppercase italic print:px-4 print:py-2" colSpan={2}>
+                                        {h.description || 'Solicitação Concierge'} <span className="text-slate-400 font-normal normal-case block text-[10px]">{h.observation}</span>
+                                      </td>
+                                      <td className="px-8 py-6 text-right text-[12px] font-black text-slate-900 italic tracking-tight print:px-4 print:py-2">
+                                        {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : '-'}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </>
+                              )}
+                            </>
+                          );
+                        })()}
                       </tbody>
                     </table>
                   </div>
