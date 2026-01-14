@@ -442,81 +442,101 @@ const Clients: React.FC = () => {
 
               {/* Ativos Tab */}
               {activeTab === 'programs' && (
-                <div className="space-y-8 animate-in fade-in duration-500">
-                  {/* Consolidated Summary */}
-                  {/* Consolidated Summary - High Visibility */}
-                  <div className="bg-gradient-to-br from-primary/10 to-bg-card border border-primary/20 p-8 rounded-[32px] shadow-[0_0_30px_-10px_rgba(226,190,106,0.1)] relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-10 opacity-5">
-                      <span className="material-symbols-outlined text-9xl text-primary">account_balance_wallet</span>
+                <div className="space-y-10 animate-in fade-in duration-500">
+                  {/* Consolidated Summary - Real-time Dashboard */}
+                  <div className="bg-gradient-to-r from-amber-500/10 to-bg-card border-l-4 border-amber-500 p-8 rounded-r-3xl shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                      <span className="material-symbols-outlined text-8xl text-amber-500">leaderboard</span>
                     </div>
-                    <h4 className="display-font text-xs text-primary font-black uppercase tracking-[0.4em] italic border-b border-primary/10 pb-5 mb-6 flex items-center gap-3">
-                      <span className="material-symbols-outlined">dataset</span>
-                      Visão Consolidada de Ativos
+
+                    <h4 className="display-font text-[10px] text-amber-500 font-bold uppercase tracking-[0.4em] mb-8 flex items-center gap-3">
+                      <span className="material-symbols-outlined text-sm">dataset</span>
+                      Painel de Ativos em Tempo Real
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
                       {Object.entries(selectedClient.programs.reduce((acc, curr) => {
                         const key = curr.name.trim().toUpperCase();
                         if (!acc[key]) acc[key] = 0;
-                        acc[key] += curr.balance;
+                        acc[key] += Number(curr.balance);
                         return acc;
                       }, {} as Record<string, number>)).map(([name, balance]) => (
-                        <div key={name} className="bg-bg-dark/80 backdrop-blur-md p-5 rounded-2xl border border-primary/10 hover:border-primary/30 transition-colors group">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-primary transition-colors">{name}</p>
-                          <p className="text-2xl font-black text-white italic tracking-tighter">{balance.toLocaleString()} <span className="text-[10px] text-slate-500 font-bold not-italic">mi</span></p>
+                        <div key={name} className="flex flex-col">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{name}</span>
+                          <span className="text-3xl font-black text-white italic tracking-tighter">{balance.toLocaleString()} <span className="text-[10px] text-slate-600 font-bold not-italic">mi</span></span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="bg-bg-surface border border-white/10 p-10 rounded-[40px] flex flex-col md:flex-row gap-8 items-end shadow-2xl">
-                    <div className="flex-1 w-full space-y-3">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Novo Programa</label>
-                      <input className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-sm text-white italic outline-none focus:ring-1 focus:ring-primary" value={newProg.name} onChange={e => setNewProg({ ...newProg, name: e.target.value })} placeholder="Ex: Livelo" />
+                  {/* Add Program Action */}
+                  <div className="bg-bg-surface border border-white/5 p-6 rounded-2xl flex flex-col md:flex-row gap-6 items-end shadow-lg">
+                    <div className="flex-1 w-full space-y-2">
+                      <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest px-1">Novo Programa</label>
+                      <input className="w-full bg-bg-card border-none rounded-xl py-4 px-5 text-xs text-white italic outline-none focus:ring-1 focus:ring-primary placeholder:text-slate-700" value={newProg.name} onChange={e => setNewProg({ ...newProg, name: e.target.value })} placeholder="Ex: Livelo" />
                     </div>
-                    <div className="flex-1 w-full space-y-3">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Capital Ativo</label>
-                      <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none focus:ring-1 focus:ring-primary" value={newProg.balance} onChange={e => setNewProg({ ...newProg, balance: e.target.value })} placeholder="0" />
+                    <div className="flex-1 w-full space-y-2">
+                      <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest px-1">Capital Inicial</label>
+                      <input type="number" className="w-full bg-bg-card border-none rounded-xl py-4 px-5 text-lg text-white font-black italic outline-none focus:ring-1 focus:ring-primary placeholder:text-slate-700" value={newProg.balance} onChange={e => setNewProg({ ...newProg, balance: e.target.value })} placeholder="0" />
                     </div>
-                    <button onClick={addProgram} className="bg-primary hover:bg-primary-dark text-bg-dark font-black px-10 py-5 rounded-2xl text-[11px] uppercase tracking-widest transition-all shadow-xl shadow-primary/20 h-[64px]">VINCULAR</button>
+                    <button onClick={addProgram} className="bg-primary hover:bg-primary-dark text-bg-dark font-black px-8 py-4 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg hover:shadow-primary/20 h-[52px] flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm">add_circle</span> VINCULAR
+                    </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {/* Compact Rows List */}
+                  <div className="space-y-3 pb-20">
+                    {selectedClient.programs.length === 0 && (
+                      <p className="text-center text-slate-600 italic text-xs py-10 opacity-50">Nenhum ativo vinculado.</p>
+                    )}
                     {selectedClient.programs.map(p => (
-                      <div key={p.id} className="bg-bg-card/30 p-5 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-primary/20 transition-all">
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="size-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-400 shadow-lg group-hover:text-primary transition-colors">
-                            <BrandLogo name={p.name} className="size-5" />
+                      <div key={p.id} className="bg-bg-card border-b border-white/5 p-4 rounded-xl flex items-center justify-between group hover:bg-white/5 transition-all">
+                        {/* Left: Icon & Info */}
+                        <div className="flex items-center gap-6">
+                          <div className="size-10 bg-gradient-to-br from-white/5 to-white/0 rounded-lg flex items-center justify-center text-slate-500 border border-white/5 group-hover:border-primary/20 group-hover:text-primary transition-colors">
+                            <BrandLogo name={p.name} className="size-5 opacity-80" />
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mr-4">
-                              <div>
-                                <p className="text-[10px] font-black text-white uppercase italic tracking-tighter mb-0.5">{p.name}</p>
-                                <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest">
-                                  {(() => {
-                                    const lastMove = selectedClient.history
-                                      .filter(h => h.program.toLowerCase() === p.name.toLowerCase())
-                                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-                                    return lastMove
-                                      ? `${new Date(lastMove.date).toLocaleDateString()} • ${lastMove.type}`
-                                      : 'Sem histórico';
-                                  })()}
-                                </p>
-                              </div>
-                              {editingProgramId === p.id ? (
-                                <div className="flex items-center gap-2">
-                                  <input autoFocus type="number" className="bg-bg-dark border border-primary/30 rounded-lg py-1 px-2 text-sm text-primary font-black italic w-24 outline-none" value={editBalanceValue} onChange={e => setEditBalanceValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEditedBalance(p)} />
-                                  <button onClick={() => saveEditedBalance(p)} className="text-emerald-400 hover:scale-110"><span className="material-symbols-outlined text-sm">check</span></button>
-                                  <button onClick={() => setEditingProgramId(null)} className="text-slate-600 hover:scale-110"><span className="material-symbols-outlined text-sm">close</span></button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2 group/val">
-                                  <p className="text-lg font-black text-slate-300 italic leading-none group-hover:text-white transition-colors">{p.balance.toLocaleString()} <span className="text-[9px] opacity-50">mi</span></p>
-                                  <button onClick={() => startEditingBalance(p)} className="opacity-0 group-hover/val:opacity-100 text-slate-700 hover:text-primary transition-all"><span className="material-symbols-outlined text-xs">edit_square</span></button>
-                                </div>
-                              )}
+
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-black text-white uppercase italic tracking-tighter">{p.name}</span>
+                              <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest bg-bg-dark px-2 py-0.5 rounded-full">
+                                {(() => {
+                                  const lastMove = selectedClient.history
+                                    .filter(h => h.program.toLowerCase() === p.name.toLowerCase())
+                                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+                                  return lastMove
+                                    ? `${new Date(lastMove.date).toLocaleDateString()} • ${lastMove.type}`
+                                    : 'SEM HISTÓRICO';
+                                })()}
+                              </span>
                             </div>
                           </div>
                         </div>
-                        <button onClick={() => updateCurrent({ ...selectedClient, programs: selectedClient.programs.filter(x => x.id !== p.id) })} className="size-8 flex items-center justify-center text-slate-700 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"><span className="material-symbols-outlined text-sm">delete</span></button>
+
+                        {/* Right: Balance & Actions */}
+                        <div className="flex items-center gap-8">
+                          {editingProgramId === p.id ? (
+                            <div className="flex items-center gap-2">
+                              <input autoFocus type="number" className="bg-bg-dark border border-primary/30 rounded py-1 px-2 text-sm text-primary font-black italic w-24 outline-none text-right" value={editBalanceValue} onChange={e => setEditBalanceValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEditedBalance(p)} />
+                              <button onClick={() => saveEditedBalance(p)} className="text-emerald-400 hover:scale-110"><span className="material-symbols-outlined text-lg">check</span></button>
+                              <button onClick={() => setEditingProgramId(null)} className="text-slate-600 hover:scale-110"><span className="material-symbols-outlined text-lg">close</span></button>
+                            </div>
+                          ) : (
+                            <div className="text-right group/val relative">
+                              <p className="text-xl font-black text-white italic tracking-tighter group-hover:text-primary transition-colors cursor-pointer" onClick={() => startEditingBalance(p)}>
+                                {p.balance.toLocaleString()} <span className="text-[10px] text-slate-600 font-bold not-italic">mi</span>
+                              </p>
+                              <div className="absolute -right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover/val:opacity-100 transition-opacity">
+                                <span className="material-symbols-outlined text-slate-600 text-[10px]">edit</span>
+                              </div>
+                            </div>
+                          )}
+
+                          <button onClick={() => updateCurrent({ ...selectedClient, programs: selectedClient.programs.filter(x => x.id !== p.id) })} className="size-8 rounded-lg text-slate-700 hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-colors">
+                            <span className="material-symbols-outlined text-sm">delete</span>
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -773,49 +793,48 @@ const Clients: React.FC = () => {
                           <th className="px-8 py-6 text-right text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] print:px-4 print:py-2">Resultado (R$)</th>
                         </tr>
                       </thead>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 print:divide-slate-200">
-                      {reportMetrics.filteredHistory
-                        .filter(m => (m.type === 'Inclusão' || m.type === 'Venda' || m.type === 'Resgate' || m.type === 'Transferência' || m.type.startsWith('Bônus') || m.type === 'Compra'))
-                        .map((h, i) => (
-                          <tr key={i} className="hover:bg-slate-50/50 transition-colors break-inside-avoid page-break-inside-avoid print:bg-white">
-                            <td className="px-8 py-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest print:px-4 print:py-2">{new Date(h.date).toLocaleDateString()}</td>
-                            <td className="px-8 py-6 print:px-4 print:py-2">
-                              <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest print:border print:px-2 ${['Venda', 'Resgate'].includes(h.type) ? 'bg-red-100 text-red-600 print:border-red-600 print:bg-transparent' : 'bg-emerald-100 text-emerald-600 print:border-emerald-600 print:bg-transparent'}`}>
-                                {h.type}
-                              </span>
-                            </td>
-                            <td className="px-8 py-6 text-[11px] font-black text-slate-900 uppercase italic print:px-4 print:py-2">{h.program}</td>
-                            <td className={`px-8 py-6 text-[12px] font-black italic tracking-tight print:px-4 print:py-2 ${['Venda', 'Resgate'].includes(h.type) ? 'text-red-500' : 'text-slate-900'}`}>
-                              {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString()}
-                            </td>
-                            <td className="px-8 py-6 text-right text-[12px] font-black text-slate-900 italic tracking-tight print:px-4 print:py-2">
-                              {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : h.economyGenerated ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}` : '-'}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                      <tbody className="divide-y divide-slate-100 print:divide-slate-200">
+                        {reportMetrics.filteredHistory
+                          .filter(m => (m.type === 'Inclusão' || m.type === 'Venda' || m.type === 'Resgate' || m.type === 'Transferência' || m.type.startsWith('Bônus') || m.type === 'Compra'))
+                          .map((h, i) => (
+                            <tr key={i} className="hover:bg-slate-50/50 transition-colors break-inside-avoid page-break-inside-avoid print:bg-white">
+                              <td className="px-8 py-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest print:px-4 print:py-2">{new Date(h.date).toLocaleDateString()}</td>
+                              <td className="px-8 py-6 print:px-4 print:py-2">
+                                <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest print:border print:px-2 ${['Venda', 'Resgate'].includes(h.type) ? 'bg-red-100 text-red-600 print:border-red-600 print:bg-transparent' : 'bg-emerald-100 text-emerald-600 print:border-emerald-600 print:bg-transparent'}`}>
+                                  {h.type}
+                                </span>
+                              </td>
+                              <td className="px-8 py-6 text-[11px] font-black text-slate-900 uppercase italic print:px-4 print:py-2">{h.program}</td>
+                              <td className={`px-8 py-6 text-[12px] font-black italic tracking-tight print:px-4 print:py-2 ${['Venda', 'Resgate'].includes(h.type) ? 'text-red-500' : 'text-slate-900'}`}>
+                                {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString()}
+                              </td>
+                              <td className="px-8 py-6 text-right text-[12px] font-black text-slate-900 italic tracking-tight print:px-4 print:py-2">
+                                {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : h.economyGenerated ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}` : '-'}
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <section className="pt-20 text-center border-t border-slate-100 opacity-60">
+                  <p className="display-font text-slate-400 text-[11px] tracking-[1em] uppercase italic mb-16">FL360MILES Wealth Management Protocol — 2024</p>
+                </section>
               </div>
-            </section>
 
-            <section className="pt-20 text-center border-t border-slate-100 opacity-60">
-              <p className="display-font text-slate-400 text-[11px] tracking-[1em] uppercase italic mb-16">FL360MILES Wealth Management Protocol — 2024</p>
-            </section>
+              <div className="p-12 bg-slate-50 border-t border-slate-200 flex justify-end gap-6 sticky bottom-0 print:hidden mt-auto">
+                <button onClick={() => setShowReport(false)} className="px-10 py-5 text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] hover:text-bg-dark transition-all">DESCARTAR</button>
+                <button onClick={() => window.print()} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
+                  <span className="material-symbols-outlined text-2xl">print_connect</span>
+                  IMPRIMIR PDF OFICIAL
+                </button>
+              </div>
+            </div>
           </div>
-
-          <div className="p-12 bg-slate-50 border-t border-slate-200 flex justify-end gap-6 sticky bottom-0 print:hidden">
-            <button onClick={() => setShowReport(false)} className="px-10 py-5 text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] hover:text-bg-dark transition-all">DESCARTAR</button>
-            <button onClick={() => window.print()} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
-              <span className="material-symbols-outlined text-2xl">print_connect</span>
-              IMPRIMIR PDF OFICIAL
-            </button>
-          </div>
-        </div>
-    </div>
         </>
       )}
-    </div >
+    </div>
   );
 };
 
