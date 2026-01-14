@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { BrandLogo } from '../components/BrandAssets';
+import { PDFViewer } from '@react-pdf/renderer';
+import PDFReport from '../components/PDFReport';
 
 // Types (simplified for this view, or import if available)
 interface PrintData {
@@ -19,7 +19,7 @@ interface PrintData {
     generatedDate: string;
 }
 
-const PrintReport: React.FC = () => {
+const PrintReportPage: React.FC = () => {
     const [data, setData] = useState<PrintData | null>(null);
 
     useEffect(() => {
@@ -27,208 +27,28 @@ const PrintReport: React.FC = () => {
         const storedData = localStorage.getItem('fl360_print_data');
         if (storedData) {
             setData(JSON.parse(storedData));
-            // Trigger print automatically after a short delay to ensure render
-            setTimeout(() => {
-                window.print();
-            }, 800);
         }
     }, []);
 
     if (!data) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <p className="text-slate-500">Carregando relatório...</p>
+            <div className="flex items-center justify-center min-h-screen bg-bg-dark text-white">
+                <p className="animate-pulse">Gerando PDF de Alta Fidelidade...</p>
             </div>
         );
     }
 
-    // Helper for formatting
-    const { totalPoints, totalValue, totalEconomy, totalInvested, filteredHistory } = data.metrics;
-
-    const allItems = filteredHistory.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const conciergeItems = allItems.filter((h: any) => h.id.startsWith('CONC-') || h.program === 'Concierge VIP' || h.type === 'Concierge');
-    const standardItems = allItems.filter((h: any) => !conciergeItems.includes(h));
-
     return (
-        <div className="w-full max-w-[210mm] mx-auto bg-white min-h-screen p-[10mm] text-slate-900 font-sans relative print:p-0 print:max-w-none">
-            {/* HEADER */}
-            <div className="flex items-center justify-between mb-8 border-b-2 border-slate-100 pb-6">
-                <div>
-                    <BrandLogo name="livelo" className="h-10 text-primary w-auto mb-2" />
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-medium">Strategic Wealth Report</p>
-                </div>
-                <div className="text-right">
-                    <h1 className="text-2xl font-black text-slate-900 mb-1">{data.clientName}</h1>
-                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{data.clientCpf}</p>
-                </div>
+        <div className="h-screen w-screen bg-bg-dark flex flex-col">
+            <div className="p-4 bg-bg-surface border-b border-white/10 flex justify-between items-center text-white">
+                <h1 className="font-bold">Visualizador de Relatório</h1>
+                <p className="text-xs text-slate-400">Renderizado via React-PDF Engine</p>
             </div>
-
-            {/* METRICS GRID */}
-            <div className="grid grid-cols-4 gap-4 mb-8">
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Patrimônio Total</p>
-                    <p className="text-xl font-black text-slate-900">{totalPoints.toLocaleString()}</p>
-                    <p className="text-[9px] text-emerald-600 font-bold mt-1">Milhas/Pontos</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Valor de Mercado</p>
-                    <p className="text-xl font-black text-slate-900">R$ {totalValue.toLocaleString()}</p>
-                    <p className="text-[9px] text-emerald-600 font-bold mt-1">Estimado</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Economia Gerada</p>
-                    <p className="text-xl font-black text-slate-900 text-emerald-600">R$ {totalEconomy.toLocaleString()}</p>
-                    <p className="text-[9px] text-slate-400 font-bold mt-1">No Período</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Investimento</p>
-                    <p className="text-xl font-black text-slate-900">R$ {totalInvested.toLocaleString()}</p>
-                    <p className="text-[9px] text-slate-400 font-bold mt-1">Realizado</p>
-                </div>
-            </div>
-
-            {/* TRANSACTION TABLE */}
-            <div className="mb-0">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xs font-black uppercase tracking-widest text-slate-900">Detalhamento de Movimentações</h2>
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full uppercase tracking-wider">
-                        Período: {data.period}
-                    </span>
-                </div>
-
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-b border-slate-200">
-                            <th className="py-3 px-2 text-[9px] font-black uppercase tracking-widest text-slate-400 w-[15%]">Data</th>
-                            <th className="py-3 px-2 text-[9px] font-black uppercase tracking-widest text-slate-400 w-[15%]">Tipo</th>
-                            <th className="py-3 px-2 text-[9px] font-black uppercase tracking-widest text-slate-400 w-[25%]">Programa</th>
-                            <th className="py-3 px-2 text-[9px] font-black uppercase tracking-widest text-slate-400 w-[20%] text-right">Quantidade</th>
-                            <th className="py-3 px-2 text-[9px] font-black uppercase tracking-widest text-slate-400 w-[25%] text-right">Valor/Eco</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {standardItems.map((h: any, i: number) => (
-                            <tr key={i} className="break-inside-avoid page-break-inside-avoid">
-                                <td className="py-3 px-2 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-                                    {new Date(h.date).toLocaleDateString()}
-                                </td>
-                                <td className="py-3 px-2">
-                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${['Venda', 'Resgate'].includes(h.type)
-                                        ? 'border-red-100 text-red-600'
-                                        : 'border-emerald-100 text-emerald-600'
-                                        }`}>
-                                        {h.type}
-                                    </span>
-                                </td>
-                                <td className="py-3 px-2 text-[11px] font-black text-slate-900 uppercase italic">
-                                    {h.program}
-                                </td>
-                                <td className={`py-3 px-2 text-[11px] font-black italic tracking-tight text-right ${['Venda', 'Resgate'].includes(h.type) ? 'text-red-500' : 'text-slate-900'
-                                    }`}>
-                                    {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString()}
-                                </td>
-                                <td className="py-3 px-2 text-right text-[11px] font-black text-slate-900 italic tracking-tight">
-                                    {h.negotiatedValue
-                                        ? `R$ ${h.negotiatedValue.toLocaleString()}`
-                                        : h.economyGenerated
-                                            ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}`
-                                            : '-'}
-                                </td>
-                            </tr>
-                        ))}
-
-                        {/* CONCIERGE SECTION */}
-                        {conciergeItems.length > 0 && (
-                            <>
-                                <tr className="bg-slate-50 break-inside-avoid">
-                                    <td colSpan={5} className="py-4 px-4 custom-concierge-header">
-                                        <div className="flex items-center gap-3 justify-center">
-                                            <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-800">Concierge & Lifestyle Services</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {conciergeItems.map((h: any, i: number) => (
-                                    <tr key={`conc-${i}`} className="break-inside-avoid page-break-inside-avoid border-l-4 border-slate-200 pl-2">
-                                        <td className="py-3 px-2 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-                                            {new Date(h.date).toLocaleDateString()}
-                                        </td>
-                                        <td className="py-3 px-2">
-                                            <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border border-slate-200 text-slate-600 bg-slate-50">
-                                                Lifestyle
-                                            </span>
-                                        </td>
-                                        <td className="py-3 px-2 text-[11px] font-black text-slate-900 uppercase italic" colSpan={2}>
-                                            <span className="block">{h.description || 'Solicitação Concierge'}</span>
-                                            <span className="text-[9px] text-slate-500 font-normal normal-case">{h.observation}</span>
-                                        </td>
-                                        <td className="py-3 px-2 text-right text-[11px] font-black text-slate-900 italic tracking-tight">
-                                            {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : '-'}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* FOOTER */}
-            <div className="mt-8 pt-8 border-t border-slate-100 flex items-center justify-between text-[9px] uppercase tracking-widest text-slate-400">
-                <p>Documento gerado em {new Date(data.generatedDate).toLocaleString()} por FL360Miles Pro</p>
-                <p>Confidencial</p>
-            </div>
-
-            <style>{`
-        /* GLOBAL RESET FOR PRINT PAGE */
-        html, body {
-          background: white !important;
-          height: auto !important;
-          min-height: 100vh !important;
-          overflow: visible !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100% !important;
-        }
-        
-        @media print {
-          @page { 
-            margin: 10mm; 
-            size: A4 portrait; 
-          }
-          
-          html, body {
-            visibility: visible !important;
-            height: auto !important;
-            width: auto !important;
-            overflow: visible !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-
-          /* Force background graphics */
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          /* Hide instructions in print */
-          .no-print { display: none !important; }
-        }
-      `}</style>
-
-            {/* SCREEN ONLY INSTRUCTIONS */}
-            <div className="fixed top-0 left-0 w-full bg-blue-600 text-white p-4 text-center z-50 no-print flex items-center justify-center gap-4 shadow-xl">
-                <span className="material-symbols-outlined">print</span>
-                <p className="text-sm font-bold">
-                    PARA IMPRESSÃO PERFEITA: Defina Margens como "Padrão" (Default) e Escala "100%"
-                </p>
-                <button onClick={() => window.print()} className="bg-white text-blue-600 px-4 py-1 rounded font-bold text-xs uppercase hover:bg-blue-50">
-                    Imprimir Agora
-                </button>
-            </div>
-
-            <div className="text-[8px] text-slate-300 fixed bottom-2 right-2 no-print">v4.0 OFFICIAL ENGINE</div>
+            <PDFViewer style={{ width: '100%', height: '100%', border: 'none' }}>
+                <PDFReport data={data} />
+            </PDFViewer>
         </div>
     );
 };
 
-export default PrintReport;
+export default PrintReportPage;
