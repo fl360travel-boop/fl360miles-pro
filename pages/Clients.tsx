@@ -671,51 +671,63 @@ const Clients: React.FC = () => {
             @media print {
               @page { margin: 1cm; size: auto; }
               
-              /* Hide everything by default */
-              body * {
-                visibility: hidden;
+              /* Hide everything by default using display: none to remove from flow */
+              body > * {
+                display: none !important;
               }
 
-              /* Reset root containers to allow flow */
-              html, body, #root {
+              /* Reset html/body to allow full expansion */
+              html, body {
                 height: auto !important;
                 overflow: visible !important;
-                position: static !important;
-              }
-
-              /* Show only the report and reset its layout */
-              #wealth-report-root, #wealth-report-root * {
-                visibility: visible !important;
-              }
-
-              #wealth-report-root {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                overflow: visible !important;
-                background: white !important;
-                display: block !important;
                 margin: 0 !important;
                 padding: 0 !important;
               }
 
-              /* Remove scroll/fixed behavior from the modal wrapper */
-              .fixed, .absolute, .overflow-y-auto, .overflow-hidden {
+              /* Target the report root specifically */
+              /* Note: We need to ensure this ID is on a direct child of body or we target it correctly */
+              /* The component structure has #wealth-report-root inside the Clients component which is inside layout */
+              /* So we must ensure parents are visible too, OR move this to fixed overlay */
+              
+              /* BETTER STRATEGY: Make the report taking over the entire document flow */
+              #wealth-report-root {
+                display: block !important;
+                position: absolute !important; /* Start absolute to top-left */
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vw !important; /* Full viewport width */
+                min-height: 100vh !important;
+                height: auto !important; /* Allow growing */
+                z-index: 9999 !important;
+                background: white !important;
+                font-size: 10pt !important;
+              }
+
+              #wealth-report-root * {
+                visibility: visible !important;
+              }
+
+              /* Reset inner containers to static to allow breaking */
+              .fixed, .absolute, .overflow-y-auto, .overflow-hidden, .flex, .min-h-screen {
                 position: static !important;
                 overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
+                display: block !important; /* Block flow usually breaks better than flex */
                 transform: none !important;
               }
-              
-              /* Ensure table headers repeat (optional) or at least don't break weirdly */
-              thead { display: table-header-group; }
-              tr { break-inside: avoid; page-break-inside: avoid; }
-            }
 
-            /* Hide scrollbar for screen */
-            .custom-scrollbar::-webkit-scrollbar { display: none; }
-            .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+              /* Hide the backdrop and close buttons */
+              .print\:hidden {
+                display: none !important;
+              }
+              
+              /* Pagination Controls */
+              tr { break-inside: avoid; page-break-inside: avoid; }
+              thead { display: table-header-group; }
+              tfoot { display: table-footer-group; }
+              div { break-inside: auto; }
+            }
           `}</style>
           <div id="wealth-report-root" className="fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-10 animate-in zoom-in duration-300 print:relative print:p-0 print:m-0 print:block print:inset-auto print:z-auto print:h-auto">
             <div className="absolute inset-0 bg-bg-dark/98 backdrop-blur-2xl print:hidden" onClick={() => setShowReport(false)}></div>
