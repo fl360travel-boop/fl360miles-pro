@@ -444,18 +444,25 @@ const Clients: React.FC = () => {
               {activeTab === 'programs' && (
                 <div className="space-y-8 animate-in fade-in duration-500">
                   {/* Consolidated Summary */}
-                  <div className="bg-bg-card/40 p-8 rounded-[32px] border border-white/5 shadow-2xl">
-                    <h4 className="display-font text-[10px] text-primary font-black uppercase tracking-[0.4em] italic border-b border-white/5 pb-5 mb-5">Resumo Consolidado</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {/* Consolidated Summary - High Visibility */}
+                  <div className="bg-gradient-to-br from-primary/10 to-bg-card border border-primary/20 p-8 rounded-[32px] shadow-[0_0_30px_-10px_rgba(226,190,106,0.1)] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-10 opacity-5">
+                      <span className="material-symbols-outlined text-9xl text-primary">account_balance_wallet</span>
+                    </div>
+                    <h4 className="display-font text-xs text-primary font-black uppercase tracking-[0.4em] italic border-b border-primary/10 pb-5 mb-6 flex items-center gap-3">
+                      <span className="material-symbols-outlined">dataset</span>
+                      Visão Consolidada de Ativos
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
                       {Object.entries(selectedClient.programs.reduce((acc, curr) => {
                         const key = curr.name.trim().toUpperCase();
                         if (!acc[key]) acc[key] = 0;
                         acc[key] += curr.balance;
                         return acc;
                       }, {} as Record<string, number>)).map(([name, balance]) => (
-                        <div key={name} className="bg-bg-dark/50 p-6 rounded-2xl border border-white/5">
-                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">{name}</p>
-                          <p className="text-xl font-black text-white italic tracking-tighter">{balance.toLocaleString()} <span className="text-[10px] text-slate-600">mi</span></p>
+                        <div key={name} className="bg-bg-dark/80 backdrop-blur-md p-5 rounded-2xl border border-primary/10 hover:border-primary/30 transition-colors group">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-primary transition-colors">{name}</p>
+                          <p className="text-2xl font-black text-white italic tracking-tighter">{balance.toLocaleString()} <span className="text-[10px] text-slate-500 font-bold not-italic">mi</span></p>
                         </div>
                       ))}
                     </div>
@@ -472,42 +479,44 @@ const Clients: React.FC = () => {
                     </div>
                     <button onClick={addProgram} className="bg-primary hover:bg-primary-dark text-bg-dark font-black px-10 py-5 rounded-2xl text-[11px] uppercase tracking-widest transition-all shadow-xl shadow-primary/20 h-[64px]">VINCULAR</button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {selectedClient.programs.map(p => (
-                      <div key={p.id} className="bg-bg-card/40 p-8 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-primary/30 transition-all">
-                        <div className="flex items-center gap-6 flex-1">
-                          <div className="size-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-xl">
-                            <BrandLogo name={p.name} className="size-8" />
+                      <div key={p.id} className="bg-bg-card/30 p-5 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-primary/20 transition-all">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="size-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-400 shadow-lg group-hover:text-primary transition-colors">
+                            <BrandLogo name={p.name} className="size-5" />
                           </div>
                           <div className="flex-1">
-                            <div>
-                              <p className="text-[10px] font-black text-white uppercase italic tracking-tighter mb-0.5">{p.name}</p>
-                              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-2">
-                                {(() => {
-                                  const lastMove = selectedClient.history
-                                    .filter(h => h.program.toLowerCase() === p.name.toLowerCase())
-                                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-                                  return lastMove
-                                    ? `${new Date(lastMove.date).toLocaleDateString()} • ${lastMove.type}`
-                                    : 'Sem histórico de movimentação';
-                                })()}
-                              </p>
+                            <div className="flex items-center justify-between mr-4">
+                              <div>
+                                <p className="text-[10px] font-black text-white uppercase italic tracking-tighter mb-0.5">{p.name}</p>
+                                <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest">
+                                  {(() => {
+                                    const lastMove = selectedClient.history
+                                      .filter(h => h.program.toLowerCase() === p.name.toLowerCase())
+                                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+                                    return lastMove
+                                      ? `${new Date(lastMove.date).toLocaleDateString()} • ${lastMove.type}`
+                                      : 'Sem histórico';
+                                  })()}
+                                </p>
+                              </div>
+                              {editingProgramId === p.id ? (
+                                <div className="flex items-center gap-2">
+                                  <input autoFocus type="number" className="bg-bg-dark border border-primary/30 rounded-lg py-1 px-2 text-sm text-primary font-black italic w-24 outline-none" value={editBalanceValue} onChange={e => setEditBalanceValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEditedBalance(p)} />
+                                  <button onClick={() => saveEditedBalance(p)} className="text-emerald-400 hover:scale-110"><span className="material-symbols-outlined text-sm">check</span></button>
+                                  <button onClick={() => setEditingProgramId(null)} className="text-slate-600 hover:scale-110"><span className="material-symbols-outlined text-sm">close</span></button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 group/val">
+                                  <p className="text-lg font-black text-slate-300 italic leading-none group-hover:text-white transition-colors">{p.balance.toLocaleString()} <span className="text-[9px] opacity-50">mi</span></p>
+                                  <button onClick={() => startEditingBalance(p)} className="opacity-0 group-hover/val:opacity-100 text-slate-700 hover:text-primary transition-all"><span className="material-symbols-outlined text-xs">edit_square</span></button>
+                                </div>
+                              )}
                             </div>
-                            {editingProgramId === p.id ? (
-                              <div className="flex items-center gap-2 mt-1">
-                                <input autoFocus type="number" className="bg-bg-dark border border-primary/30 rounded-xl py-2 px-4 text-lg text-primary font-black italic w-40 outline-none" value={editBalanceValue} onChange={e => setEditBalanceValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEditedBalance(p)} />
-                                <button onClick={() => saveEditedBalance(p)} className="text-emerald-400 hover:scale-110 transition-transform"><span className="material-symbols-outlined">check</span></button>
-                                <button onClick={() => setEditingProgramId(null)} className="text-slate-600 hover:scale-110 transition-transform"><span className="material-symbols-outlined">close</span></button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 group/val">
-                                <p className="text-2xl font-black text-primary italic leading-none">{p.balance.toLocaleString()} mi</p>
-                                <button onClick={() => startEditingBalance(p)} className="opacity-0 group-hover/val:opacity-100 text-slate-700 hover:text-primary transition-all ml-2"><span className="material-symbols-outlined text-sm">edit_square</span></button>
-                              </div>
-                            )}
                           </div>
                         </div>
-                        <button onClick={() => updateCurrent({ ...selectedClient, programs: selectedClient.programs.filter(x => x.id !== p.id) })} className="size-12 flex items-center justify-center text-slate-800 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all"><span className="material-symbols-outlined">delete</span></button>
+                        <button onClick={() => updateCurrent({ ...selectedClient, programs: selectedClient.programs.filter(x => x.id !== p.id) })} className="size-8 flex items-center justify-center text-slate-700 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"><span className="material-symbols-outlined text-sm">delete</span></button>
                       </div>
                     ))}
                   </div>
