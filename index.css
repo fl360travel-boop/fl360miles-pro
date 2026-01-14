@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@theme {
+    --color-primary-DEFAULT: #E2BE6A;
+    --color-primary-dark: #B8952E;
+    --color-primary-light: #F1D18A;
+    --color-emerald-custom: #10B981;
+    --color-emerald-dark: #064E3B;
+    --color-bg-dark: #0A0D11;
+    --color-bg-surface: #16191E;
+    --color-bg-card: #1C2229;
+
+    --font-sans: "Inter", sans-serif;
+    --font-serif: "Playfair Display", serif;
+    --font-display: "Cinzel", serif;
+}
+
+/* Card backgrounds */
+.card-dark {
+    background: var(--color-bg-card);
+}
+
+/* Custom scrollbar for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--color-bg-dark);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-bg-card);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-DEFAULT);
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Global Input Styles Override to prevent white background */
+input,
+textarea,
+select {
+    color: white !important;
+}
+
+/* Input Autofill Override */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--color-bg-card) inset !important;
+    -webkit-text-fill-color: white !important;
+    caret-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+
+    body {
+        background: white !important;
+        color: #0f172a !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    #root>div>aside,
+    #root>div>div>header,
+    .print\:hidden,
+    button,
+    nav,
+    .no-print {
+        display: none !important;
+    }
+
+    #root>div>div>main {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Reset para Modais no Print */
+    .fixed {
+        position: static !important;
+        display: block !important;
+        background: white !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+        max-height: none !important;
+    }
+
+    .absolute {
+        position: static !important;
+    }
+
+    .bg-bg-dark,
+    .bg-bg-surface {
+        background: transparent !important;
+    }
+
+    /* Forçar visibilidade de cores de ativos em impressão */
+    .text-primary {
+        color: #B8952E !important;
+    }
+
+    .text-emerald-600 {
+        color: #059669 !important;
+    }
+
+    .text-red-500 {
+        color: #dc2626 !important;
+    }
+
+    .border-primary {
+        border-color: #E2BE6A !important;
+    }
+}

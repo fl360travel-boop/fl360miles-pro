@@ -50,7 +50,7 @@ const PrintReport: React.FC = () => {
     const standardItems = allItems.filter((h: any) => !conciergeItems.includes(h));
 
     return (
-        <div className="w-full max-w-[210mm] mx-auto bg-white min-h-screen p-[10mm] text-slate-900 font-sans">
+        <div className="w-full max-w-[210mm] mx-auto bg-white min-h-screen p-[10mm] text-slate-900 font-sans relative print:p-0 print:max-w-none">
             {/* HEADER */}
             <div className="flex items-center justify-between mb-8 border-b-2 border-slate-100 pb-6">
                 <div>
@@ -114,8 +114,8 @@ const PrintReport: React.FC = () => {
                                 </td>
                                 <td className="py-3 px-2">
                                     <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${['Venda', 'Resgate'].includes(h.type)
-                                            ? 'border-red-100 text-red-600'
-                                            : 'border-emerald-100 text-emerald-600'
+                                        ? 'border-red-100 text-red-600'
+                                        : 'border-emerald-100 text-emerald-600'
                                         }`}>
                                         {h.type}
                                     </span>
@@ -179,15 +179,54 @@ const PrintReport: React.FC = () => {
             </div>
 
             <style>{`
+        /* GLOBAL RESET FOR PRINT PAGE */
+        html, body {
+          background: white !important;
+          height: auto !important;
+          min-height: 100vh !important;
+          overflow: visible !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+        }
+        
         @media print {
-          @page { margin: 1cm; size: A4; }
-          body { 
-            background: white; 
-            -webkit-print-color-adjust: exact; 
-            print-color-adjust: exact; 
+          @page { 
+            margin: 10mm; 
+            size: A4 portrait; 
           }
+          
+          html, body {
+            visibility: visible !important;
+            height: auto !important;
+            width: auto !important;
+            overflow: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Force background graphics */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          /* Hide instructions in print */
+          .no-print { display: none !important; }
         }
       `}</style>
+
+            {/* SCREEN ONLY INSTRUCTIONS */}
+            <div className="fixed top-0 left-0 w-full bg-blue-600 text-white p-4 text-center z-50 no-print flex items-center justify-center gap-4 shadow-xl">
+                <span className="material-symbols-outlined">print</span>
+                <p className="text-sm font-bold">
+                    PARA IMPRESSÃO PERFEITA: Defina Margens como "Padrão" (Default) e Escala "100%"
+                </p>
+                <button onClick={() => window.print()} className="bg-white text-blue-600 px-4 py-1 rounded font-bold text-xs uppercase hover:bg-blue-50">
+                    Imprimir Agora
+                </button>
+            </div>
+
+            <div className="text-[8px] text-slate-300 fixed bottom-2 right-2 no-print">v4.0 OFFICIAL ENGINE</div>
         </div>
     );
 };

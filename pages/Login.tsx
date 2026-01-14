@@ -208,7 +208,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         <p className="text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-12">
           Este sistema contém informações protegidas. <br />
-          O acesso não autorizado é estritamente proibido.
+          O acesso não autorizado é estritamente proibido. <br />
+          <span className="text-[8px] opacity-30 mt-2 block">v4.1.2 - SYSTEM UPDATED {new Date().toLocaleTimeString()}</span>
         </p>
       </div>
     </div>

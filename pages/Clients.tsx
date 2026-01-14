@@ -270,7 +270,15 @@ const Clients: React.FC = () => {
     const fHistory = selectedClient.history.filter(h => new Date(h.date) >= startDate);
     const roi = fHistory.reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
     const saving = fHistory.reduce((acc, h) => acc + (h.economyGenerated || 0), 0);
-    return { roi, saving, totalMoves: fHistory.length, filteredHistory: fHistory };
+
+    // NEW METRICS FOR REPORT & CARDS
+    const totalPoints = selectedClient.programs.reduce((acc, curr) => acc + curr.balance, 0);
+    const totalValue = totalPoints * 0.0185; // Est. R$ 18,50/milheiro as per market standard
+    const totalInvested = fHistory
+      .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
+      .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+
+    return { roi, saving, totalMoves: fHistory.length, filteredHistory: fHistory, totalPoints, totalValue, totalInvested };
   }, [selectedClient, reportCycle, reportMonth, reportYear]);
 
   const currentTotalMiles = useMemo(() => selectedClient?.programs.reduce((acc, curr) => acc + curr.balance, 0) || 0, [selectedClient]);
@@ -323,47 +331,83 @@ const Clients: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:hidden">
-        {filteredClients.map((client) => (
-          <div
-            key={client.id}
-            onClick={() => { setSelectedClient(client); setActiveTab('info'); }}
-            className="group bg-bg-surface border border-white/5 p-8 rounded-[40px] flex flex-col hover:border-primary/50 transition-all cursor-pointer shadow-2xl relative overflow-hidden"
-          >
-            <div className={`absolute top-0 right-0 p-6 font-black italic uppercase text-[9px] tracking-[0.4em] ${client.managementLevel === 'Elite' ? 'text-primary' : 'text-slate-600'}`}>
-              {client.managementLevel}
-            </div>
+        {filteredClients.map((client) => {
+          // Metrics Calculation
+          const totalPoints = client.programs.reduce((acc, p) => acc + p.balance, 0);
+          const totalValue = totalPoints * 0.0185;
+          const roi = client.history.reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
-            <button
-              onClick={(e) => { e.stopPropagation(); setClientToDelete(client); }}
-              className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 size-12 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all shadow-xl z-20"
+          const totalInvested = client.history
+            .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
+            .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+
+          const totalEconomy = client.history.reduce((acc, h) => acc + (h.economyGenerated || 0), 0);
+
+          let evolutionPercent = 0;
+          if (totalInvested > 0) {
+            evolutionPercent = ((totalValue + roi - totalInvested) / totalInvested) * 100;
+          }
+
+          return (
+            <div
+              key={client.id}
+              onClick={() => { setSelectedClient(client); setActiveTab('info'); }}
+              className="group bg-bg-surface border border-white/5 p-8 rounded-[40px] flex flex-col hover:border-primary/50 transition-all cursor-pointer shadow-2xl relative overflow-hidden"
             >
-              <span className="material-symbols-outlined text-lg">delete_forever</span>
-            </button>
+              <div className={`absolute top-0 right-0 p-6 font-black italic uppercase text-[9px] tracking-[0.4em] ${client.managementLevel === 'Elite' ? 'text-primary' : 'text-slate-600'}`}>
+                {client.managementLevel}
+              </div>
 
-            <div className="flex items-center gap-6 mb-10">
-              <div className="size-16 rounded-full bg-gradient-to-br from-card-dark to-black border-2 border-primary/20 flex items-center justify-center text-primary text-xl font-black display-font shadow-[0_0_30px_-10px_rgba(226,190,106,0.3)]">
-                {getInitials(client.name)}
-              </div>
-              <div>
-                <p className="text-white font-black text-lg group-hover:text-primary transition-colors italic uppercase tracking-tighter leading-none">{client.name}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-primary font-black text-xs tracking-tight">{(client.programs.reduce((a, b) => a + b.balance, 0) / 1000000).toFixed(2)}M</span>
-                  <span className="text-[8px] text-slate-500 uppercase tracking-widest font-black italic">Capital Ativo</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); setClientToDelete(client); }}
+                className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 size-12 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all shadow-xl z-20"
+              >
+                <span className="material-symbols-outlined text-lg">delete_forever</span>
+              </button>
+
+              <div className="flex items-center gap-6 mb-6">
+                <div className="size-16 rounded-full bg-gradient-to-br from-card-dark to-black border-2 border-primary/20 flex items-center justify-center text-primary text-xl font-black display-font shadow-[0_0_30px_-10px_rgba(226,190,106,0.3)]">
+                  {getInitials(client.name)}
+                </div>
+                <div>
+                  <p className="text-white font-black text-lg group-hover:text-primary transition-colors italic uppercase tracking-tighter leading-none">{client.name}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-primary font-black text-xs tracking-tight">{(totalPoints / 1000000).toFixed(2)}M</span>
+                    <span className="text-[8px] text-slate-500 uppercase tracking-widest font-black italic">Capital Ativo</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="mt-auto pt-6 border-t border-white/5 flex justify-between items-center">
-              <div className="flex flex-col">
-                <span className="text-[8px] text-slate-600 uppercase font-black tracking-widest italic">Compliance Status</span>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="size-1.5 bg-emerald-custom rounded-full"></span>
-                  <span className="text-[9px] text-white font-bold uppercase tracking-widest">Auditado</span>
+
+              {/* NEW METRICS ROW */}
+              <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-4 mb-4">
+                <div>
+                  <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mb-1">Evolução Global</p>
+                  <p className={`text-lg font-black italic tracking-tighter ${evolutionPercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {evolutionPercent > 0 ? '+' : ''}{evolutionPercent.toFixed(1)}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mb-1">Economia Total</p>
+                  <p className="text-lg font-black text-white italic tracking-tighter">
+                    <span className="text-emerald-500 text-xs mr-1">R$</span>
+                    {(totalEconomy / 1000).toFixed(1)}k
+                  </p>
                 </div>
               </div>
-              <span className="material-symbols-outlined text-slate-700 group-hover:text-primary group-hover:translate-x-1 transition-all">north_east</span>
+
+              <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center">
+                <div className="flex flex-col">
+                  <span className="text-[8px] text-slate-600 uppercase font-black tracking-widest italic">Compliance Status</span>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="size-1.5 bg-emerald-custom rounded-full"></span>
+                    <span className="text-[9px] text-white font-bold uppercase tracking-widest">Auditado</span>
+                  </div>
+                </div>
+                <span className="material-symbols-outlined text-slate-700 group-hover:text-primary group-hover:translate-x-1 transition-all">north_east</span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {clientToDelete && (
@@ -443,7 +487,47 @@ const Clients: React.FC = () => {
               {/* Ativos Tab */}
               {activeTab === 'programs' && (
                 <div className="space-y-10 animate-in fade-in duration-500">
-                  {/* Consolidated Summary - Real-time Dashboard */}
+
+                  {/* NEW: Smart Asset Cards (Evolution & Economy) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="bg-bg-surface border border-emerald-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-emerald-500/40 transition-all">
+                      <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span className="material-symbols-outlined text-6xl text-emerald-500">savings</span>
+                      </div>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Economia Total Gerada</p>
+                      <p className="text-4xl font-black text-white italic tracking-tighter">
+                        <span className="text-emerald-500 mr-2">R$</span>
+                        {reportMetrics.saving.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                      <div className="mt-4 flex items-center gap-2">
+                        <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
+                          Lifetime Saving
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-bg-surface border border-blue-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-blue-500/40 transition-all">
+                      <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span className="material-symbols-outlined text-6xl text-blue-500">trending_up</span>
+                      </div>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Evolução Patrimonial</p>
+                      <p className="text-4xl font-black text-white italic tracking-tighter">
+                        {reportMetrics.totalInvested > 0
+                          ? `+${(((reportMetrics.totalValue + reportMetrics.roi - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100).toFixed(1)}%`
+                          : '+∞%'}
+                      </p>
+                      <div className="mt-4 flex items-center gap-2">
+                        <span className="text-[9px] bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
+                          Rentabilidade Global
+                        </span>
+                        <span className="text-[9px] text-slate-600 font-bold">
+                          (Mkt Val + ROI vs Invest)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Consolidated Summary - existing */}
                   <div className="bg-gradient-to-r from-amber-500/10 to-bg-card border-l-4 border-amber-500 p-8 rounded-r-3xl shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-10">
                       <span className="material-symbols-outlined text-8xl text-amber-500">leaderboard</span>
@@ -714,11 +798,16 @@ const Clients: React.FC = () => {
                 left: 0 !important;
                 top: 0 !important;
                 width: 100% !important;
-                max-width: 210mm !important; /* A4 Width Standard */
-                margin: 0 auto !important; /* Centered */
-                padding: 10mm !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 z-index: 2147483647 !important;
                 background: white !important;
+              }
+
+              @page {
+                margin: 10mm;
+                size: A4 portrait;
               }
 
               /* 4. Restore Internal Layouts (Grid/Flex INSIDE the report) */
