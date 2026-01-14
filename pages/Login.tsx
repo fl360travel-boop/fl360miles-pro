@@ -15,6 +15,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [successMessage, setSuccessMessage] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  React.useEffect(() => {
+    const savedEmail = localStorage.getItem('fl360_saved_email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +44,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           setError(error.message);
         }
       } else {
+        if (rememberMe) {
+          localStorage.setItem('fl360_saved_email', email);
+        } else {
+          localStorage.removeItem('fl360_saved_email');
+        }
         onLogin();
       }
     } catch (err: any) {
@@ -142,6 +156,20 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
             {successMessage && (
               <p className="text-green-400 text-[11px] font-medium text-center bg-green-500/10 p-3 rounded-xl">{successMessage}</p>
+            )}
+
+            {!showResetPassword && (
+              <div className="flex items-center gap-3 px-1">
+                <div
+                  onClick={() => setRememberMe(!rememberMe)}
+                  className={`size-5 rounded-md border flex items-center justify-center cursor-pointer transition-all ${rememberMe ? 'bg-primary border-primary text-bg-dark' : 'bg-transparent border-white/20 hover:border-white/40'}`}
+                >
+                  {rememberMe && <span className="material-symbols-outlined text-sm font-bold">check</span>}
+                </div>
+                <label onClick={() => setRememberMe(!rememberMe)} className="text-[11px] text-slate-400 font-bold uppercase tracking-widest cursor-pointer select-none">
+                  Manter conectado
+                </label>
+              </div>
             )}
 
             <button
