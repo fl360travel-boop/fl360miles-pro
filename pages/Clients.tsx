@@ -420,7 +420,7 @@ const Clients: React.FC = () => {
 
               {activeTab === 'info' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 animate-in fade-in duration-500">
-                  <div className="bg-card-dark/40 p-10 rounded-[32px] border border-white/5 space-y-8">
+                  <div className="bg-bg-card/40 p-10 rounded-[32px] border border-white/5 space-y-8">
                     <h4 className="display-font text-[10px] text-primary font-black uppercase tracking-[0.4em] italic border-b border-white/5 pb-5">Perfil Identificado</h4>
                     <div className="space-y-6">
                       <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Documento: <span className="text-white ml-2 italic font-black">{selectedClient.cpf || 'Não Informado'}</span></p>
@@ -429,7 +429,7 @@ const Clients: React.FC = () => {
                       <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Local: <span className="text-white ml-2 italic font-black">{selectedClient.region || 'Brasil'}</span></p>
                     </div>
                   </div>
-                  <div className="bg-card-dark/40 p-10 rounded-[32px] border border-white/5 space-y-8">
+                  <div className="bg-bg-card/40 p-10 rounded-[32px] border border-white/5 space-y-8">
                     <h4 className="display-font text-[10px] text-primary font-black uppercase tracking-[0.4em] italic border-b border-white/5 pb-5">Parâmetros de Gestão</h4>
                     <div className="space-y-6">
                       <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Honorários: <span className="text-white ml-2 italic font-black">R$ {selectedClient.managementFee.toLocaleString()}</span></p>
@@ -446,17 +446,17 @@ const Clients: React.FC = () => {
                   <div className="bg-bg-surface border border-white/10 p-10 rounded-[40px] flex flex-col md:flex-row gap-8 items-end shadow-2xl">
                     <div className="flex-1 w-full space-y-3">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Novo Programa</label>
-                      <input className="w-full bg-card-dark border-none rounded-2xl py-5 px-6 text-sm text-white italic outline-none focus:ring-1 focus:ring-primary" value={newProg.name} onChange={e => setNewProg({ ...newProg, name: e.target.value })} placeholder="Ex: Livelo" />
+                      <input className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-sm text-white italic outline-none focus:ring-1 focus:ring-primary" value={newProg.name} onChange={e => setNewProg({ ...newProg, name: e.target.value })} placeholder="Ex: Livelo" />
                     </div>
                     <div className="flex-1 w-full space-y-3">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Capital Ativo</label>
-                      <input type="number" className="w-full bg-card-dark border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none focus:ring-1 focus:ring-primary" value={newProg.balance} onChange={e => setNewProg({ ...newProg, balance: e.target.value })} placeholder="0" />
+                      <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none focus:ring-1 focus:ring-primary" value={newProg.balance} onChange={e => setNewProg({ ...newProg, balance: e.target.value })} placeholder="0" />
                     </div>
                     <button onClick={addProgram} className="bg-primary hover:bg-primary-dark text-bg-dark font-black px-10 py-5 rounded-2xl text-[11px] uppercase tracking-widest transition-all shadow-xl shadow-primary/20 h-[64px]">VINCULAR</button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {selectedClient.programs.map(p => (
-                      <div key={p.id} className="bg-card-dark/40 p-8 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-primary/30 transition-all">
+                      <div key={p.id} className="bg-bg-card/40 p-8 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-primary/30 transition-all">
                         <div className="flex items-center gap-6 flex-1">
                           <div className="size-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-xl">
                             <BrandLogo name={p.name} className="size-8" />
@@ -490,11 +490,11 @@ const Clients: React.FC = () => {
                   <div className="bg-bg-surface border border-white/10 p-10 rounded-[40px] flex flex-col md:flex-row gap-8 items-end shadow-2xl">
                     <div className="flex-1 w-full space-y-3">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Banco</label>
-                      <input className="w-full bg-card-dark border border-white/5 rounded-2xl py-5 px-6 text-sm text-white italic outline-none focus:ring-1 focus:ring-primary" value={newCard.bank} onChange={e => setNewCard({ ...newCard, bank: e.target.value })} placeholder="Ex: Santander" />
+                      <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-5 px-6 text-sm text-white italic outline-none focus:ring-1 focus:ring-primary" value={newCard.bank} onChange={e => setNewCard({ ...newCard, bank: e.target.value })} placeholder="Ex: Santander" />
                     </div>
                     <div className="flex-1 w-full space-y-3">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Cartão</label>
-                      <input className="w-full bg-card-dark border border-white/5 rounded-2xl py-5 px-6 text-sm text-white italic outline-none focus:ring-1 focus:ring-primary" value={newCard.name} onChange={e => setNewCard({ ...newCard, name: e.target.value })} placeholder="Ex: Unlimited Black" />
+                      <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-5 px-6 text-sm text-white italic outline-none focus:ring-1 focus:ring-primary" value={newCard.name} onChange={e => setNewCard({ ...newCard, name: e.target.value })} placeholder="Ex: Unlimited Black" />
                     </div>
                     <button onClick={addCard} className="bg-primary hover:bg-primary-dark text-bg-dark font-black px-10 py-5 rounded-2xl text-[11px] uppercase tracking-widest transition-all shadow-xl shadow-primary/20 h-[64px]">CADASTRAR</button>
                   </div>
@@ -522,7 +522,7 @@ const Clients: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div className="space-y-3">
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Operação</label>
-                        <select className="w-full bg-card-dark border-none rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none appearance-none cursor-pointer" value={newMove.type} onChange={e => setNewMove({ ...newMove, type: e.target.value as any })}>
+                        <select className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none appearance-none cursor-pointer" value={newMove.type} onChange={e => setNewMove({ ...newMove, type: e.target.value as any })}>
                           <option value="Inclusão">Inclusão de Capital</option>
                           <option value="Compra">Compra</option>
                           <option value="Venda">Liquidação (Venda)</option>
@@ -536,7 +536,7 @@ const Clients: React.FC = () => {
                           <div className="flex gap-2">
                             <input
                               autoFocus
-                              className="w-full bg-card-dark border border-primary/50 rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none"
+                              className="w-full bg-bg-card border border-primary/50 rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none"
                               value={customProgram}
                               onChange={e => setCustomProgram(e.target.value)}
                               placeholder="Nome do Novo Programa"
@@ -544,7 +544,7 @@ const Clients: React.FC = () => {
                             <button onClick={() => { setNewMove({ ...newMove, program: '' }); setCustomProgram(''); }} className="px-4 text-slate-500 hover:text-white"><span className="material-symbols-outlined">close</span></button>
                           </div>
                         ) : (
-                          <select className="w-full bg-card-dark border-none rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none appearance-none cursor-pointer" value={newMove.program} onChange={e => setNewMove({ ...newMove, program: e.target.value })}>
+                          <select className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none appearance-none cursor-pointer" value={newMove.program} onChange={e => setNewMove({ ...newMove, program: e.target.value })}>
                             <option value="">Selecione o ativo...</option>
                             {selectedClient.programs.map(p => <option key={p.id} value={p.name}>{p.name.toUpperCase()}</option>)}
                             <option value="_NEW_">✨ Inserir Novo Programa...</option>
@@ -553,11 +553,11 @@ const Clients: React.FC = () => {
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Volume (Milhas)</label>
-                        <input type="number" className="w-full bg-card-dark border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none" value={newMove.amount} onChange={e => setNewMove({ ...newMove, amount: e.target.value })} placeholder="0" />
+                        <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none" value={newMove.amount} onChange={e => setNewMove({ ...newMove, amount: e.target.value })} placeholder="0" />
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Valor Financeiro (R$)</label>
-                        <input type="number" className="w-full bg-card-dark border-none rounded-2xl py-5 px-6 text-xl text-emerald-500 font-black italic outline-none" value={newMove.val} onChange={e => setNewMove({ ...newMove, val: e.target.value })} placeholder="0.00" />
+                        <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-emerald-500 font-black italic outline-none" value={newMove.val} onChange={e => setNewMove({ ...newMove, val: e.target.value })} placeholder="0.00" />
                       </div>
                     </div>
                     <button onClick={addMovement} className="w-full bg-primary hover:bg-primary-dark text-bg-dark font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.4em] shadow-2xl shadow-primary/20 active:scale-95 transition-all">INJETAR NO LEDGER DE AUDITORIA</button>
@@ -565,7 +565,7 @@ const Clients: React.FC = () => {
 
                   <div className="space-y-6">
                     {filteredHistory.map(h => (
-                      <div key={h.id} className="bg-card-dark/30 p-8 rounded-[32px] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 group hover:border-white/10 transition-all">
+                      <div key={h.id} className="bg-bg-card/30 p-8 rounded-[32px] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 group hover:border-white/10 transition-all">
                         <div className="flex items-center gap-8">
                           <div className={`size-16 rounded-[24px] flex items-center justify-center shadow-2xl ${['Venda', 'Resgate', 'Transferência'].includes(h.type) ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
                             {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? (

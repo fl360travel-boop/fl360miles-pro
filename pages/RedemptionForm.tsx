@@ -121,7 +121,7 @@ const RedemptionForm: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">Titular Designado</label>
-                  <select className="w-full bg-card-dark border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none outline-none italic" value={selectedClientId} onChange={e => setSelectedClientId(e.target.value)}>
+                  <select className="w-full bg-bg-card border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none outline-none italic" value={selectedClientId} onChange={e => setSelectedClientId(e.target.value)}>
                     <option value="">Selecione...</option>
                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
@@ -135,7 +135,7 @@ const RedemptionForm: React.FC = () => {
                       <span className="text-[9px] font-black uppercase tracking-widest">Novo</span>
                     </button>
                   </div>
-                  <select className="w-full bg-card-dark border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none outline-none italic" value={program} onChange={e => setProgram(e.target.value)}>
+                  <select className="w-full bg-bg-card border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none outline-none italic" value={program} onChange={e => setProgram(e.target.value)}>
                     <option value="">Selecione...</option>
                     {programList.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
@@ -151,25 +151,25 @@ const RedemptionForm: React.FC = () => {
                       <span className="text-[9px] font-black uppercase tracking-widest">Nova</span>
                     </button>
                   </div>
-                  <select className="w-full bg-card-dark border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none outline-none italic" value={airline} onChange={e => setAirline(e.target.value)}>
+                  <select className="w-full bg-bg-card border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none outline-none italic" value={airline} onChange={e => setAirline(e.target.value)}>
                     <option value="">Selecione...</option>
                     {airlineList.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
                 <div className="space-y-3">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">Milhas Utilizadas</label>
-                  <input className="w-full bg-card-dark border border-white/5 rounded-2xl py-4 px-6 text-xl font-black text-white focus:ring-1 focus:ring-primary outline-none italic" type="number" placeholder="0" value={milesUsed} onChange={e => setMilesUsed(e.target.value)} />
+                  <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-4 px-6 text-xl font-black text-white focus:ring-1 focus:ring-primary outline-none italic" type="number" placeholder="0" value={milesUsed} onChange={e => setMilesUsed(e.target.value)} />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">Valor da Passagem Pagante (R$)</label>
-                  <input className="w-full bg-card-dark border border-white/5 rounded-2xl py-5 px-14 text-2xl font-black text-white italic focus:ring-0 placeholder:text-slate-800 outline-none" placeholder="0,00" type="number" value={ticketValue} onChange={e => setTicketValue(e.target.value)} />
+                  <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-5 px-14 text-2xl font-black text-white italic focus:ring-0 placeholder:text-slate-800 outline-none" placeholder="0,00" type="number" value={ticketValue} onChange={e => setTicketValue(e.target.value)} />
                 </div>
                 <div className="space-y-3">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">CPM Custo Médio (R$)</label>
-                  <input className="w-full bg-card-dark border border-white/5 rounded-2xl py-5 px-14 text-2xl font-black text-primary italic focus:ring-0 placeholder:text-slate-800 outline-none" placeholder="16,00" type="number" value={cpmCusto} onChange={e => setCpmCusto(e.target.value)} />
+                  <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-5 px-14 text-2xl font-black text-primary italic focus:ring-0 placeholder:text-slate-800 outline-none" placeholder="16,00" type="number" value={cpmCusto} onChange={e => setCpmCusto(e.target.value)} />
                 </div>
               </div>
             </div>
@@ -211,7 +211,7 @@ const RedemptionForm: React.FC = () => {
             <h3 className="display-font text-white font-bold uppercase tracking-widest">Cadastrar Novo(a) {showAddProgram ? 'Programa' : 'Cia Aérea'}</h3>
             <input
               autoFocus
-              className="w-full bg-card-dark border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none"
+              className="w-full bg-bg-card border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none"
               placeholder="Digite o nome..."
               value={newItemName}
               onChange={e => setNewItemName(e.target.value)}

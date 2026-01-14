@@ -169,19 +169,19 @@ const Onboarding: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Nome Completo</label>
-                    <input className="w-full bg-card-dark border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Ricardo Albuquerque de Oliveira" />
+                    <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Ricardo Albuquerque de Oliveira" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">CPF</label>
-                    <input className="w-full bg-card-dark border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={cpf} onChange={e => setCpf(e.target.value)} placeholder="000.000.000-00" />
+                    <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={cpf} onChange={e => setCpf(e.target.value)} placeholder="000.000.000-00" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">E-mail</label>
-                    <input className="w-full bg-card-dark border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={email} onChange={e => setEmail(e.target.value)} placeholder="exemplo@high-ticket.com" />
+                    <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={email} onChange={e => setEmail(e.target.value)} placeholder="exemplo@high-ticket.com" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Data de Nascimento</label>
-                    <input type="date" className="w-full bg-card-dark border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none h-[48px]" value={birthDate} onChange={e => setBirthDate(e.target.value)} />
+                    <input type="date" className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none h-[48px]" value={birthDate} onChange={e => setBirthDate(e.target.value)} />
                   </div>
                 </div>
               </div>
@@ -196,7 +196,7 @@ const Onboarding: React.FC = () => {
                     <button
                       key={l}
                       onClick={() => setLevel(l)}
-                      className={`p-6 rounded-2xl border transition-all text-center group relative overflow-hidden ${level === l ? 'bg-primary/10 border-primary text-primary font-bold shadow-lg shadow-primary/5' : 'bg-card-dark border-white/5 text-slate-500 hover:border-primary/30'}`}
+                      className={`p-6 rounded-2xl border transition-all text-center group relative overflow-hidden ${level === l ? 'bg-primary/10 border-primary text-primary font-bold shadow-lg shadow-primary/5' : 'bg-bg-card border-white/5 text-slate-500 hover:border-primary/30'}`}
                     >
                       <span className="material-symbols-outlined block mb-3 text-3xl">
                         {l === 'Standard' ? 'person' : l === 'Premium' ? 'military_tech' : 'diamond'}
@@ -208,11 +208,11 @@ const Onboarding: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Taxa de Gestão (R$)</label>
-                    <input type="number" className="w-full bg-card-dark border border-white/5 rounded-xl py-4 px-5 text-xl font-black text-white focus:ring-1 focus:ring-primary outline-none" value={fee} onChange={e => setFee(e.target.value)} placeholder="0,00" />
+                    <input type="number" className="w-full bg-bg-card border border-white/5 rounded-xl py-4 px-5 text-xl font-black text-white focus:ring-1 focus:ring-primary outline-none" value={fee} onChange={e => setFee(e.target.value)} placeholder="0,00" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Ciclo de Faturamento</label>
-                    <select className="w-full bg-card-dark border border-white/5 rounded-xl py-4 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none h-[60px]" value={billingCycle} onChange={e => setBillingCycle(e.target.value as BillingCycle)}>
+                    <select className="w-full bg-bg-card border border-white/5 rounded-xl py-4 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none h-[60px]" value={billingCycle} onChange={e => setBillingCycle(e.target.value as BillingCycle)}>
                       <option>Mensal</option>
                       <option>Anual</option>
                     </select>
@@ -232,7 +232,7 @@ const Onboarding: React.FC = () => {
               </div>
               <div className="space-y-4 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
                 {programs.map((p, idx) => (
-                  <div key={idx} className="bg-card-dark p-6 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-4 items-end group transition-all hover:border-primary/20">
+                  <div key={idx} className="bg-bg-card p-6 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-4 items-end group transition-all hover:border-primary/20">
                     <div className="flex-1 w-full space-y-2">
                       <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Programa</label>
                       <input className="w-full bg-bg-surface border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none font-bold italic" value={p.name} onChange={e => updateProgram(idx, 'name', e.target.value)} placeholder="Ex: Livelo" />
@@ -260,7 +260,7 @@ const Onboarding: React.FC = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
                 {cards.map((c, idx) => (
-                  <div key={idx} className="bg-card-dark p-6 rounded-2xl border border-white/5 space-y-4 relative group transition-all hover:border-primary/20">
+                  <div key={idx} className="bg-bg-card p-6 rounded-2xl border border-white/5 space-y-4 relative group transition-all hover:border-primary/20">
                     <button onClick={() => setCards(cards.filter((_, i) => i !== idx))} className="absolute top-4 right-4 text-slate-700 hover:text-red-500 transition-colors">
                       <span className="material-symbols-outlined text-sm">close</span>
                     </button>
@@ -287,11 +287,11 @@ const Onboarding: React.FC = () => {
               <p className="text-slate-500 text-sm italic mb-10">O protocolo de gestão de {name} está configurado.</p>
 
               <div className="grid grid-cols-2 gap-4 text-left max-w-lg mx-auto">
-                <div className="bg-card-dark p-6 rounded-2xl border border-white/5">
+                <div className="bg-bg-card p-6 rounded-2xl border border-white/5">
                   <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Patrimônio Inicial</p>
                   <p className="text-xl font-black text-white italic tracking-tighter">{programs.reduce((acc, curr) => acc + (Number(curr.balance) || 0), 0).toLocaleString()} <span className="text-[10px] opacity-40">mi</span></p>
                 </div>
-                <div className="bg-card-dark p-6 rounded-2xl border border-white/5">
+                <div className="bg-bg-card p-6 rounded-2xl border border-white/5">
                   <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Honorário</p>
                   <p className="text-xl font-black text-primary italic tracking-tighter">R$ {Number(fee || 0).toLocaleString()}</p>
                 </div>

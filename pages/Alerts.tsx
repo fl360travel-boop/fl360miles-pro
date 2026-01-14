@@ -211,7 +211,7 @@ const Alerts: React.FC = () => {
               {/* Cronograma de Vencimento Clicável */}
               <button
                 onClick={() => editAlert(alert)}
-                className={`mt-6 flex items-center gap-3 p-4 rounded-2xl border border-white/5 w-full text-left transition-all hover:bg-white/5 hover:border-white/10 ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'bg-red-500/5 border-red-500/20' : 'bg-card-dark'}`}
+                className={`mt-6 flex items-center gap-3 p-4 rounded-2xl border border-white/5 w-full text-left transition-all hover:bg-white/5 hover:border-white/10 ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'bg-red-500/5 border-red-500/20' : 'bg-bg-card'}`}
               >
                 <div className={`size-10 rounded-xl flex items-center justify-center ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'bg-red-500/20 text-red-400' : 'bg-primary/10 text-primary'}`}>
                   <span className="material-symbols-outlined text-base">calendar_month</span>
@@ -227,7 +227,7 @@ const Alerts: React.FC = () => {
             </div>
 
             {alert.observation && (
-              <div className="mb-8 p-5 rounded-2xl bg-card-dark/30 border border-white/5 text-[10px] text-slate-400 italic leading-relaxed">
+              <div className="mb-8 p-5 rounded-2xl bg-bg-card/30 border border-white/5 text-[10px] text-slate-400 italic leading-relaxed">
                 "{alert.observation}"
               </div>
             )}
@@ -236,7 +236,7 @@ const Alerts: React.FC = () => {
               <button
                 onClick={() => resolveAlert(alert.id)}
                 disabled={alert.status === 'resolved' || resolvingId === alert.id}
-                className={`w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${alert.status === 'resolved' ? 'bg-white/5 text-slate-600 border border-transparent' : 'bg-card-dark border border-white/10 text-slate-400 hover:bg-primary hover:text-bg-dark hover:border-primary active:scale-95 shadow-xl hover:shadow-primary/20'}`}
+                className={`w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${alert.status === 'resolved' ? 'bg-white/5 text-slate-600 border border-transparent' : 'bg-bg-card border border-white/10 text-slate-400 hover:bg-primary hover:text-bg-dark hover:border-primary active:scale-95 shadow-xl hover:shadow-primary/20'}`}
               >
                 {resolvingId === alert.id ? (
                   <span className="material-symbols-outlined animate-spin text-sm">sync</span>
@@ -282,7 +282,7 @@ const Alerts: React.FC = () => {
               <div className="space-y-3">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">Titular Designado</label>
                 <div className="relative">
-                  <select className="w-full bg-card-dark border border-white/5 rounded-2xl py-5 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none italic appearance-none cursor-pointer" value={newAlert.clientId} onChange={e => setNewAlert({ ...newAlert, clientId: e.target.value })}>
+                  <select className="w-full bg-bg-card border border-white/5 rounded-2xl py-5 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none italic appearance-none cursor-pointer" value={newAlert.clientId} onChange={e => setNewAlert({ ...newAlert, clientId: e.target.value })}>
                     <option value="">Selecionar titular do ativo...</option>
                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
@@ -291,23 +291,23 @@ const Alerts: React.FC = () => {
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">Programa / Natureza do Ativo</label>
-                <input className="w-full bg-card-dark border border-white/5 rounded-2xl py-5 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none italic font-bold" value={newAlert.program} onChange={e => setNewAlert({ ...newAlert, program: e.target.value })} placeholder="Ex: LATAM Pass Platinum" />
+                <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-5 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none italic font-bold" value={newAlert.program} onChange={e => setNewAlert({ ...newAlert, program: e.target.value })} placeholder="Ex: LATAM Pass Platinum" />
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">Volume de Milhas em Risco</label>
                 <div className="relative">
-                  <input type="number" className="w-full bg-card-dark border border-white/5 rounded-2xl py-5 px-6 text-2xl font-black text-white focus:ring-1 focus:ring-primary outline-none italic pr-16" value={newAlert.amount} onChange={e => setNewAlert({ ...newAlert, amount: e.target.value })} placeholder="0" />
+                  <input type="number" className="w-full bg-bg-card border border-white/5 rounded-2xl py-5 px-6 text-2xl font-black text-white focus:ring-1 focus:ring-primary outline-none italic pr-16" value={newAlert.amount} onChange={e => setNewAlert({ ...newAlert, amount: e.target.value })} placeholder="0" />
                   <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-600 uppercase">Milhas</span>
                 </div>
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">Data de Expiração (Validade)</label>
-                <input type="date" className="w-full bg-card-dark border border-white/5 rounded-2xl py-5 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none h-[64px]" value={newAlert.date} onChange={e => setNewAlert({ ...newAlert, date: e.target.value })} />
+                <input type="date" className="w-full bg-bg-card border border-white/5 rounded-2xl py-5 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none h-[64px]" value={newAlert.date} onChange={e => setNewAlert({ ...newAlert, date: e.target.value })} />
               </div>
               <div className="md:col-span-2 space-y-3">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">Observações Críticas & Estratégia</label>
                 <textarea
-                  className="w-full bg-card-dark border border-white/5 rounded-[24px] py-5 px-6 text-sm text-slate-300 focus:ring-1 focus:ring-primary outline-none italic min-h-[120px] leading-relaxed"
+                  className="w-full bg-bg-card border border-white/5 rounded-[24px] py-5 px-6 text-sm text-slate-300 focus:ring-1 focus:ring-primary outline-none italic min-h-[120px] leading-relaxed"
                   value={newAlert.obs}
                   onChange={e => setNewAlert({ ...newAlert, obs: e.target.value })}
                   placeholder="Descreva a origem das milhas, bônus vinculados ou estratégias de resgate imediato..."

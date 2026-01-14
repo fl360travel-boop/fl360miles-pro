@@ -95,7 +95,7 @@ const Concierge: React.FC = () => {
           <div className="flex items-center gap-6">
             <div className="space-y-2">
               <label className="text-slate-500 text-[9px] font-bold uppercase tracking-widest px-1">Quantidade de Membros</label>
-              <div className="flex items-center bg-card-dark border border-white/10 rounded-xl px-4 py-2">
+              <div className="flex items-center bg-bg-card border border-white/10 rounded-xl px-4 py-2">
                 <button onClick={() => setPeopleCount(Math.max(1, parseInt(peopleCount) - 1).toString())} className="text-primary hover:text-white transition-colors">
                   <span className="material-symbols-outlined text-sm">remove</span>
                 </button>
@@ -120,7 +120,7 @@ const Concierge: React.FC = () => {
               <select
                 value={selectedClientId}
                 onChange={(e) => setSelectedClientId(e.target.value)}
-                className="w-full bg-card-dark border border-white/10 rounded-xl py-4 px-6 text-sm text-white appearance-none outline-none focus:ring-1 focus:ring-primary italic"
+                className="w-full bg-bg-card border border-white/10 rounded-xl py-4 px-6 text-sm text-white appearance-none outline-none focus:ring-1 focus:ring-primary italic"
               >
                 <option value="">Selecione o membro...</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -134,11 +134,11 @@ const Concierge: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-4 duration-500">
                 <div className="space-y-2">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-1">Origem / Destino</label>
-                  <input className="w-full bg-card-dark border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary italic" value={route} onChange={e => setRoute(e.target.value)} placeholder="Ex: GRU -> LHR" />
+                  <input className="w-full bg-bg-card border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary italic" value={route} onChange={e => setRoute(e.target.value)} placeholder="Ex: GRU -> LHR" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-1">Classe Requerida</label>
-                  <select className="w-full bg-card-dark border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none italic">
+                  <select className="w-full bg-bg-card border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none italic">
                     <option>First Class (Padrão Elite)</option>
                     <option>Business Class</option>
                     <option>Premium Economy</option>
@@ -151,11 +151,11 @@ const Concierge: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-4 duration-500">
                 <div className="space-y-2">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-1">Resort / Hotel</label>
-                  <input className="w-full bg-card-dark border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary italic" value={hotel} onChange={e => setHotel(e.target.value)} placeholder="Ex: Aman Tokyo" />
+                  <input className="w-full bg-bg-card border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary italic" value={hotel} onChange={e => setHotel(e.target.value)} placeholder="Ex: Aman Tokyo" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-1">Datas Preferenciais</label>
-                  <input className="w-full bg-card-dark border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary" placeholder="Julho / 2024" />
+                  <input className="w-full bg-bg-card border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary" placeholder="Julho / 2024" />
                 </div>
               </div>
             )}
@@ -163,7 +163,7 @@ const Concierge: React.FC = () => {
             <div className="mt-10 space-y-4">
               <label className="text-slate-300 text-[10px] font-bold uppercase tracking-widest px-1">Briefing do Atendimento</label>
               <textarea
-                className="w-full bg-card-dark border-none rounded-2xl py-5 px-6 text-xs text-slate-300 focus:ring-1 focus:ring-primary min-h-[140px] italic leading-relaxed outline-none"
+                className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xs text-slate-300 focus:ring-1 focus:ring-primary min-h-[140px] italic leading-relaxed outline-none"
                 value={additionalObs}
                 onChange={e => setAdditionalObs(e.target.value)}
                 placeholder="Insira detalhes específicos, preferências de concierge, restrições e solicitações especiais..."
