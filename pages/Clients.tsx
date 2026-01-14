@@ -384,18 +384,16 @@ const Clients: React.FC = () => {
           <h1 className="display-font text-white text-3xl font-bold tracking-tight uppercase italic">Gestão de Ativos</h1>
           <p className="text-slate-500 text-[10px] font-bold mt-1 uppercase tracking-[0.3em] italic">FL360MILES Elite Protocol</p>
         </div>
-        <div className="flex gap-4">
-          <button
-            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-            className="bg-bg-surface border border-white/10 hover:border-primary/50 text-slate-400 hover:text-white px-6 py-3 rounded-2xl font-bold text-[10px] tracking-widest uppercase transition-all flex items-center gap-3 active:scale-95"
-          >
-            <span className="material-symbols-outlined text-lg">sort_by_alpha</span>
-            {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
-          </button>
-          <Link to="/onboarding" className="bg-primary hover:bg-primary-dark text-bg-dark px-8 py-3 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all shadow-xl shadow-primary/20 flex items-center gap-3 active:scale-95">
-            <span className="material-symbols-outlined text-sm">person_add</span> NOVO CLIENTE
-          </Link>
-        </div>
+        <button
+          onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+          className="bg-bg-surface border border-white/10 hover:border-[#E2BE6A]/50 text-slate-400 hover:text-white px-6 py-3 rounded-2xl font-bold text-[10px] tracking-widest uppercase transition-all flex items-center gap-3 active:scale-95 whitespace-nowrap"
+        >
+          <span className="material-symbols-outlined text-lg">sort_by_alpha</span>
+          {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+        </button>
+        <Link to="/onboarding" className="shrink-0 bg-[#E2BE6A] hover:bg-[#B8952E] text-[#0A0D11] px-8 py-3 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all shadow-xl shadow-[#E2BE6A]/20 flex items-center gap-3 active:scale-95 whitespace-nowrap">
+          <span className="material-symbols-outlined text-sm">person_add</span> NOVO CLIENTE
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:hidden">
