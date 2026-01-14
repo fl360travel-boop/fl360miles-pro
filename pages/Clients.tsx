@@ -431,7 +431,7 @@ const Clients: React.FC = () => {
                 {client.managementLevel}
               </div>
 
-              <div className="absolute bottom-8 right-8 flex gap-3 z-20 opacity-0 group-hover:opacity-100 transition-all">
+              <div className="absolute bottom-8 right-8 flex gap-3 z-20 transition-all">
                 <Link
                   to={`/onboarding?edit=${client.id}`}
                   onClick={(e) => e.stopPropagation()}

@@ -17,7 +17,7 @@ const TopBar: React.FC<TopBarProps> = ({ onLogout, onMenuClick }) => {
   return (
     <header className="h-20 bg-bg-dark/80 backdrop-blur-md border-b border-white/5 px-4 md:px-8 flex items-center justify-between sticky top-0 z-50 print:hidden">
       <div className="flex items-center gap-4">
-        <button 
+        <button
           onClick={onMenuClick}
           className="lg:hidden text-primary p-2 hover:bg-white/5 rounded-xl transition-colors"
         >
@@ -25,16 +25,19 @@ const TopBar: React.FC<TopBarProps> = ({ onLogout, onMenuClick }) => {
         </button>
         <div className="hidden md:block">
           <h2 className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase">Módulo</h2>
-          <p className="text-sm font-semibold text-primary italic uppercase tracking-widest">{pageTitle}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-primary italic uppercase tracking-widest">{pageTitle}</p>
+            <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-mono text-slate-500">v2.1</span>
+          </div>
         </div>
       </div>
 
       <div className="flex-1 max-w-lg mx-8 hidden sm:block">
         <div className="relative group">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg group-focus-within:text-primary transition-colors">search</span>
-          <input 
-            className="w-full bg-bg-surface border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs focus:ring-1 focus:ring-primary focus:border-primary transition-all placeholder:text-slate-600 outline-none text-white italic" 
-            placeholder="Buscar no terminal elite..." 
+          <input
+            className="w-full bg-bg-surface border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs focus:ring-1 focus:ring-primary focus:border-primary transition-all placeholder:text-slate-600 outline-none text-white italic"
+            placeholder="Buscar no terminal elite..."
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -53,13 +56,13 @@ const TopBar: React.FC<TopBarProps> = ({ onLogout, onMenuClick }) => {
             <p className="text-sm font-bold text-white leading-none italic uppercase tracking-tighter">Adriano Moraes</p>
             <p className="text-[10px] text-primary uppercase mt-1 tracking-widest font-bold">Wealth Advisor</p>
           </div>
-          <button 
+          <button
             onClick={onLogout}
             className="size-10 rounded-full bg-card-dark border border-white/10 flex items-center justify-center overflow-hidden hover:border-primary transition-all group relative shadow-2xl"
           >
-            <img 
-              src="https://picsum.photos/seed/executive/100/100" 
-              alt="Profile" 
+            <img
+              src="https://picsum.photos/seed/executive/100/100"
+              alt="Profile"
               className="w-full h-full object-cover group-hover:opacity-30 transition-opacity"
             />
             <span className="material-symbols-outlined absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-primary text-xl transition-opacity">logout</span>
