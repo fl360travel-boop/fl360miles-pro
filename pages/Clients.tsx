@@ -669,70 +669,75 @@ const Clients: React.FC = () => {
         <>
           <style>{`
             @media print {
-              @page { margin: 1cm; size: auto; }
+              @page { margin: 0; size: auto; }
               
-              /* Hide everything by default using display: none to remove from flow */
-              body > * {
-                display: none !important;
+              /* 1. Hide everything initially */
+              body * {
+                visibility: hidden;
               }
 
-              /* Reset html/body to allow full expansion */
-              html, body {
-                height: auto !important;
-                overflow: visible !important;
+              /* 2. Collapse Layout Containers (Sidebar, App Shell) */
+              /* Targeted based on App.tsx and typical Sidebar behavior */
+              .flex, 
+              .flex-col, 
+              .h-screen, 
+              aside, 
+              nav, 
+              [class*="sidebar"],
+              .lg\:relative,
+              main {
+                display: block !important; /* Break flexbox */
+                position: static !important;
                 margin: 0 !important;
                 padding: 0 !important;
-              }
-
-              /* Target the report root specifically */
-              /* Note: We need to ensure this ID is on a direct child of body or we target it correctly */
-              /* The component structure has #wealth-report-root inside the Clients component which is inside layout */
-              /* So we must ensure parents are visible too, OR move this to fixed overlay */
-              
-              /* BETTER STRATEGY: Isolate and Center for A4 */
-              #wealth-report-root {
-                display: block !important;
-                position: relative !important; /* Static flow */
                 width: 100% !important;
-                max-width: 210mm !important; /* Limit to A4 width */
-                margin: 0 auto !important; /* Center horizontally */
-                padding: 0 !important;
-                top: auto !important;
-                left: auto !important;
                 height: auto !important;
-                z-index: 9999 !important;
-                background: white !important;
+                left: 0 !important;
+                transform: none !important;
+                overflow: visible !important;
+              }
+              
+              /* Explicitly hide Sidebar components to remove their reserved space */
+              /* Assuming 'aside' or specific sidebar classes found in standard layouts */
+              /* Also hiding the specific flex containers if they are purely for layout */
+              .flex.h-screen > div:first-child { 
+                  display: none !important; /* Often the sidebar wrapper */
               }
 
-              #wealth-report-root * {
+              /* 3. The Report Container - VISIBLE and POSITIONED */
+              #wealth-report-root, #wealth-report-root * {
                 visibility: visible !important;
               }
 
-              /* Reset inner containers to static to allow breaking */
-              .fixed, .absolute, .overflow-y-auto, .overflow-hidden, .flex, .min-h-screen {
-                position: static !important;
-                overflow: visible !important;
-                height: auto !important;
-                max-height: none !important;
-                display: block !important; /* Block flow usually breaks better than flex */
-                transform: none !important;
+              #wealth-report-root {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                max-width: 210mm !important; /* A4 Width Standard */
+                margin: 0 auto !important; /* Centered */
+                padding: 10mm !important;
+                z-index: 2147483647 !important;
+                background: white !important;
               }
 
-              /* Hide the backdrop and close buttons */
-              .print\:hidden {
-                display: none !important;
-              }
+              /* 4. Restore Internal Layouts (Grid/Flex INSIDE the report) */
+              #wealth-report-root .flex { display: flex !important; }
+              #wealth-report-root .grid { display: grid !important; }
+              #wealth-report-root table { display: table !important; width: 100% !important; }
+              #wealth-report-root thead { display: table-header-group !important; }
+              #wealth-report-root tbody { display: table-row-group !important; }
+              #wealth-report-root tr { display: table-row !important; }
+              #wealth-report-root td, #wealth-report-root th { display: table-cell !important; }
               
-              /* Pagination Controls */
-              tr { break-inside: avoid; page-break-inside: avoid; }
-              thead { display: table-header-group; }
-              tfoot { display: table-footer-group; }
-              div { break-inside: auto; }
+              /* Hide UI Controls inside report */
+              .print\:hidden { display: none !important; }
             }
           `}</style>
+
+          {/* Note: We move the ID to the outer fixed wrapper to let it break out */}
           <div id="wealth-report-root" className="fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-10 animate-in zoom-in duration-300 print:relative print:p-0 print:m-0 print:block print:inset-auto print:z-auto print:h-auto">
             <div className="absolute inset-0 bg-bg-dark/98 backdrop-blur-2xl print:hidden" onClick={() => setShowReport(false)}></div>
-            {/* Main Container: Reset overflow for print */}
             <div className="relative w-full max-w-5xl bg-white text-slate-900 h-full overflow-y-auto shadow-2xl flex flex-col custom-scrollbar print:bg-white print:shadow-none print:overflow-visible print:w-full print:h-auto print:max-w-none print:rounded-none print:block">
 
               <div className="sticky top-0 z-[210] bg-bg-dark p-6 border-b border-white/10 flex items-center justify-between print:hidden">

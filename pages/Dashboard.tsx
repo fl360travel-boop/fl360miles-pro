@@ -136,7 +136,8 @@ const Dashboard: React.FC = () => {
     // Rough logic: selling/resgate generates money (profit), inclusion generates cost? 
     // Or just sum the fields we have: negotiatedValue + economyGenerated
     const periodLiquidity = filteredAuditLogs.reduce((acc, op) => acc + (op.negotiatedValue || 0), 0);
-    return { periodVolume, periodLiquidity };
+    const periodEconomy = filteredAuditLogs.reduce((acc, op) => acc + (op.economyGenerated || 0), 0);
+    return { periodVolume, periodLiquidity, periodEconomy };
   }, [filteredAuditLogs]);
 
   // Dados do gráfico baseados em movimentações reais (Evolução Patrimonial)
@@ -416,7 +417,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-4 mb-10">
                   <span className="display-font text-2xl font-bold tracking-[0.5em] uppercase italic">FL360<span className="text-primary">MILES</span></span>
                 </div>
-                <h2 className="text-7xl font-black italic uppercase tracking-tighter leading-none print:text-5xl">Global Audit</h2>
+                <h2 className="text-5xl font-black italic uppercase tracking-tighter leading-none print:text-4xl">Strategic Wealth<br />Analytics Terminal</h2>
                 <p className="text-primary text-[10px] font-bold uppercase tracking-[0.8em] mt-8 opacity-90">Consolidado de Ativos Patrimoniais</p>
               </div>
               <div className="text-right relative z-10 flex flex-col items-end">
@@ -449,14 +450,18 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="flex-1 p-24 space-y-20 print:p-16">
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-16">
-                <div className="bg-slate-50 p-16 rounded-[40px] border-l-[12px] border-black shadow-inner">
-                  <p className="text-[11px] font-black text-slate-500 uppercase mb-4 tracking-[0.2em]">Volume Movimentado no Período</p>
-                  <p className="text-6xl font-black text-slate-900 italic tracking-tighter leading-none">{auditPeriodMetrics.periodVolume.toLocaleString()} <span className="text-xs opacity-40 uppercase">mi</span></p>
+              <section className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div className="bg-slate-50 p-10 rounded-[32px] border-l-[10px] border-black shadow-inner">
+                  <p className="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-[0.2em]">Volume Movimentado</p>
+                  <p className="text-4xl font-black text-slate-900 italic tracking-tighter leading-none">{auditPeriodMetrics.periodVolume.toLocaleString()} <span className="text-xs opacity-40 uppercase">mi</span></p>
                 </div>
-                <div className="bg-slate-50 p-16 rounded-[40px] border-l-[12px] border-primary shadow-inner">
-                  <p className="text-[11px] font-black text-slate-500 uppercase mb-4 tracking-[0.2em]">Liquidez Gerada no Período</p>
-                  <p className="text-6xl font-black text-slate-900 italic tracking-tighter leading-none">R$ {auditPeriodMetrics.periodLiquidity.toLocaleString()}</p>
+                <div className="bg-slate-50 p-10 rounded-[32px] border-l-[10px] border-primary shadow-inner">
+                  <p className="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-[0.2em]">Liquidez Gerada</p>
+                  <p className="text-4xl font-black text-emerald-600 italic tracking-tighter leading-none">R$ {auditPeriodMetrics.periodLiquidity.toLocaleString()}</p>
+                </div>
+                <div className="bg-slate-50 p-10 rounded-[32px] border-l-[10px] border-indigo-500 shadow-inner">
+                  <p className="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-[0.2em]">Economia Gerada</p>
+                  <p className="text-4xl font-black text-indigo-600 italic tracking-tighter leading-none">R$ {auditPeriodMetrics.periodEconomy.toLocaleString()}</p>
                 </div>
               </section>
 
