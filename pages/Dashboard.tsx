@@ -79,9 +79,12 @@ const Dashboard: React.FC = () => {
 
     clients.forEach(client => {
       client.programs.forEach(program => {
-        const existing = programMap.get(program.name) || { balance: 0, clientCount: 0 };
-        programMap.set(program.name, {
-          balance: existing.balance + program.balance,
+        // Normalize name: TRIM and UPPERCASE
+        const normalizedName = program.name.trim().toUpperCase();
+
+        const existing = programMap.get(normalizedName) || { balance: 0, clientCount: 0 };
+        programMap.set(normalizedName, {
+          balance: existing.balance + Number(program.balance),
           clientCount: existing.clientCount + 1
         });
       });
