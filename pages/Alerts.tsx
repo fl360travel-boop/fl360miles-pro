@@ -133,35 +133,44 @@ const Alerts: React.FC = () => {
     const now = new Date();
 
     // Generate Birthday Alerts dynamically
+    // Generate Birthday Alerts dynamically
     const birthdayAlerts: ExpirationAlert[] = clients.flatMap(client => {
       if (!client.birthDate) return [];
 
-      const birthDate = new Date(client.birthDate + 'T12:00:00'); // Fuso horário safe
+      // Parse YYYY-MM-DD directly to avoid timezone shifts
+      const [bYear, bMonth, bDay] = client.birthDate.split('-').map(Number);
+
       const today = new Date();
       const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth() + 1; // 1-12
+      const currentDay = today.getDate();
 
-      // Create date object for this year's birthday
-      const nextBirthday = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+      // Determine next birthday date
+      let nextBirthdayYear = currentYear;
 
-      // If birthday passed this year, look at next year
-      if (nextBirthday < new Date(today.setHours(0, 0, 0, 0))) {
-        nextBirthday.setFullYear(currentYear + 1);
+      // If birthday passed this year (e.g. Birthday: Jan 1, Today: Jan 2)
+      if (currentMonth > bMonth || (currentMonth === bMonth && currentDay > bDay)) {
+        nextBirthdayYear = currentYear + 1;
       }
 
-      const diffTime = nextBirthday.getTime() - today.getTime();
+      // Create Date objects for diff calculation (set to noon to be safe)
+      const nextBirthdayDate = new Date(nextBirthdayYear, bMonth - 1, bDay, 12, 0, 0);
+      const todayDate = new Date(currentYear, currentMonth - 1, currentDay, 12, 0, 0);
+
+      const diffTime = nextBirthdayDate.getTime() - todayDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
       // Only show if within next 30 days
-      if (diffDays > 30) return [];
+      if (diffDays > 30 || diffDays < 0) return [];
 
-      const age = nextBirthday.getFullYear() - birthDate.getFullYear();
+      const age = nextBirthdayYear - bYear;
 
       return [{
         id: `dob-${client.id}`,
         clientName: client.name,
         program: 'Aniversário',
         amount: age,
-        expirationDate: nextBirthday.toISOString().split('T')[0],
+        expirationDate: nextBirthdayDate.toISOString().split('T')[0],
         observation: `Oportunidade de contato estratégico. Cliente completará ${age} anos.`,
         status: 'pending',
         createdAt: new Date().toISOString()
@@ -261,7 +270,7 @@ const Alerts: React.FC = () => {
                 className={`mt-6 flex items-center gap-3 p-4 rounded-2xl border border-white/5 w-full text-left transition-all hover:bg-white/5 hover:border-white/10 ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' && alert.program !== 'Aniversário' ? 'bg-red-500/5 border-red-500/20' : 'bg-bg-card'}`}
               >
                 <div className={`size-10 rounded-xl flex items-center justify-center ${alert.program === 'Aniversário' ? 'bg-primary/20 text-primary' :
-                    new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'bg-red-500/20 text-red-400' : 'bg-primary/10 text-primary'
+                  new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'bg-red-500/20 text-red-400' : 'bg-primary/10 text-primary'
                   }`}>
                   <span className="material-symbols-outlined text-base">
                     {alert.program === 'Aniversário' ? 'celebration' : 'calendar_month'}
