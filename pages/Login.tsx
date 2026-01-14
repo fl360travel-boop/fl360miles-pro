@@ -106,7 +106,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full bg-card-dark border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
+                className="w-full bg-bg-card border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
                 placeholder="email@fl360miles.com"
               />
             </div>
@@ -120,7 +120,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-card-dark border border-white/5 rounded-2xl py-4 pl-6 pr-12 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
+                    className="w-full bg-bg-card border border-white/5 rounded-2xl py-4 pl-6 pr-12 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
                     placeholder="••••••••"
                   />
                   <button
