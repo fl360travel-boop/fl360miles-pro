@@ -183,6 +183,24 @@ const Onboarding: React.FC = () => {
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Data de Nascimento</label>
                     <input type="date" className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none h-[48px]" value={birthDate} onChange={e => setBirthDate(e.target.value)} />
                   </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Profissão</label>
+                    <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={profession} onChange={e => setProfession(e.target.value)} placeholder="Ex: Advogado" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Região / Cidade</label>
+                    <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={region} onChange={e => setRegion(e.target.value)} placeholder="Ex: São Paulo, SP" />
+                  </div>
+                </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Profissão</label>
+                    <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={profession} onChange={e => setProfession(e.target.value)} placeholder="Ex: Advogado" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Região / Cidade</label>
+                    <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={region} onChange={e => setRegion(e.target.value)} placeholder="Ex: São Paulo, SP" />
+                  </div>
                 </div>
               </div>
 
@@ -222,121 +240,121 @@ const Onboarding: React.FC = () => {
             </div>
           )}
 
-          {step === 2 && (
-            <div className="bg-bg-surface border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl animate-in slide-in-from-right-4">
-              <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
-                <h1 className="display-font text-2xl font-bold text-white italic uppercase tracking-widest">Carteira de Ativos</h1>
-                <button onClick={() => setPrograms([...programs, { name: '', balance: '' }])} className="bg-primary/10 hover:bg-primary text-primary hover:text-bg-dark p-3 rounded-xl transition-all flex items-center gap-2 font-black text-[10px] tracking-widest uppercase">
-                  <span className="material-symbols-outlined text-sm">add</span> Adicionar Programa
-                </button>
-              </div>
-              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
-                {programs.map((p, idx) => (
-                  <div key={idx} className="bg-bg-card p-6 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-4 items-end group transition-all hover:border-primary/20">
-                    <div className="flex-1 w-full space-y-2">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Programa</label>
-                      <input className="w-full bg-bg-surface border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none font-bold italic" value={p.name} onChange={e => updateProgram(idx, 'name', e.target.value)} placeholder="Ex: Livelo" />
-                    </div>
-                    <div className="flex-1 w-full space-y-2">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Saldo Atual</label>
-                      <input type="number" className="w-full bg-bg-surface border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:ring-1 focus:ring-primary text-right outline-none font-black italic" value={p.balance} onChange={e => updateProgram(idx, 'balance', e.target.value)} placeholder="0" />
-                    </div>
-                    <button onClick={() => setPrograms(programs.filter((_, i) => i !== idx))} className="size-11 rounded-xl bg-red-500/5 text-red-500/40 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center border border-white/5">
-                      <span className="material-symbols-outlined text-lg">delete</span>
-                    </button>
+        {step === 2 && (
+          <div className="bg-bg-surface border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl animate-in slide-in-from-right-4">
+            <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
+              <h1 className="display-font text-2xl font-bold text-white italic uppercase tracking-widest">Carteira de Ativos</h1>
+              <button onClick={() => setPrograms([...programs, { name: '', balance: '' }])} className="bg-primary/10 hover:bg-primary text-primary hover:text-bg-dark p-3 rounded-xl transition-all flex items-center gap-2 font-black text-[10px] tracking-widest uppercase">
+                <span className="material-symbols-outlined text-sm">add</span> Adicionar Programa
+              </button>
+            </div>
+            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
+              {programs.map((p, idx) => (
+                <div key={idx} className="bg-bg-card p-6 rounded-2xl border border-white/5 flex flex-col md:flex-row gap-4 items-end group transition-all hover:border-primary/20">
+                  <div className="flex-1 w-full space-y-2">
+                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Programa</label>
+                    <input className="w-full bg-bg-surface border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none font-bold italic" value={p.name} onChange={e => updateProgram(idx, 'name', e.target.value)} placeholder="Ex: Livelo" />
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="bg-bg-surface border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl animate-in slide-in-from-right-4">
-              <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
-                <h1 className="display-font text-2xl font-bold text-white italic uppercase tracking-widest">Cartões Premium</h1>
-                <button onClick={() => setCards([...cards, { bank: '', name: '' }])} className="bg-primary/10 hover:bg-primary text-primary hover:text-bg-dark p-3 rounded-xl transition-all flex items-center gap-2 font-black text-[10px] tracking-widest uppercase">
-                  <span className="material-symbols-outlined text-sm">add_card</span> Adicionar Cartão
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
-                {cards.map((c, idx) => (
-                  <div key={idx} className="bg-bg-card p-6 rounded-2xl border border-white/5 space-y-4 relative group transition-all hover:border-primary/20">
-                    <button onClick={() => setCards(cards.filter((_, i) => i !== idx))} className="absolute top-4 right-4 text-slate-700 hover:text-red-500 transition-colors">
-                      <span className="material-symbols-outlined text-sm">close</span>
-                    </button>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Banco</label>
-                      <input className="w-full bg-bg-surface border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none font-bold" value={c.bank} onChange={e => updateCard(idx, 'bank', e.target.value)} placeholder="Ex: Bradesco" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Nome do Cartão</label>
-                      <input className="w-full bg-bg-surface border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none italic" value={c.name} onChange={e => updateCard(idx, 'name', e.target.value)} placeholder="Ex: Amex The Platinum" />
-                    </div>
+                  <div className="flex-1 w-full space-y-2">
+                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Saldo Atual</label>
+                    <input type="number" className="w-full bg-bg-surface border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:ring-1 focus:ring-primary text-right outline-none font-black italic" value={p.balance} onChange={e => updateProgram(idx, 'balance', e.target.value)} placeholder="0" />
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="bg-bg-surface border border-white/5 rounded-[40px] p-12 text-center shadow-2xl animate-in zoom-in duration-500">
-              <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20">
-                <span className="material-symbols-outlined text-primary text-4xl">verified_user</span>
-              </div>
-              <h1 className="serif-font text-4xl italic text-white mb-2 uppercase tracking-tighter">Pronto para Ativação</h1>
-              <p className="text-slate-500 text-sm italic mb-10">O protocolo de gestão de {name} está configurado.</p>
-
-              <div className="grid grid-cols-2 gap-4 text-left max-w-lg mx-auto">
-                <div className="bg-bg-card p-6 rounded-2xl border border-white/5">
-                  <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Patrimônio Inicial</p>
-                  <p className="text-xl font-black text-white italic tracking-tighter">{programs.reduce((acc, curr) => acc + (Number(curr.balance) || 0), 0).toLocaleString()} <span className="text-[10px] opacity-40">mi</span></p>
+                  <button onClick={() => setPrograms(programs.filter((_, i) => i !== idx))} className="size-11 rounded-xl bg-red-500/5 text-red-500/40 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center border border-white/5">
+                    <span className="material-symbols-outlined text-lg">delete</span>
+                  </button>
                 </div>
-                <div className="bg-bg-card p-6 rounded-2xl border border-white/5">
-                  <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Honorário</p>
-                  <p className="text-xl font-black text-primary italic tracking-tighter">R$ {Number(fee || 0).toLocaleString()}</p>
-                </div>
-              </div>
+              ))}
             </div>
-          )}
-
-          <div className="flex items-center justify-between pt-10 border-t border-white/10 mt-10">
-            <button onClick={handleBack} className="px-10 py-4 text-slate-500 text-[10px] font-bold hover:text-white transition-colors uppercase tracking-[0.3em] flex items-center gap-3">
-              <span className="material-symbols-outlined text-sm">west</span> VOLTAR
-            </button>
-            <button
-              disabled={isSubmitting}
-              onClick={handleNext}
-              className={`bg-primary hover:bg-primary-dark text-bg-dark font-black px-14 py-4 rounded-2xl transition-all shadow-2xl shadow-primary/20 flex items-center gap-3 group italic text-[11px] tracking-[0.2em] uppercase ${isSubmitting ? 'opacity-50 cursor-wait' : 'active:scale-95'}`}
-            >
-              {isSubmitting ? 'PROCESSANDO...' : step === 4 ? 'OFICIALIZAR ADMISSÃO' : 'PRÓXIMO PASSO'}
-              {!isSubmitting && <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">east</span>}
-            </button>
           </div>
-        </div>
+        )}
 
-        <div className="lg:col-span-4">
-          <div className="bg-bg-surface border border-white/5 rounded-3xl p-8 shadow-2xl sticky top-28">
-            <h4 className="display-font text-xs font-black text-white uppercase tracking-[0.3em] italic mb-8 border-b border-white/5 pb-4">Preview do Perfil</h4>
-            <div className="space-y-6">
-              <div>
-                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Titular</p>
-                <p className="text-sm font-black text-white italic uppercase tracking-tighter">{name || 'Aguardando...'}</p>
+        {step === 3 && (
+          <div className="bg-bg-surface border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl animate-in slide-in-from-right-4">
+            <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
+              <h1 className="display-font text-2xl font-bold text-white italic uppercase tracking-widest">Cartões Premium</h1>
+              <button onClick={() => setCards([...cards, { bank: '', name: '' }])} className="bg-primary/10 hover:bg-primary text-primary hover:text-bg-dark p-3 rounded-xl transition-all flex items-center gap-2 font-black text-[10px] tracking-widest uppercase">
+                <span className="material-symbols-outlined text-sm">add_card</span> Adicionar Cartão
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
+              {cards.map((c, idx) => (
+                <div key={idx} className="bg-bg-card p-6 rounded-2xl border border-white/5 space-y-4 relative group transition-all hover:border-primary/20">
+                  <button onClick={() => setCards(cards.filter((_, i) => i !== idx))} className="absolute top-4 right-4 text-slate-700 hover:text-red-500 transition-colors">
+                    <span className="material-symbols-outlined text-sm">close</span>
+                  </button>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Banco</label>
+                    <input className="w-full bg-bg-surface border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none font-bold" value={c.bank} onChange={e => updateCard(idx, 'bank', e.target.value)} placeholder="Ex: Bradesco" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Nome do Cartão</label>
+                    <input className="w-full bg-bg-surface border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none italic" value={c.name} onChange={e => updateCard(idx, 'name', e.target.value)} placeholder="Ex: Amex The Platinum" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="bg-bg-surface border border-white/5 rounded-[40px] p-12 text-center shadow-2xl animate-in zoom-in duration-500">
+            <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20">
+              <span className="material-symbols-outlined text-primary text-4xl">verified_user</span>
+            </div>
+            <h1 className="serif-font text-4xl italic text-white mb-2 uppercase tracking-tighter">Pronto para Ativação</h1>
+            <p className="text-slate-500 text-sm italic mb-10">O protocolo de gestão de {name} está configurado.</p>
+
+            <div className="grid grid-cols-2 gap-4 text-left max-w-lg mx-auto">
+              <div className="bg-bg-card p-6 rounded-2xl border border-white/5">
+                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Patrimônio Inicial</p>
+                <p className="text-xl font-black text-white italic tracking-tighter">{programs.reduce((acc, curr) => acc + (Number(curr.balance) || 0), 0).toLocaleString()} <span className="text-[10px] opacity-40">mi</span></p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Nível</p>
-                  <p className="text-[10px] text-primary font-black uppercase tracking-widest">{level}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Patrimônio</p>
-                  <p className="text-[10px] text-white font-black italic">{programs.reduce((a, b) => a + (Number(b.balance) || 0), 0).toLocaleString()} mi</p>
-                </div>
+              <div className="bg-bg-card p-6 rounded-2xl border border-white/5">
+                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Honorário</p>
+                <p className="text-xl font-black text-primary italic tracking-tighter">R$ {Number(fee || 0).toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between pt-10 border-t border-white/10 mt-10">
+          <button onClick={handleBack} className="px-10 py-4 text-slate-500 text-[10px] font-bold hover:text-white transition-colors uppercase tracking-[0.3em] flex items-center gap-3">
+            <span className="material-symbols-outlined text-sm">west</span> VOLTAR
+          </button>
+          <button
+            disabled={isSubmitting}
+            onClick={handleNext}
+            className={`bg-primary hover:bg-primary-dark text-bg-dark font-black px-14 py-4 rounded-2xl transition-all shadow-2xl shadow-primary/20 flex items-center gap-3 group italic text-[11px] tracking-[0.2em] uppercase ${isSubmitting ? 'opacity-50 cursor-wait' : 'active:scale-95'}`}
+          >
+            {isSubmitting ? 'PROCESSANDO...' : step === 4 ? 'OFICIALIZAR ADMISSÃO' : 'PRÓXIMO PASSO'}
+            {!isSubmitting && <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">east</span>}
+          </button>
+        </div>
+      </div>
+
+      <div className="lg:col-span-4">
+        <div className="bg-bg-surface border border-white/5 rounded-3xl p-8 shadow-2xl sticky top-28">
+          <h4 className="display-font text-xs font-black text-white uppercase tracking-[0.3em] italic mb-8 border-b border-white/5 pb-4">Preview do Perfil</h4>
+          <div className="space-y-6">
+            <div>
+              <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Titular</p>
+              <p className="text-sm font-black text-white italic uppercase tracking-tighter">{name || 'Aguardando...'}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Nível</p>
+                <p className="text-[10px] text-primary font-black uppercase tracking-widest">{level}</p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Patrimônio</p>
+                <p className="text-[10px] text-white font-black italic">{programs.reduce((a, b) => a + (Number(b.balance) || 0), 0).toLocaleString()} mi</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </div >
+    </div >
   );
 };
 
