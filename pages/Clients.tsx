@@ -1129,10 +1129,7 @@ const Clients: React.FC = () => {
                     generatedDate: new Date().toISOString()
                   };
                   localStorage.setItem('fl360_print_data', JSON.stringify(printData));
-                  // Pequeno delay para garantir que o localStorage seja gravado antes de abrir a aba
-                  setTimeout(() => {
-                    window.open('#/print-report', '_blank');
-                  }, 100);
+                  window.open('#/print-report', '_blank');
                 }} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
                   <span className="material-symbols-outlined text-2xl">print_connect</span>
                   IMPRIMIR PDF OFICIAL
