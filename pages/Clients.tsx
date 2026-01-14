@@ -795,7 +795,9 @@ const Clients: React.FC = () => {
                       </thead>
                       <tbody className="divide-y divide-slate-100 print:divide-slate-200">
                         {reportMetrics.filteredHistory
-                          .filter(m => (m.type === 'Inclusão' || m.type === 'Venda' || m.type === 'Resgate' || m.type === 'Transferência' || m.type.startsWith('Bônus') || m.type === 'Compra'))
+                          // Show ALL history items in the report, sorted by date (newest first)
+                          // The filter below was too restrictive. We want full transparency.
+                          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                           .map((h, i) => (
                             <tr key={i} className="hover:bg-slate-50/50 transition-colors break-inside-avoid page-break-inside-avoid print:bg-white">
                               <td className="px-8 py-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest print:px-4 print:py-2">{new Date(h.date).toLocaleDateString()}</td>
