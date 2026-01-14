@@ -689,18 +689,19 @@ const Clients: React.FC = () => {
               /* The component structure has #wealth-report-root inside the Clients component which is inside layout */
               /* So we must ensure parents are visible too, OR move this to fixed overlay */
               
-              /* BETTER STRATEGY: Make the report taking over the entire document flow */
+              /* BETTER STRATEGY: Isolate and Center for A4 */
               #wealth-report-root {
                 display: block !important;
-                position: absolute !important; /* Start absolute to top-left */
-                top: 0 !important;
-                left: 0 !important;
-                width: 100vw !important; /* Full viewport width */
-                min-height: 100vh !important;
-                height: auto !important; /* Allow growing */
+                position: relative !important; /* Static flow */
+                width: 100% !important;
+                max-width: 210mm !important; /* Limit to A4 width */
+                margin: 0 auto !important; /* Center horizontally */
+                padding: 0 !important;
+                top: auto !important;
+                left: auto !important;
+                height: auto !important;
                 z-index: 9999 !important;
                 background: white !important;
-                font-size: 10pt !important;
               }
 
               #wealth-report-root * {
