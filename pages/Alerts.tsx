@@ -10,7 +10,7 @@ const Alerts: React.FC = () => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [alertToDelete, setAlertToDelete] = useState<string | null>(null);
   const [editingAlert, setEditingAlert] = useState<ExpirationAlert | null>(null);
-  const [filterType, setFilterType] = useState<'all' | 'critical' | 'pending' | 'new' | 'resolved'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'critical' | 'pending' | 'new' | 'resolved' | 'birthday'>('all');
   const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   // New alert form
@@ -131,9 +131,49 @@ const Alerts: React.FC = () => {
 
   const filteredAlerts = useMemo(() => {
     const now = new Date();
-    return alerts.filter(a => {
+
+    // Generate Birthday Alerts dynamically
+    const birthdayAlerts: ExpirationAlert[] = clients.flatMap(client => {
+      if (!client.birthDate) return [];
+
+      const birthDate = new Date(client.birthDate + 'T12:00:00'); // Fuso horário safe
+      const today = new Date();
+      const currentYear = today.getFullYear();
+
+      // Create date object for this year's birthday
+      const nextBirthday = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+
+      // If birthday passed this year, look at next year
+      if (nextBirthday < new Date(today.setHours(0, 0, 0, 0))) {
+        nextBirthday.setFullYear(currentYear + 1);
+      }
+
+      const diffTime = nextBirthday.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      // Only show if within next 30 days
+      if (diffDays > 30) return [];
+
+      const age = nextBirthday.getFullYear() - birthDate.getFullYear();
+
+      return [{
+        id: `dob-${client.id}`,
+        clientName: client.name,
+        program: 'Aniversário',
+        amount: age,
+        expirationDate: nextBirthday.toISOString().split('T')[0],
+        observation: `Oportunidade de contato estratégico. Cliente completará ${age} anos.`,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      }];
+    });
+
+    const allItems = [...alerts, ...birthdayAlerts];
+
+    return allItems.filter(a => {
       if (filterType === 'all') return true;
-      if (filterType === 'pending') return a.status === 'pending';
+      if (filterType === 'birthday') return a.program === 'Aniversário';
+      if (filterType === 'pending') return a.status === 'pending' && a.program !== 'Aniversário';
       if (filterType === 'resolved') return a.status === 'resolved';
       if (filterType === 'new') {
         if (!a.createdAt) return false;
@@ -147,7 +187,7 @@ const Alerts: React.FC = () => {
       }
       return true;
     });
-  }, [alerts, filterType]);
+  }, [alerts, clients, filterType]);
 
   return (
     <div className="space-y-10 max-w-7xl mx-auto animate-in fade-in duration-700 pb-20">
@@ -158,13 +198,13 @@ const Alerts: React.FC = () => {
         </div>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center bg-bg-surface border border-white/5 rounded-2xl p-1 shadow-2xl overflow-x-auto custom-scrollbar">
-            {(['all', 'new', 'pending', 'critical', 'resolved'] as const).map((t) => (
+            {(['all', 'birthday', 'new', 'pending', 'critical', 'resolved'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilterType(t)}
                 className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filterType === t ? 'bg-primary text-bg-dark shadow-lg shadow-primary/10' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
               >
-                {t === 'all' ? 'Ver Todos' : t === 'pending' ? 'Pendentes' : t === 'critical' ? 'Críticos' : t === 'new' ? 'Novos' : 'Encerrados'}
+                {t === 'all' ? 'Ver Todos' : t === 'birthday' ? 'Aniversariantes' : t === 'pending' ? 'Pendentes' : t === 'critical' ? 'Críticos' : t === 'new' ? 'Novos' : 'Encerrados'}
               </button>
             ))}
           </div>
@@ -206,19 +246,32 @@ const Alerts: React.FC = () => {
             </div>
 
             <div className="mb-10 relative z-10">
-              <p className="display-font text-5xl font-black text-white italic tracking-tighter leading-none group-hover:text-primary transition-colors">{alert.amount.toLocaleString()} <span className="text-[12px] opacity-40 uppercase ml-1">mi</span></p>
+              {alert.program === 'Aniversário' ? (
+                <div className="flex items-end gap-3">
+                  <span className="material-symbols-outlined text-4xl text-primary animate-bounce">cake</span>
+                  <p className="display-font text-5xl font-black text-white italic tracking-tighter leading-none group-hover:text-primary transition-colors">{alert.amount} <span className="text-[12px] opacity-40 uppercase ml-1">Anos</span></p>
+                </div>
+              ) : (
+                <p className="display-font text-5xl font-black text-white italic tracking-tighter leading-none group-hover:text-primary transition-colors">{alert.amount.toLocaleString()} <span className="text-[12px] opacity-40 uppercase ml-1">mi</span></p>
+              )}
 
               {/* Cronograma de Vencimento Clicável */}
               <button
                 onClick={() => editAlert(alert)}
-                className={`mt-6 flex items-center gap-3 p-4 rounded-2xl border border-white/5 w-full text-left transition-all hover:bg-white/5 hover:border-white/10 ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'bg-red-500/5 border-red-500/20' : 'bg-bg-card'}`}
+                className={`mt-6 flex items-center gap-3 p-4 rounded-2xl border border-white/5 w-full text-left transition-all hover:bg-white/5 hover:border-white/10 ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' && alert.program !== 'Aniversário' ? 'bg-red-500/5 border-red-500/20' : 'bg-bg-card'}`}
               >
-                <div className={`size-10 rounded-xl flex items-center justify-center ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'bg-red-500/20 text-red-400' : 'bg-primary/10 text-primary'}`}>
-                  <span className="material-symbols-outlined text-base">calendar_month</span>
+                <div className={`size-10 rounded-xl flex items-center justify-center ${alert.program === 'Aniversário' ? 'bg-primary/20 text-primary' :
+                    new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'bg-red-500/20 text-red-400' : 'bg-primary/10 text-primary'
+                  }`}>
+                  <span className="material-symbols-outlined text-base">
+                    {alert.program === 'Aniversário' ? 'celebration' : 'calendar_month'}
+                  </span>
                 </div>
                 <div>
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Cronograma de Vencimento</p>
-                  <p className={`text-sm font-black italic tracking-tighter ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'text-red-400' : 'text-white'}`}>
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">
+                    {alert.program === 'Aniversário' ? 'Data do Aniversário' : 'Cronograma de Vencimento'}
+                  </p>
+                  <p className={`text-sm font-black italic tracking-tighter ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' && alert.program !== 'Aniversário' ? 'text-red-400' : 'text-white'}`}>
                     {new Date(alert.expirationDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
@@ -248,7 +301,7 @@ const Alerts: React.FC = () => {
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-sm font-black">verified_user</span>
-                    ENCERRAR PROTOCOLO ELITE
+                    {alert.program === 'Aniversário' ? 'MARCAR COMO PARABENIZADO' : 'ENCERRAR PROTOCOLO ELITE'}
                   </>
                 )}
               </button>
