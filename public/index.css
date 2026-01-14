@@ -1,0 +1,36 @@
+/* FL360Miles Pro - Main Styles */
+/* Most styles are handled by Tailwind via CDN */
+/* This file is for any custom non-Tailwind styles */
+
+/* Card backgrounds */
+.card-dark {
+  background: #1C2229;
+}
+
+/* Custom scrollbar for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0A0D11;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1C2229;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #E2BE6A;
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
