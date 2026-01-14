@@ -15,6 +15,7 @@ import RedemptionForm from './pages/RedemptionForm';
 import Concierge from './pages/Concierge';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import PrintReport from './pages/PrintReport';
 import { SearchProvider } from './contexts/SearchContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -92,6 +93,8 @@ const AuthenticatedApp: React.FC = () => {
           <Route path="/concierge" element={<AppLayout><Concierge /></AppLayout>} />
           <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
           <Route path="/onboarding/*" element={<AppLayout><Onboarding /></AppLayout>} />
+          <Route path="/onboarding/*" element={<AppLayout><Onboarding /></AppLayout>} />
+          <Route path="/print-report" element={<PrintReport />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

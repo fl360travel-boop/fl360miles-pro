@@ -914,7 +914,17 @@ const Clients: React.FC = () => {
 
               <div className="p-12 bg-slate-50 border-t border-slate-200 flex justify-end gap-6 sticky bottom-0 print:hidden mt-auto">
                 <button onClick={() => setShowReport(false)} className="px-10 py-5 text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] hover:text-bg-dark transition-all">DESCARTAR</button>
-                <button onClick={() => window.print()} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
+                <button onClick={() => {
+                  const printData = {
+                    clientName: selectedClient.name,
+                    clientCpf: selectedClient.cpf,
+                    metrics: reportMetrics,
+                    period: reportCycle === 'Personalizado' ? reportMonth : reportCycle,
+                    generatedDate: new Date().toISOString()
+                  };
+                  localStorage.setItem('fl360_print_data', JSON.stringify(printData));
+                  window.open('#/print-report', '_blank');
+                }} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
                   <span className="material-symbols-outlined text-2xl">print_connect</span>
                   IMPRIMIR PDF OFICIAL
                 </button>
