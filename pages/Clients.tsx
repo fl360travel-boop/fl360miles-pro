@@ -79,9 +79,73 @@ const Clients: React.FC = () => {
     amount: '',
     desc: '',
     val: '',
-    obs: ''
+    obs: '',
+    passengers: '1',
+    flightClass: 'Econômica',
+    ticketVal: '',
+    cpm: '15.00',
+    yieldCpm: ''
   });
   const [customProgram, setCustomProgram] = useState('');
+
+  // Auto-calculate Economy for Redemption
+  useEffect(() => {
+    if (newMove.type === 'Resgate' && newMove.ticketVal && newMove.amount && newMove.cpm) {
+      const ticket = parseFloat(newMove.ticketVal);
+      const miles = parseFloat(newMove.amount);
+      const cost = (miles / 1000) * parseFloat(newMove.cpm);
+      const economy = ticket - cost;
+      setNewMove(prev => ({ ...prev, val: economy.toFixed(2) }));
+    }
+  }, [newMove.type, newMove.ticketVal, newMove.amount, newMove.cpm]);
+
+  // Two-way binding: Ticket Value <-> Yield CPM
+  const handleTicketValChange = (val: string) => {
+    setNewMove(prev => {
+      const newState = { ...prev, ticketVal: val };
+      if (val && prev.amount) {
+        const ticket = parseFloat(val);
+        const miles = parseFloat(prev.amount);
+        if (miles > 0) {
+          newState.yieldCpm = ((ticket / miles) * 1000).toFixed(2);
+        }
+      } else if (!val) {
+        newState.yieldCpm = '';
+      }
+      return newState;
+    });
+  };
+
+  const handleYieldCpmChange = (val: string) => {
+    setNewMove(prev => {
+      const newState = { ...prev, yieldCpm: val };
+      if (val && prev.amount) {
+        const yieldVal = parseFloat(val);
+        const miles = parseFloat(prev.amount);
+        newState.ticketVal = ((miles / 1000) * yieldVal).toFixed(2);
+      } else if (!val) {
+        newState.ticketVal = '';
+      }
+      return newState;
+    });
+  };
+
+  const handleAmountChange = (val: string) => {
+    setNewMove(prev => {
+      const newState = { ...prev, amount: val };
+      // If we have a Yield, recalculate Ticket. If we have Ticket, recalculate Yield?
+      // Priority: Keep Yield constant if it was set explicitly? Or Ticket?
+      // Let's bias towards keeping Ticket Value constant if set, updating Yield.
+      if (val && prev.ticketVal) {
+        const miles = parseFloat(val);
+        const ticket = parseFloat(prev.ticketVal);
+        if (miles > 0) {
+          newState.yieldCpm = ((ticket / miles) * 1000).toFixed(2);
+        }
+      }
+      return newState;
+    });
+  };
 
   useEffect(() => {
     const loadClients = async () => {
@@ -186,9 +250,13 @@ const Clients: React.FC = () => {
       program: effectiveProgram,
       amount: Number(newMove.amount),
       description: newMove.desc || `${newMove.type} de milhas`,
-      observation: newMove.obs,
+      observation: newMove.type === 'Resgate'
+        ? `${newMove.obs || 'Resgate Manual'}. ${newMove.passengers} Pax • ${newMove.flightClass}.`
+        : newMove.obs,
       negotiatedValue: ['Venda', 'Compra'].includes(newMove.type) ? Number(newMove.val) : undefined,
-      economyGenerated: ['Inclusão', 'Resgate', 'Transferência'].includes(newMove.type) ? Number(newMove.val) : undefined
+      economyGenerated: ['Inclusão', 'Resgate', 'Transferência'].includes(newMove.type) ? Number(newMove.val) : undefined,
+      passengers: newMove.type === 'Resgate' ? Number(newMove.passengers) : undefined,
+      flightClass: newMove.type === 'Resgate' ? newMove.flightClass : undefined
     };
 
     // Update balances
@@ -344,8 +412,14 @@ const Clients: React.FC = () => {
           const totalEconomy = client.history.reduce((acc, h) => acc + (h.economyGenerated || 0), 0);
 
           let evolutionPercent = 0;
-          if (totalInvested > 0) {
-            evolutionPercent = ((totalValue + roi - totalInvested) / totalInvested) * 100;
+          if (totalInvested && totalInvested > 0) {
+            evolutionPercent = ((totalValue - totalInvested) / totalInvested) * 100;
+          } else if (totalValue > 0) {
+            evolutionPercent = 0; // Default to 0 instead of 100 to avoid confusion if cost is missing
+          }
+
+          if (!Number.isFinite(evolutionPercent) || isNaN(evolutionPercent)) {
+            evolutionPercent = 0;
           }
 
           return (
@@ -354,7 +428,7 @@ const Clients: React.FC = () => {
               onClick={() => { setSelectedClient(client); setActiveTab('info'); }}
               className="group bg-bg-surface border border-white/5 p-8 rounded-[40px] flex flex-col hover:border-primary/50 transition-all cursor-pointer shadow-2xl relative overflow-hidden"
             >
-              <div className={`absolute top-0 right-0 p-6 font-black italic uppercase text-[9px] tracking-[0.4em] ${client.managementLevel === 'Elite' ? 'text-primary' : 'text-slate-600'}`}>
+              <div className={`absolute top-0 right-0 p-6 font-black italic uppercase text-[9px] tracking-[0.4em] transition-colors ${client.managementLevel === 'Elite' ? 'text-white group-hover:text-[#E2BE6A]' : 'text-slate-600'}`}>
                 {client.managementLevel}
               </div>
 
@@ -366,13 +440,13 @@ const Clients: React.FC = () => {
               </button>
 
               <div className="flex items-center gap-6 mb-6">
-                <div className="size-16 rounded-full bg-gradient-to-br from-card-dark to-black border-2 border-primary/20 flex items-center justify-center text-primary text-xl font-black display-font shadow-[0_0_30px_-10px_rgba(226,190,106,0.3)]">
+                <div className="size-16 rounded-full bg-gradient-to-br from-card-dark to-black border-2 border-[#E2BE6A]/20 flex items-center justify-center text-[#E2BE6A] text-xl font-black display-font shadow-[0_0_30px_-10px_rgba(226,190,106,0.3)]">
                   {getInitials(client.name)}
                 </div>
                 <div>
-                  <p className="text-white font-black text-lg group-hover:text-primary transition-colors italic uppercase tracking-tighter leading-none">{client.name}</p>
+                  <p className="text-white font-black text-lg group-hover:text-[#E2BE6A] transition-colors italic uppercase tracking-tighter leading-none">{client.name}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="text-primary font-black text-xs tracking-tight">{(totalPoints / 1000000).toFixed(2)}M</span>
+                    <span className="text-[#E2BE6A] font-black text-xs tracking-tight">{(totalPoints / 1000000).toFixed(2)}M</span>
                     <span className="text-[8px] text-slate-500 uppercase tracking-widest font-black italic">Capital Ativo</span>
                   </div>
                 </div>
@@ -513,8 +587,8 @@ const Clients: React.FC = () => {
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Evolução Patrimonial</p>
                       <p className="text-4xl font-black text-white italic tracking-tighter">
                         {reportMetrics.totalInvested > 0
-                          ? `+${(((reportMetrics.totalValue + reportMetrics.roi - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100).toFixed(1)}%`
-                          : '+∞%'}
+                          ? `+${(((reportMetrics.totalValue - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100).toFixed(1)}%`
+                          : '0.0%'}
                       </p>
                       <div className="mt-4 flex items-center gap-2">
                         <span className="text-[9px] bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
@@ -661,7 +735,7 @@ const Clients: React.FC = () => {
               {activeTab === 'history' && (
                 <div className="space-y-12 animate-in fade-in duration-500 pb-20">
                   <div className="bg-bg-surface border border-white/10 p-10 rounded-[40px] shadow-2xl space-y-10">
-                    <h4 className="display-font text-[10px] text-primary font-black uppercase tracking-[0.4em] italic border-b border-white/5 pb-5">Manual Ledger Injection</h4>
+                    <h4 className="display-font text-[10px] text-primary font-black uppercase tracking-[0.4em] italic border-b border-white/5 pb-5">Manual Ledger Injection 3.0</h4>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div className="space-y-3">
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Operação</label>
@@ -696,12 +770,52 @@ const Clients: React.FC = () => {
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Volume (Milhas)</label>
-                        <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none" value={newMove.amount} onChange={e => setNewMove({ ...newMove, amount: e.target.value })} placeholder="0" />
+                        <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none" value={newMove.amount} onChange={e => handleAmountChange(e.target.value)} placeholder="0" />
                       </div>
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Valor Financeiro (R$)</label>
-                        <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-emerald-500 font-black italic outline-none" value={newMove.val} onChange={e => setNewMove({ ...newMove, val: e.target.value })} placeholder="0.00" />
-                      </div>
+                      {newMove.type !== 'Resgate' && (
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Valor Financeiro (R$)</label>
+                          <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-emerald-500 font-black italic outline-none" value={newMove.val} onChange={e => setNewMove({ ...newMove, val: e.target.value })} placeholder="0.00" />
+                        </div>
+                      )}
+
+                      {newMove.type === 'Resgate' && (
+                        <>
+                          <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Valor Passagem (R$)</label>
+                            <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none" value={newMove.ticketVal} onChange={e => handleTicketValChange(e.target.value)} placeholder="0.00" />
+                          </div>
+
+                          <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Milheiro Gerado (R$)</label>
+                            <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-emerald-400 font-black italic outline-none" value={newMove.yieldCpm} onChange={e => handleYieldCpmChange(e.target.value)} placeholder="0.00" />
+                          </div>
+
+                          <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">CPM (R$)</label>
+                            <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-slate-400 font-black italic outline-none" value={newMove.cpm} onChange={e => setNewMove({ ...newMove, cpm: e.target.value })} placeholder="15.00" />
+                          </div>
+
+                          <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Economia (Calc)</label>
+                            <input readOnly className="w-full bg-bg-card/50 border border-emerald-500/20 rounded-2xl py-5 px-6 text-xl text-emerald-500 font-black italic outline-none" value={`R$ ${newMove.val || '0.00'}`} />
+                          </div>
+
+                          <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Passageiros</label>
+                            <input type="number" min="1" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none" value={newMove.passengers} onChange={e => setNewMove({ ...newMove, passengers: e.target.value })} />
+                          </div>
+                          <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Classe</label>
+                            <select className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none appearance-none cursor-pointer" value={newMove.flightClass} onChange={e => setNewMove({ ...newMove, flightClass: e.target.value })}>
+                              <option value="Econômica">Econômica</option>
+                              <option value="Premium Economy">Premium Economy</option>
+                              <option value="Executiva">Executiva</option>
+                              <option value="Primeira Classe">Primeira Classe</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
                     </div>
                     <button onClick={addMovement} className="w-full bg-primary hover:bg-primary-dark text-bg-dark font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.4em] shadow-2xl shadow-primary/20 active:scale-95 transition-all">INJETAR NO LEDGER DE AUDITORIA</button>
                   </div>
@@ -1007,12 +1121,19 @@ const Clients: React.FC = () => {
                   const printData = {
                     clientName: selectedClient.name,
                     clientCpf: selectedClient.cpf,
-                    metrics: reportMetrics,
+                    metrics: {
+                      ...reportMetrics,
+                      totalEconomy: reportMetrics.saving,
+                      lastUpdate: new Date().toLocaleDateString('pt-BR')
+                    },
                     period: reportCycle === 'Personalizado' ? reportMonth : reportCycle,
                     generatedDate: new Date().toISOString()
                   };
                   localStorage.setItem('fl360_print_data', JSON.stringify(printData));
-                  window.open('#/print-report', '_blank');
+                  // Pequeno delay para garantir que o localStorage seja gravado antes de abrir a aba
+                  setTimeout(() => {
+                    window.open('#/print-report', '_blank');
+                  }, 100);
                 }} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
                   <span className="material-symbols-outlined text-2xl">print_connect</span>
                   IMPRIMIR PDF OFICIAL

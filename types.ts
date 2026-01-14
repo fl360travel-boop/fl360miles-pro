@@ -36,6 +36,8 @@ export interface MileageMovement {
   ticketValue?: number;
   airline?: string;
   economyGenerated?: number;
+  passengers?: number;
+  flightClass?: string;
 }
 
 export interface ExpirationAlert {
