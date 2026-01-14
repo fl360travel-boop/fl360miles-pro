@@ -13,6 +13,8 @@ const RedemptionForm: React.FC = () => {
   const [milesUsed, setMilesUsed] = useState('');
   const [ticketValue, setTicketValue] = useState('');
   const [cpmCusto, setCpmCusto] = useState('16.00');
+  const [passengers, setPassengers] = useState('1');
+  const [flightClass, setFlightClass] = useState('Econômica');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const [showAddProgram, setShowAddProgram] = useState(false);
@@ -65,7 +67,9 @@ const RedemptionForm: React.FC = () => {
       airline: airline,
       ticketValue: Number(ticketValue),
       economyGenerated: economy,
-      observation: `Resgate de ${milesUsed} mi via ${program}. Economia: R$ ${economy.toLocaleString()} (${economyPercentage.toFixed(1)}%).`
+      passengers: Number(passengers),
+      flightClass: flightClass,
+      observation: `Resgate de ${milesUsed} mi via ${program}. Economia: R$ ${economy.toLocaleString()} (${economyPercentage.toFixed(1)}%). ${Number(passengers)} Pax • ${flightClass}.`
     };
 
     const client = clients.find(c => c.id === selectedClientId);
@@ -114,7 +118,7 @@ const RedemptionForm: React.FC = () => {
               <div className="size-10 bg-emerald-custom/10 rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined text-emerald-custom">airplane_ticket</span>
               </div>
-              <h2 className="display-font text-white text-lg font-bold uppercase tracking-widest italic">Nova Emissão VIP</h2>
+              <h2 className="display-font text-white text-lg font-bold uppercase tracking-widest italic">Nova Emissão VIP 2.0</h2>
             </div>
 
             <div className="space-y-8 relative z-10">
@@ -159,6 +163,22 @@ const RedemptionForm: React.FC = () => {
                 <div className="space-y-3">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">Milhas Utilizadas</label>
                   <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-4 px-6 text-xl font-black text-white focus:ring-1 focus:ring-primary outline-none italic" type="number" placeholder="0" value={milesUsed} onChange={e => setMilesUsed(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">Passageiros</label>
+                  <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none italic" type="number" min="1" value={passengers} onChange={e => setPassengers(e.target.value)} />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">Classe</label>
+                  <select className="w-full bg-bg-card border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none outline-none italic" value={flightClass} onChange={e => setFlightClass(e.target.value)}>
+                    <option value="Econômica">Econômica</option>
+                    <option value="Premium Economy">Premium Economy</option>
+                    <option value="Executiva">Executiva</option>
+                    <option value="Primeira Classe">Primeira Classe</option>
+                  </select>
                 </div>
               </div>
 

@@ -16,6 +16,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         backgroundColor: '#FFFFFF',
         padding: 40,
+        paddingBottom: 80, // Added space for fixed footer
         fontFamily: 'Inter'
     },
     header: {

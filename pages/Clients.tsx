@@ -6,6 +6,8 @@ import { Client, MileageProgram, CreditCard, MileageMovement } from '../types';
 import { useSearch } from '../contexts/SearchContext';
 import { getClients, updateClient as updateClientAPI, deleteClient as deleteClientAPI, deleteMovement as deleteMovementAPI } from '../services/api';
 import { BrandLogo, CardSkin } from '../components/BrandAssets';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import PDFReport from '../components/PDFReport';
 
 const getInitials = (name: string) => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
@@ -1115,27 +1117,32 @@ const Clients: React.FC = () => {
 
               <div className="p-12 bg-slate-50 border-t border-slate-200 flex justify-end gap-6 sticky bottom-0 print:hidden mt-auto">
                 <button onClick={() => setShowReport(false)} className="px-10 py-5 text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] hover:text-bg-dark transition-all">DESCARTAR</button>
-                <button onClick={() => {
-                  const printData = {
-                    clientName: selectedClient.name,
-                    clientCpf: selectedClient.cpf,
-                    metrics: {
-                      ...reportMetrics,
-                      totalEconomy: reportMetrics.saving,
-                      lastUpdate: new Date().toLocaleDateString('pt-BR')
-                    },
-                    period: reportCycle === 'Personalizado' ? reportMonth : reportCycle,
-                    generatedDate: new Date().toISOString()
-                  };
-                  localStorage.setItem('fl360_print_data', JSON.stringify(printData));
-                  // Pequeno delay para garantir que o localStorage seja gravado antes de abrir a aba
-                  setTimeout(() => {
-                    window.open('#/print-report', '_blank');
-                  }, 100);
-                }} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
-                  <span className="material-symbols-outlined text-2xl">print_connect</span>
-                  IMPRIMIR PDF OFICIAL
-                </button>
+                <PDFDownloadLink
+                  document={
+                    <PDFReport
+                      data={{
+                        clientName: selectedClient.name,
+                        clientCpf: selectedClient.cpf || '',
+                        metrics: {
+                          ...reportMetrics,
+                          totalEconomy: reportMetrics.saving,
+                          lastUpdate: new Date().toLocaleDateString('pt-BR')
+                        },
+                        period: reportCycle === 'Personalizado' ? reportMonth : reportCycle,
+                        generatedDate: new Date().toISOString()
+                      }}
+                    />
+                  }
+                  fileName={`Wealth_Report_${selectedClient.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`}
+                  className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95 text-decoration-none"
+                >
+                  {({ blob, url, loading, error }) => (
+                    <>
+                      <span className="material-symbols-outlined text-2xl">print_connect</span>
+                      {loading ? 'GERANDO PDF...' : 'BAIXAR PDF OFICIAL'}
+                    </>
+                  )}
+                </PDFDownloadLink>
               </div>
             </div>
           </div>

@@ -79,7 +79,26 @@ function dbToClient(db: DbClient, programs: any[], cards: any[], movements: any[
             description: m.description,
             observation: m.observation,
             negotiatedValue: m.negotiated_value,
-            economyGenerated: m.economy_generated
+            economyGenerated: m.economyGenerated || m.economy_generated,
+            // Parse flight details from observation if not available (Fallback Strategy)
+            passengers: (() => {
+                if (m.passengers) return m.passengers;
+                const match = (m.observation || '').match(/(\d+) Pax/);
+                return match ? parseInt(match[1]) : undefined;
+            })(),
+            flightClass: (() => {
+                if (m.flightClass || m.flight_class) return m.flightClass || m.flight_class;
+                const match = (m.observation || '').match(/• ([^.]+)($|\.)/);
+                // Regex matches "• ClassName." or "• ClassName" at end
+                if (match) {
+                    // Filter out common false positives if observation has other bullets
+                    const candidate = match[1].trim();
+                    if (['Econômica', 'Premium Economy', 'Executiva', 'Primeira Classe'].some(c => candidate.includes(c))) {
+                        return candidate;
+                    }
+                }
+                return undefined;
+            })()
         })),
         economyHistory: economyHistory.map(e => ({
             month: e.month,

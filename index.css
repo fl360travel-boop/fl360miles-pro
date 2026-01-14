@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-@theme {
-    --color-primary-DEFAULT: #E2BE6A;
+:root {
+    --color-primary: #E2BE6A;
     --color-primary-dark: #B8952E;
     --color-primary-light: #F1D18A;
     --color-emerald-custom: #10B981;
@@ -9,6 +9,20 @@
     --color-bg-dark: #0A0D11;
     --color-bg-surface: #16191E;
     --color-bg-card: #1C2229;
+    --color-gold: #E2BE6A;
+    /* Explicit Gold */
+}
+
+@theme {
+    --color-primary: #E2BE6A;
+    --color-primary-dark: #B8952E;
+    --color-primary-light: #F1D18A;
+    --color-emerald-custom: #10B981;
+    --color-emerald-dark: #064E3B;
+    --color-bg-dark: #0A0D11;
+    --color-bg-surface: #16191E;
+    --color-bg-card: #1C2229;
+    --color-gold: #E2BE6A;
 
     --font-sans: "Inter", sans-serif;
     --font-serif: "Playfair Display", serif;
@@ -74,57 +88,60 @@ input:-webkit-autofill:active {
 @media print {
     @page {
         size: A4;
-        margin: 10mm;
+        margin: 0;
     }
 
     body {
+        margin: 0;
+        padding: 0;
         background: white !important;
-        color: #0f172a !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
 
+    /* Ocultar tudo que não for o relatório */
     #root>div>aside,
     #root>div>div>header,
     .print\:hidden,
     button,
     nav,
+    a[href^="/"],
     .no-print {
         display: none !important;
     }
 
+    /* Resetar layout para impressão */
+    #root,
+    #root>div,
+    #root>div>div,
     #root>div>div>main {
-        padding: 0 !important;
-        margin: 0 !important;
-        width: 100% !important;
-        height: auto !important;
-        overflow: visible !important;
-    }
-
-    /* Reset para Modais no Print */
-    .fixed {
-        position: static !important;
         display: block !important;
-        background: white !important;
-        padding: 0 !important;
-        border: none !important;
-        box-shadow: none !important;
+        height: auto !important;
+        width: 100% !important;
         overflow: visible !important;
-        max-height: none !important;
-    }
-
-    .absolute {
         position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
     }
 
-    .bg-bg-dark,
-    .bg-bg-surface {
-        background: transparent !important;
+    /* Garantir que o relatório ocupe a página toda corretamente */
+    #printable-report {
+        width: 100% !important;
+        max-width: 210mm !important;
+        margin: 0 auto !important;
+        padding: 10mm !important;
+        box-shadow: none !important;
+        border: none !important;
     }
 
-    /* Forçar visibilidade de cores de ativos em impressão */
-    .text-primary {
-        color: #B8952E !important;
+    /* Forçar cores */
+    .text-[#E2BE6A] {
+        color: #E2BE6A !important;
+    }
+
+    .bg-[#E2BE6A] {
+        background-color: #E2BE6A !important;
     }
 
     .text-emerald-600 {
@@ -132,10 +149,6 @@ input:-webkit-autofill:active {
     }
 
     .text-red-500 {
-        color: #dc2626 !important;
-    }
-
-    .border-primary {
-        border-color: #E2BE6A !important;
+        color: #ef4444 !important;
     }
 }
