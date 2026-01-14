@@ -25,10 +25,7 @@ const TopBar: React.FC<TopBarProps> = ({ onLogout, onMenuClick }) => {
         </button>
         <div className="hidden md:block">
           <h2 className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase">Módulo</h2>
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-primary italic uppercase tracking-widest">{pageTitle}</p>
-            <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-mono text-slate-500">v2.1</span>
-          </div>
+          <p className="text-sm font-semibold text-primary italic uppercase tracking-widest">{pageTitle}</p>
         </div>
       </div>
 

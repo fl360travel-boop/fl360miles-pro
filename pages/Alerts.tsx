@@ -410,17 +410,7 @@ const Alerts: React.FC = () => {
           </div>
         </div>
       )}
-      <div className="mt-20 p-8 border border-white/10 rounded-3xl bg-black/20 font-mono text-xs text-slate-500">
-        <h4 className="text-white font-bold mb-4 uppercase tracking-widest">Debug Info (Temporário)</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {clients.map(c => (
-            <div key={c.id} className="p-2 border border-white/5 rounded">
-              <span className="block text-primary">{c.name}</span>
-              <span className="block italic">{c.birthDate ? c.birthDate : 'Sem data'}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+
     </div>
   );
 };
