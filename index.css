@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
-:root {
+@theme {
+    /* Fonts */
+    --font-sans: "Inter", sans-serif;
+    --font-serif: "Playfair Display", serif;
+    --font-display: "Cinzel", serif;
+
+    /* Colors */
     --color-primary: #E2BE6A;
     --color-primary-dark: #B8952E;
     --color-primary-light: #F1D18A;
@@ -10,6 +16,13 @@
     --color-bg-surface: #16191E;
     --color-bg-card: #1C2229;
     --color-gold: #E2BE6A;
+}
+
+/* Root variables for non-Tailwind usage if necessary (optional duplication) */
+:root {
+    --color-primary: #E2BE6A;
+    --color-bg-card: #1C2229;
+    --color-bg-dark: #0A0D11;
 }
 
 /* Card backgrounds */
