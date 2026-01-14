@@ -294,6 +294,8 @@ export async function updateClient(id: string, clientData: Partial<Client>): Pro
             h.id.startsWith('TRF-') ||
             h.id.startsWith('SALE-') ||
             h.id.startsWith('RES-') ||
+            h.id.startsWith('RED-') ||
+            h.id.startsWith('CONC-') ||
             h.id.startsWith('BONUS-')
         );
 
