@@ -443,6 +443,24 @@ const Clients: React.FC = () => {
               {/* Ativos Tab */}
               {activeTab === 'programs' && (
                 <div className="space-y-8 animate-in fade-in duration-500">
+                  {/* Consolidated Summary */}
+                  <div className="bg-bg-card/40 p-8 rounded-[32px] border border-white/5 shadow-2xl">
+                    <h4 className="display-font text-[10px] text-primary font-black uppercase tracking-[0.4em] italic border-b border-white/5 pb-5 mb-5">Resumo Consolidado</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      {Object.entries(selectedClient.programs.reduce((acc, curr) => {
+                        const key = curr.name.trim().toUpperCase();
+                        if (!acc[key]) acc[key] = 0;
+                        acc[key] += curr.balance;
+                        return acc;
+                      }, {} as Record<string, number>)).map(([name, balance]) => (
+                        <div key={name} className="bg-bg-dark/50 p-6 rounded-2xl border border-white/5">
+                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">{name}</p>
+                          <p className="text-xl font-black text-white italic tracking-tighter">{balance.toLocaleString()} <span className="text-[10px] text-slate-600">mi</span></p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="bg-bg-surface border border-white/10 p-10 rounded-[40px] flex flex-col md:flex-row gap-8 items-end shadow-2xl">
                     <div className="flex-1 w-full space-y-3">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Novo Programa</label>
