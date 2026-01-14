@@ -55,9 +55,13 @@ const TransferForm: React.FC = () => {
 
     setIsProcessing(true);
 
+    const now = new Date();
+    // Fix: Use local date to avoid timezone issues (UTC vs Local)
+    const localDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+
     const movement: MileageMovement = {
       id: `TRF-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
+      date: localDate,
       type: 'Transferência',
       program: `${sourceProgram} -> ${destProgram}`,
       amount: Number(points),

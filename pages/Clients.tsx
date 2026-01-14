@@ -746,8 +746,11 @@ const Clients: React.FC = () => {
                           <th className="px-8 py-6 text-right text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] print:px-4 print:py-2">Resultado (R$)</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 print:divide-slate-200">
-                        {reportMetrics.filteredHistory.map((h, i) => (
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 print:divide-slate-200">
+                      {reportMetrics.filteredHistory
+                        .filter(m => (m.type === 'Inclusão' || m.type === 'Venda' || m.type === 'Resgate' || m.type === 'Transferência' || m.type.startsWith('Bônus') || m.type === 'Compra'))
+                        .map((h, i) => (
                           <tr key={i} className="hover:bg-slate-50/50 transition-colors break-inside-avoid page-break-inside-avoid print:bg-white">
                             <td className="px-8 py-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest print:px-4 print:py-2">{new Date(h.date).toLocaleDateString()}</td>
                             <td className="px-8 py-6 print:px-4 print:py-2">
@@ -764,28 +767,28 @@ const Clients: React.FC = () => {
                             </td>
                           </tr>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-
-                <section className="pt-20 text-center border-t border-slate-100 opacity-60">
-                  <p className="display-font text-slate-400 text-[11px] tracking-[1em] uppercase italic mb-16">FL360MILES Wealth Management Protocol — 2024</p>
-                </section>
+                    </tbody>
+                  </table>
               </div>
+            </section>
 
-              <div className="p-12 bg-slate-50 border-t border-slate-200 flex justify-end gap-6 sticky bottom-0 print:hidden">
-                <button onClick={() => setShowReport(false)} className="px-10 py-5 text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] hover:text-bg-dark transition-all">DESCARTAR</button>
-                <button onClick={() => window.print()} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
-                  <span className="material-symbols-outlined text-2xl">print_connect</span>
-                  IMPRIMIR PDF OFICIAL
-                </button>
-              </div>
-            </div>
+            <section className="pt-20 text-center border-t border-slate-100 opacity-60">
+              <p className="display-font text-slate-400 text-[11px] tracking-[1em] uppercase italic mb-16">FL360MILES Wealth Management Protocol — 2024</p>
+            </section>
           </div>
+
+          <div className="p-12 bg-slate-50 border-t border-slate-200 flex justify-end gap-6 sticky bottom-0 print:hidden">
+            <button onClick={() => setShowReport(false)} className="px-10 py-5 text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] hover:text-bg-dark transition-all">DESCARTAR</button>
+            <button onClick={() => window.print()} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
+              <span className="material-symbols-outlined text-2xl">print_connect</span>
+              IMPRIMIR PDF OFICIAL
+            </button>
+          </div>
+        </div>
+    </div>
         </>
       )}
-    </div>
+    </div >
   );
 };
 

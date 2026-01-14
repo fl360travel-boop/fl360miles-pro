@@ -53,7 +53,9 @@ const Onboarding: React.FC = () => {
   const handleFinalize = async () => {
     setIsSubmitting(true);
 
-    const now = new Date().toISOString().split('T')[0];
+    // Fix: Use local date to avoid timezone issues (UTC vs Local)
+    const today = new Date();
+    const now = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
     const formattedPrograms: MileageProgram[] = programs
       .filter(p => p.name.trim() !== '')
@@ -353,8 +355,6 @@ const Onboarding: React.FC = () => {
           </div>
         </div>
       </div>
-    </div >
-    </div >
   );
 };
 
