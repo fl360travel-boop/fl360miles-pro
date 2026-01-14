@@ -1,13 +1,16 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ManagementLevel, PaymentMethod, BillingCycle, Client, MileageProgram, CreditCard } from '../types';
-import { createClient } from '../services/api';
+import { createClient, getClient, updateClient } from '../services/api';
 
 const Onboarding: React.FC = () => {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editClientId = searchParams.get('edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Perfil & Dados Pessoais
   const [name, setName] = useState('');
@@ -35,6 +38,50 @@ const Onboarding: React.FC = () => {
   const [cards, setCards] = useState<{ bank: string, name: string }[]>([
     { bank: 'Bradesco', name: 'Amex The Platinum' }
   ]);
+
+  // Load client data for editing
+  React.useEffect(() => {
+    if (editClientId) {
+      const loadClient = async () => {
+        setIsLoading(true);
+        try {
+          const client = await getClient(editClientId);
+          setName(client.name);
+          setCpf(client.cpf || '');
+          setEmail(client.email);
+          setBirthDate(client.birthDate || '');
+          setGender(client.gender || '');
+          setMaritalStatus(client.maritalStatus || '');
+          setRegion(client.region || '');
+          setProfession(client.profession || '');
+          setStartDate(client.startDate);
+          setFee(client.managementFee.toString());
+          setBillingCycle(client.billingCycle);
+          setPaymentMethod(client.paymentMethod);
+          setLevel(client.managementLevel);
+          setObservations(client.notes);
+
+          setPrograms(client.programs.map(p => ({
+            name: p.name,
+            balance: p.balance.toString()
+          })));
+
+          setCards(client.cards.map(c => ({
+            bank: c.bank,
+            name: c.name
+          })));
+
+        } catch (error) {
+          console.error('Failed to load client:', error);
+          alert('Erro ao carregar dados do cliente.');
+          navigate('/clients');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      loadClient();
+    }
+  }, [editClientId, navigate]);
 
   const handleNext = () => {
     if (step === 1 && !name) {
@@ -75,50 +122,61 @@ const Onboarding: React.FC = () => {
         category: 'Black'
       }));
 
-    const initialHistory = formattedPrograms.map((p, idx) => ({
-      id: `H-START-${idx}-${Date.now()}`,
-      date: now,
-      type: 'Inclusão' as const,
-      program: p.name,
-      amount: p.balance,
-      description: 'Saldo Inicial de Admissão',
-      observation: 'Carga inicial de ativos realizada durante o onboarding.'
-    }));
-
-    const newClient = {
-      name: name || 'Cliente Sem Nome',
-      cpf: cpf || '',
-      email: email || '',
-      birthDate: birthDate || '',
-      gender,
-      maritalStatus,
-      region,
-      profession,
-      startDate: startDate || now,
-      managementFee: Number(fee) || 0,
-      billingCycle: billingCycle,
-      managementLevel: level,
-      paymentMethod: paymentMethod,
-      status: 'active' as const,
-      avatar: '1',
-      programs: formattedPrograms,
-      cards: formattedCards,
-      history: initialHistory.length > 0 ? initialHistory : [{
-        id: `H-0-${Date.now()}`,
-        date: now,
-        type: 'Inclusão',
-        program: 'Geral',
-        amount: 0,
-        description: 'Abertura de Protocolo de Gestão Elite'
-      }],
-      notes: observations,
-      preferences: '',
-      travelNotes: '',
-      economyHistory: []
-    };
-
     try {
-      await createClient(newClient);
+      if (editClientId) {
+        // Update existing client
+        await updateClient(editClientId, {
+          name, cpf, email, birthDate, gender, maritalStatus, region, profession,
+          startDate, managementFee: Number(fee), billingCycle, managementLevel: level,
+          paymentMethod, notes: observations,
+          programs: formattedPrograms,
+          cards: formattedCards
+        });
+      } else {
+        // Create new client
+        const initialHistory = formattedPrograms.map((p, idx) => ({
+          id: `H-START-${idx}-${Date.now()}`,
+          date: now,
+          type: 'Inclusão' as const,
+          program: p.name,
+          amount: Number(p.balance), // Ensure number
+          description: 'Saldo Inicial de Admissão',
+          observation: 'Carga inicial de ativos realizada durante o onboarding.'
+        }));
+
+        await createClient({
+          name: name || 'Cliente Sem Nome',
+          cpf: cpf || '',
+          email: email || '',
+          birthDate: birthDate || '',
+          gender,
+          maritalStatus,
+          region,
+          profession,
+          startDate: startDate || now,
+          managementFee: Number(fee) || 0,
+          billingCycle,
+          managementLevel: level,
+          paymentMethod,
+          status: 'active',
+          avatar: '1',
+          programs: formattedPrograms,
+          cards: formattedCards,
+          history: initialHistory.length > 0 ? initialHistory : [{
+            id: `H-0-${Date.now()}`,
+            date: now,
+            type: 'Inclusão',
+            program: 'Geral',
+            amount: 0,
+            description: 'Abertura de Protocolo de Gestão Elite'
+          }],
+          notes: observations,
+          preferences: '',
+          travelNotes: '',
+          economyHistory: []
+        });
+      }
+
       setIsSubmitting(false);
       navigate('/clients');
     } catch (error) {
@@ -142,9 +200,10 @@ const Onboarding: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto py-10 animate-in fade-in duration-500 pb-32">
+
       <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-8">
         <div>
-          <h2 className="display-font text-xs font-bold uppercase tracking-[0.3em] text-primary mb-2">Protocolo de Admissão</h2>
+          <h2 className="display-font text-xs font-bold uppercase tracking-[0.3em] text-primary mb-2">{editClientId ? 'Edição de Perfil' : 'Protocolo de Admissão'}</h2>
           <p className="serif-font text-3xl font-light text-white italic">Etapa {step} de 4 — {
             step === 1 ? 'Perfil & Contrato' :
               step === 2 ? 'Ativos em Milhas' :
@@ -237,7 +296,7 @@ const Onboarding: React.FC = () => {
           {step === 2 && (
             <div className="bg-bg-surface border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl animate-in slide-in-from-right-4">
               <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
-                <h1 className="display-font text-2xl font-bold text-white italic uppercase tracking-widest">Carteira de Ativos</h1>
+                <h1 className="display-font text-2xl font-bold text-white italic uppercase tracking-widest">Carteira de Ativos {editClientId && '(Edição)'}</h1>
                 <button onClick={() => setPrograms([...programs, { name: '', balance: '' }])} className="bg-primary/10 hover:bg-primary text-primary hover:text-bg-dark p-3 rounded-xl transition-all flex items-center gap-2 font-black text-[10px] tracking-widest uppercase">
                   <span className="material-symbols-outlined text-sm">add</span> Adicionar Programa
                 </button>
@@ -295,8 +354,8 @@ const Onboarding: React.FC = () => {
               <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary/20">
                 <span className="material-symbols-outlined text-primary text-4xl">verified_user</span>
               </div>
-              <h1 className="serif-font text-4xl italic text-white mb-2 uppercase tracking-tighter">Pronto para Ativação</h1>
-              <p className="text-slate-500 text-sm italic mb-10">O protocolo de gestão de {name} está configurado.</p>
+              <h1 className="serif-font text-4xl italic text-white mb-2 uppercase tracking-tighter">{editClientId ? 'Dados Atualizados' : 'Pronto para Ativação'}</h1>
+              <p className="text-slate-500 text-sm italic mb-10">{editClientId ? 'Os dados do cliente foram revisados.' : `O protocolo de gestão de ${name} está configurado.`}</p>
 
               <div className="grid grid-cols-2 gap-4 text-left max-w-lg mx-auto">
                 <div className="bg-bg-card p-6 rounded-2xl border border-white/5">
@@ -320,7 +379,7 @@ const Onboarding: React.FC = () => {
               onClick={handleNext}
               className={`bg-primary hover:bg-primary-dark text-bg-dark font-black px-14 py-4 rounded-2xl transition-all shadow-2xl shadow-primary/20 flex items-center gap-3 group italic text-[11px] tracking-[0.2em] uppercase ${isSubmitting ? 'opacity-50 cursor-wait' : 'active:scale-95'}`}
             >
-              {isSubmitting ? 'PROCESSANDO...' : step === 4 ? 'OFICIALIZAR ADMISSÃO' : 'PRÓXIMO PASSO'}
+              {isSubmitting ? 'PROCESSANDO...' : step === 4 ? (editClientId ? 'SALVAR ALTERAÇÕES' : 'OFICIALIZAR ADMISSÃO') : 'PRÓXIMO PASSO'}
               {!isSubmitting && <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">east</span>}
             </button>
           </div>

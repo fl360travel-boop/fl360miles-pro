@@ -431,12 +431,23 @@ const Clients: React.FC = () => {
                 {client.managementLevel}
               </div>
 
-              <button
-                onClick={(e) => { e.stopPropagation(); setClientToDelete(client); }}
-                className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 size-12 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all shadow-xl z-20"
-              >
-                <span className="material-symbols-outlined text-lg">delete_forever</span>
-              </button>
+              <div className="absolute bottom-8 right-8 flex gap-3 z-20 opacity-0 group-hover:opacity-100 transition-all">
+                <Link
+                  to={`/onboarding?edit=${client.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="size-12 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-bg-dark flex items-center justify-center transition-all shadow-xl"
+                  title="Editar Cadastro"
+                >
+                  <span className="material-symbols-outlined text-lg">edit</span>
+                </Link>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setClientToDelete(client); }}
+                  className="size-12 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all shadow-xl"
+                  title="Excluir Cliente"
+                >
+                  <span className="material-symbols-outlined text-lg">delete_forever</span>
+                </button>
+              </div>
 
               <div className="flex items-center gap-6 mb-6">
                 <div className="size-16 rounded-full bg-gradient-to-br from-card-dark to-black border-2 border-[#E2BE6A]/20 flex items-center justify-center text-[#E2BE6A] text-xl font-black display-font shadow-[0_0_30px_-10px_rgba(226,190,106,0.3)]">
