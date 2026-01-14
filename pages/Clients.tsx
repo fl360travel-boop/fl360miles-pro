@@ -462,7 +462,19 @@ const Clients: React.FC = () => {
                             <BrandLogo name={p.name} className="size-8" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-[10px] font-black text-white uppercase italic tracking-tighter mb-1">{p.name}</p>
+                            <div>
+                              <p className="text-[10px] font-black text-white uppercase italic tracking-tighter mb-0.5">{p.name}</p>
+                              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-2">
+                                {(() => {
+                                  const lastMove = selectedClient.history
+                                    .filter(h => h.program.toLowerCase() === p.name.toLowerCase())
+                                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+                                  return lastMove
+                                    ? `${new Date(lastMove.date).toLocaleDateString()} • ${lastMove.type}`
+                                    : 'Sem histórico de movimentação';
+                                })()}
+                              </p>
+                            </div>
                             {editingProgramId === p.id ? (
                               <div className="flex items-center gap-2 mt-1">
                                 <input autoFocus type="number" className="bg-bg-dark border border-primary/30 rounded-xl py-2 px-4 text-lg text-primary font-black italic w-40 outline-none" value={editBalanceValue} onChange={e => setEditBalanceValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEditedBalance(p)} />
