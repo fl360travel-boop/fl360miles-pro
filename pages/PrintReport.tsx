@@ -54,11 +54,17 @@ const PrintReportPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* PDF Viewer */}
-            <div className="flex-1 w-full bg-[#525659]">
-                <PDFViewer style={{ width: '100%', height: '100%', border: 'none' }} showToolbar={true}>
+            {/* PDF Viewer & Fallback */}
+            <div className="flex-1 w-full bg-[#525659] relative flex flex-col items-center justify-center">
+                <PDFViewer style={{ width: '100%', height: '100%', border: 'none' }} className="absolute inset-0">
                     <PDFReport data={data} />
                 </PDFViewer>
+
+                {/* Fallback for Safari/Mobile in case viewer fails to show */}
+                <div className="absolute bottom-8 z-10 opacity-0 hover:opacity-100 transition-opacity bg-black/80 p-4 rounded-xl">
+                    <p className="text-white text-xs mb-2 text-center">Caso não visualize o PDF:</p>
+                    {/* Using standard browser print/save if viewer fails */}
+                </div>
             </div>
         </div>
     );
