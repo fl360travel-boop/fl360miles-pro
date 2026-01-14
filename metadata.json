@@ -1,0 +1,8 @@
+{
+  "name": "Copy of FL360MILES ",
+  "description": "Uma plataforma de gestão de milhas High Ticket para clientes de alta performance, unindo inteligência estratégica e serviços de concierge premium.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

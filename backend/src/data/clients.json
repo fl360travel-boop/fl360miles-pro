@@ -1,0 +1,94 @@
+[
+    {
+        "id": "CL-MASTER-001",
+        "name": "Ricardo Oliveira",
+        "cpf": "123.456.789-00",
+        "birthDate": "1985-05-12",
+        "startDate": "2023-01-10",
+        "managementFee": 2500,
+        "billingCycle": "Mensal",
+        "managementLevel": "Elite",
+        "paymentMethod": "Cartão",
+        "status": "active",
+        "avatar": "1",
+        "email": "ricardo.o@executive.com",
+        "gender": "Masculino",
+        "maritalStatus": "Casado(a)",
+        "region": "Jardins, São Paulo - SP",
+        "profession": "CEO & Founder",
+        "programs": [
+            {
+                "id": "P1",
+                "name": "Livelo",
+                "balance": 450000,
+                "icon": "diamond"
+            },
+            {
+                "id": "P2",
+                "name": "LATAM Pass",
+                "balance": 634500,
+                "icon": "flight_takeoff"
+            }
+        ],
+        "cards": [
+            {
+                "id": "C1",
+                "bank": "Bradesco",
+                "name": "Amex The Platinum",
+                "category": "Platinum"
+            },
+            {
+                "id": "C2",
+                "bank": "Santander",
+                "name": "Unlimited Black",
+                "category": "Black"
+            }
+        ],
+        "history": [
+            {
+                "id": "H1",
+                "date": "2024-03-20",
+                "type": "Inclusão",
+                "program": "Livelo",
+                "amount": 50000,
+                "description": "Bônus trimestral estratégico",
+                "observation": "Acúmulo orgânico via gastos de cartão corporativo aprovado pelo concierge."
+            }
+        ],
+        "notes": "Cliente focado em acúmulo via gastos orgânicos de cartão corporativo. Objetivo: Viagem de fim de ano para as Maldivas em First Class.",
+        "preferences": "Prefere hotéis Rosewood e voos via Qatar Airways.",
+        "travelNotes": "",
+        "economyHistory": [
+            {
+                "month": "Jan",
+                "economyPercent": 12,
+                "mileageGrowth": 450000
+            },
+            {
+                "month": "Fev",
+                "economyPercent": 15,
+                "mileageGrowth": 520000
+            },
+            {
+                "month": "Mar",
+                "economyPercent": 18,
+                "mileageGrowth": 480000
+            },
+            {
+                "month": "Abr",
+                "economyPercent": 22,
+                "mileageGrowth": 610000
+            },
+            {
+                "month": "Mai",
+                "economyPercent": 25,
+                "mileageGrowth": 550000
+            },
+            {
+                "month": "Jun",
+                "economyPercent": 28,
+                "mileageGrowth": 720000
+            }
+        ]
+    }
+]

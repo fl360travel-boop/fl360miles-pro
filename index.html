@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FL360MILES Pro | Terminal de Gestão Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#E2BE6A',
+                            dark: '#B8952E',
+                            light: '#F1D18A'
+                        },
+                        emerald: {
+                            custom: '#10B981',
+                            dark: '#064E3B'
+                        },
+                        bg: {
+                            dark: '#0A0D11',
+                            surface: '#16191E',
+                            card: '#1C2229'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        display: ['Cinzel', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .serif-font { font-family: 'Playfair Display', serif; }
+        .display-font { font-family: 'Cinzel', serif; }
+        
+        /* Scrollbar Premium */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0A0D11; }
+        ::-webkit-scrollbar-thumb { background: #1C2229; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #E2BE6A; }
+
+        /* Estilos de Impressão de Alta Fidelidade */
+        @media print {
+            @page { size: A4; margin: 10mm; }
+            body { background: white !important; color: #0f172a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            #root > div > aside, #root > div > div > header, .print\:hidden, button, nav, .no-print { display: none !important; }
+            #root > div > div > main { padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; }
+            
+            /* Reset para Modais no Print */
+            .fixed { position: static !important; display: block !important; background: white !important; padding: 0 !important; border: none !important; box-shadow: none !important; overflow: visible !important; max-height: none !important; }
+            .absolute { position: static !important; }
+            .bg-bg-dark, .bg-bg-surface { background: transparent !important; }
+            
+            /* Forçar visibilidade de cores de ativos em impressão */
+            .text-primary { color: #B8952E !important; }
+            .text-emerald-600 { color: #059669 !important; }
+            .text-red-500 { color: #dc2626 !important; }
+            .border-primary { border-color: #E2BE6A !important; }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-bg-dark text-slate-100 min-h-screen selection:bg-primary selection:text-bg-dark antialiased">
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
