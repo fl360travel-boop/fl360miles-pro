@@ -286,7 +286,7 @@ export async function updateClient(id: string, clientData: Partial<Client>): Pro
                 // Omit ID to let Supabase generate new UUIDs
                 client_id: id,
                 name: p.name,
-                balance: p.balance,
+                balance: Math.round(Number(p.balance) || 0), // Fix 22P02
                 icon: p.icon
             }));
             const { error: progError } = await supabase.from('programs').insert(programsToInsert);
@@ -331,12 +331,12 @@ export async function updateClient(id: string, clientData: Partial<Client>): Pro
                 date: m.date,
                 type: m.type,
                 program: m.program,
-                amount: m.amount,
+                amount: Math.round(Number(m.amount) || 0), // Fix 22P02
                 description: m.description,
                 observation: m.observation,
                 negotiated_value: m.negotiatedValue,
                 economy_generated: m.economyGenerated,
-                passengers: m.passengers,
+                passengers: m.passengers ? Math.round(Number(m.passengers)) : null, // Fix 22P02
                 flight_class: m.flightClass,
                 ticket_value: m.ticketValue,
                 cpm: m.cpm,
@@ -383,18 +383,19 @@ export async function addMovement(clientId: string, movement: Omit<Client['histo
             date: movement.date,
             type: movement.type,
             program: movement.program,
-            amount: movement.amount,
+            amount: Math.round(Number(movement.amount) || 0), // Fix 22P02
             description: movement.description,
             observation: movement.observation,
             negotiated_value: movement.negotiatedValue,
             economy_generated: movement.economyGenerated,
-            passengers: movement.passengers,
+            passengers: movement.passengers ? Math.round(Number(movement.passengers)) : null, // Fix 22P02
             flight_class: movement.flightClass,
             ticket_value: movement.ticketValue,
             cpm: movement.cpm,
             profit: movement.profit,
             bonus_percent: movement.bonusPercent
         });
+
 
     if (error) throw new Error(`Failed to add movement: ${error.message}`);
 }
