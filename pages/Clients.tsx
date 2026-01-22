@@ -338,7 +338,7 @@ const Clients: React.FC = () => {
       program: program.name,
       amount: Math.abs(diff),
       description: 'Ajuste Manual de Saldo',
-      observation: `Saldo anterior: ${program.balance.toLocaleString()} | Novo saldo: ${newBalance.toLocaleString()}`
+      observation: `Saldo anterior: ${program.balance.toLocaleString('pt-BR')} | Novo saldo: ${newBalance.toLocaleString('pt-BR')}`
     };
     const updatedProgs = selectedClient.programs.map(p => p.id === program.id ? { ...p, balance: newBalance } : p);
     updateCurrent({ ...selectedClient, programs: updatedProgs, history: [m, ...selectedClient.history] });
@@ -401,14 +401,46 @@ const Clients: React.FC = () => {
       return acc + Number(h.economyGenerated || 0) + profit;
     }, 0);
 
+    // LIFETIME METRICS (Use ALL history, ignore filters)
+    const lifetimeHistory = selectedClient.history;
+    const lifetimeInvested = lifetimeHistory
+      .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
+      .reduce((acc, h) => acc + (h.negotiatedValue || h.economyGenerated || 0), 0);
+
+    const lifetimeSaving = lifetimeHistory.reduce((acc, h) => {
+      let profit = Number(h.profit || 0);
+      if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
+        const estimatedCpm = Number(h.cpm || 15.00);
+        profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
+      }
+      return acc + Number(h.economyGenerated || 0) + profit;
+    }, 0);
+
+    const lifetimeRoi = lifetimeHistory
+      .filter(h => h.type === 'Venda')
+      .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+
     // NEW METRICS FOR REPORT & CARDS
     const totalPoints = selectedClient.programs.reduce((acc, curr) => acc + curr.balance, 0);
     const totalValue = totalPoints * 0.0185; // Est. R$ 18,50/milheiro as per market standard
+
+    // Period Invested (for Period Report if needed, though usually Report uses Lifetime Assets too)
     const totalInvested = fHistory
       .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
       .reduce((acc, h) => acc + (h.negotiatedValue || h.economyGenerated || 0), 0);
 
-    return { roi, saving, totalMoves: fHistory.length, filteredHistory: fHistory, totalPoints, totalValue, totalInvested };
+    return {
+      roi,
+      saving,
+      totalMoves: fHistory.length,
+      filteredHistory: fHistory,
+      totalPoints,
+      totalValue,
+      totalInvested,
+      lifetimeInvested,
+      lifetimeSaving,
+      lifetimeRoi
+    };
   }, [selectedClient, reportCycle, reportMonth, reportYear]);
 
   const currentTotalMiles = useMemo(() => selectedClient?.programs.reduce((acc, curr) => acc + curr.balance, 0) || 0, [selectedClient]);
@@ -640,7 +672,7 @@ const Clients: React.FC = () => {
                   <div className="bg-bg-card/40 p-10 rounded-[32px] border border-white/5 space-y-8">
                     <h4 className="display-font text-[10px] text-primary font-black uppercase tracking-[0.4em] italic border-b border-white/5 pb-5">Parâmetros de Gestão</h4>
                     <div className="space-y-6">
-                      <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Honorários: <span className="text-white ml-2 italic font-black">R$ {selectedClient.managementFee.toLocaleString()}</span></p>
+                      <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Honorários: <span className="text-white ml-2 italic font-black">R$ {selectedClient.managementFee.toLocaleString('pt-BR')}</span></p>
                       <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Faturamento: <span className="text-white ml-2 italic font-black">{selectedClient.billingCycle}</span></p>
                       <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Liquidação: <span className="text-primary ml-2 italic font-black uppercase">{selectedClient.paymentMethod}</span></p>
                     </div>
@@ -684,7 +716,7 @@ const Clients: React.FC = () => {
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Economia Total Gerada</p>
                       <p className="text-4xl font-black text-white italic tracking-tighter">
                         <span className="text-emerald-500 mr-2">R$</span>
-                        {reportMetrics.saving.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {reportMetrics.lifetimeSaving.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <div className="mt-4 flex items-center gap-2">
                         <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
@@ -700,7 +732,10 @@ const Clients: React.FC = () => {
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Evolução Patrimonial</p>
                       <p className="text-4xl font-black text-white italic tracking-tighter">
                         {reportMetrics.totalInvested > 0
-                          ? `+${(((reportMetrics.totalValue - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100).toFixed(1)}%`
+                          ? (() => {
+                            const val = ((reportMetrics.totalValue - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100;
+                            return `${val > 0 ? '+' : ''}${val.toFixed(1)}%`;
+                          })()
                           : '0.0%'}
                       </p>
                       <div className="mt-4 flex items-center gap-2">
@@ -720,7 +755,7 @@ const Clients: React.FC = () => {
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Liquidez Realizada (ROI)</p>
                       <p className="text-4xl font-black text-white italic tracking-tighter">
                         <span className="text-emerald-500 mr-2">R$</span>
-                        {reportMetrics.roi.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {reportMetrics.lifetimeRoi.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <div className="mt-4 flex items-center gap-2">
                         <span className="text-[9px] bg-indigo-500/10 text-indigo-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
@@ -750,7 +785,7 @@ const Clients: React.FC = () => {
                       }, {} as Record<string, number>)).map(([name, balance]) => (
                         <div key={name} className="flex flex-col">
                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{name}</span>
-                          <span className="text-3xl font-black text-white italic tracking-tighter">{balance.toLocaleString()} <span className="text-[10px] text-slate-600 font-bold not-italic">mi</span></span>
+                          <span className="text-3xl font-black text-white italic tracking-tighter">{Number(balance).toLocaleString('pt-BR')} <span className="text-[10px] text-slate-600 font-bold not-italic">mi</span></span>
                         </div>
                       ))}
                     </div>
@@ -812,7 +847,7 @@ const Clients: React.FC = () => {
                           ) : (
                             <div className="text-right group/val relative">
                               <p className="text-xl font-black text-white italic tracking-tighter group-hover:text-primary transition-colors cursor-pointer" onClick={() => startEditingBalance(p)}>
-                                {p.balance.toLocaleString()} <span className="text-[10px] text-slate-600 font-bold not-italic">mi</span>
+                                {p.balance.toLocaleString('pt-BR')} <span className="text-[10px] text-slate-600 font-bold not-italic">mi</span>
                               </p>
                               <div className="absolute -right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover/val:opacity-100 transition-opacity">
                                 <span className="material-symbols-outlined text-slate-600 text-[10px]">edit</span>
@@ -916,7 +951,7 @@ const Clients: React.FC = () => {
                           <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-emerald-400 font-black italic outline-none" value={newMove.bonusPercent} onChange={e => setNewMove({ ...newMove, bonusPercent: e.target.value })} placeholder="0%" />
                           {newMove.amount && (
                             <div className="absolute right-4 top-10 text-xs font-bold text-emerald-400">
-                              Total: {Number(newMove.amount).toLocaleString()} mi
+                              Total: {Number(newMove.amount).toLocaleString('pt-BR')} mi
                             </div>
                           )}
                         </div>
@@ -928,7 +963,7 @@ const Clients: React.FC = () => {
                           <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-emerald-500 font-black italic outline-none" value={newMove.val} onChange={e => setNewMove({ ...newMove, val: e.target.value })} placeholder="0.00" />
                           {newMove.type === 'Venda' && newMove.val && newMove.amount && newMove.cpm && (
                             <div className="absolute right-4 top-10 text-xs font-bold text-emerald-400">
-                              Lucro: R$ {(Number(newMove.val) - (Number(newMove.amount) / 1000 * Number(newMove.cpm))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              Lucro: R$ {(Number(newMove.val) - (Number(newMove.amount) / 1000 * Number(newMove.cpm))).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
                           )}
                           {newMove.type === 'Venda' && (
@@ -1000,8 +1035,8 @@ const Clients: React.FC = () => {
                                 <span className="text-emerald-400 ml-2">
                                   (Bônus +{h.bonusPercent}%)
                                   <span className="text-slate-500 text-[9px] ml-1 block font-normal tracking-wide lowercase">
-                                    base: <span className="text-white font-bold">{Math.round(h.amount / (1 + (h.bonusPercent / 100))).toLocaleString()}</span> |
-                                    bônus: <span className="text-emerald-400 font-bold">+{Math.round(h.amount - (h.amount / (1 + (h.bonusPercent / 100)))).toLocaleString()}</span>
+                                    base: <span className="text-white font-bold">{Math.round(h.amount / (1 + (h.bonusPercent / 100))).toLocaleString('pt-BR')}</span> |
+                                    bônus: <span className="text-emerald-400 font-bold">+{Math.round(h.amount - (h.amount / (1 + (h.bonusPercent / 100)))).toLocaleString('pt-BR')}</span>
                                   </span>
                                 </span>
                               ) : ''}
@@ -1010,14 +1045,14 @@ const Clients: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <p className={`text-3xl font-black italic tracking-tighter ${['Venda', 'Resgate', 'Transferência'].includes(h.type) ? 'text-red-400' : 'text-emerald-400'}`}>
-                            {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString()}
+                            {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{Number(h.amount).toLocaleString('pt-BR')}
                           </p>
 
                           {(h.negotiatedValue || h.economyGenerated) && (
                             <p className="text-xs font-black text-white italic mt-1">
                               {h.negotiatedValue
-                                ? `R$ ${h.negotiatedValue.toLocaleString()}`
-                                : `Eco: R$ ${h.economyGenerated?.toLocaleString()}`
+                                ? `R$ ${Number(h.negotiatedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                                : `Eco: R$ ${Number(h.economyGenerated || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
                               }
                             </p>
                           )}
@@ -1026,7 +1061,7 @@ const Clients: React.FC = () => {
                             const profit = h.profit || (h.type === 'Venda' && h.negotiatedValue && h.amount ? (h.negotiatedValue - ((h.amount / 1000) * (h.cpm || 15))) : 0);
                             return profit ? (
                               <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-1">
-                                Lucro: R$ {profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                Lucro: R$ {profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </p>
                             ) : null;
                           })()}
@@ -1203,15 +1238,15 @@ const Clients: React.FC = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-16 print:gap-10">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Saldo em Custódia</p>
-                      <p className="text-5xl font-black text-slate-900 italic tracking-tighter leading-none">{currentTotalMiles.toLocaleString()} <span className="text-xs opacity-40 uppercase ml-1">mi</span></p>
+                      <p className="text-5xl font-black text-slate-900 italic tracking-tighter leading-none">{currentTotalMiles.toLocaleString('pt-BR')} <span className="text-xs opacity-40 uppercase ml-1">mi</span></p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Líquidez Realizada</p>
-                      <p className="text-4xl font-black text-emerald-600 italic tracking-tighter leading-none">R$ {reportMetrics.roi.toLocaleString()}</p>
+                      <p className="text-4xl font-black text-emerald-600 italic tracking-tighter leading-none">R$ {reportMetrics.roi.toLocaleString('pt-BR')}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Economy (Saving)</p>
-                      <p className="text-4xl font-black text-slate-900 italic tracking-tighter leading-none">R$ {reportMetrics.saving.toLocaleString()}</p>
+                      <p className="text-4xl font-black text-slate-900 italic tracking-tighter leading-none">R$ {reportMetrics.saving.toLocaleString('pt-BR')}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Level Designado</p>
@@ -1255,7 +1290,7 @@ const Clients: React.FC = () => {
                                   </td>
                                   <td className="px-8 py-6 text-[11px] font-black text-slate-900 uppercase italic print:px-4 print:py-2">{h.program}</td>
                                   <td className={`px-8 py-6 text-[12px] font-black italic tracking-tight print:px-4 print:py-2 ${['Venda', 'Resgate'].includes(h.type) ? 'text-red-500' : 'text-slate-900'}`}>
-                                    {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString()}
+                                    {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString('pt-BR')}
                                   </td>
                                   <td className="px-8 py-6 text-right text-[12px] font-black text-slate-900 italic tracking-tight print:px-4 print:py-2">
                                     {(() => {
@@ -1265,10 +1300,10 @@ const Clients: React.FC = () => {
                                         const profit = h.profit || (h.negotiatedValue && h.amount ? (h.negotiatedValue - ((h.amount / 1000) * (h.cpm || 15))) : 0);
                                         return (
                                           <div>
-                                            {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : '-'}
+                                            {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString('pt-BR')}` : '-'}
                                             {profit ? (
                                               <div className="text-[8px] text-emerald-600 font-bold block mt-1">
-                                                Lucro: R$ {profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                Lucro: R$ {profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                               </div>
                                             ) : null}
                                           </div>
@@ -1282,7 +1317,7 @@ const Clients: React.FC = () => {
                                           <div>
                                             {eco ? (
                                               <span className="text-emerald-600">
-                                                (Eco) R$ {eco.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                (Eco) R$ {eco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                               </span>
                                             ) : '-'}
                                           </div>

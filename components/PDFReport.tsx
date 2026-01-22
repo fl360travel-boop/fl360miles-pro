@@ -183,22 +183,22 @@ const PDFReport: React.FC<PDFReportProps> = ({ data }) => {
                 <View style={styles.metricsGrid}>
                     <View style={styles.metricCard}>
                         <Text style={styles.metricLabel}>Patrimônio Total</Text>
-                        <Text style={styles.metricValue}>{totalPoints.toLocaleString()}</Text>
+                        <Text style={styles.metricValue}>{totalPoints.toLocaleString('pt-BR')}</Text>
                         <Text style={styles.metricSub}>Milhas/Pontos</Text>
                     </View>
                     <View style={styles.metricCard}>
                         <Text style={styles.metricLabel}>Valor de Mercado</Text>
-                        <Text style={styles.metricValue}>R$ {totalValue.toLocaleString()}</Text>
+                        <Text style={styles.metricValue}>R$ {totalValue.toLocaleString('pt-BR')}</Text>
                         <Text style={styles.metricSub}>Estimado</Text>
                     </View>
                     <View style={styles.metricCard}>
                         <Text style={styles.metricLabel}>Economia Gerada</Text>
-                        <Text style={[styles.metricValue, { color: '#059669' }]}>R$ {totalEconomy.toLocaleString()}</Text>
+                        <Text style={[styles.metricValue, { color: '#059669' }]}>R$ {totalEconomy.toLocaleString('pt-BR')}</Text>
                         <Text style={styles.metricLabel}>No Período</Text>
                     </View>
                     <View style={styles.metricCard}>
                         <Text style={styles.metricLabel}>Investimento</Text>
-                        <Text style={styles.metricValue}>R$ {totalInvested.toLocaleString()}</Text>
+                        <Text style={styles.metricValue}>R$ {totalInvested.toLocaleString('pt-BR')}</Text>
                         <Text style={styles.metricLabel}>Realizado</Text>
                     </View>
                 </View>
@@ -214,7 +214,7 @@ const PDFReport: React.FC<PDFReportProps> = ({ data }) => {
                     {data.metrics.programs.map((p: any, i: number) => (
                         <View key={i} style={styles.tableRow}>
                             <Text style={[styles.colProgram, styles.cellBold, { width: '70%' }]}>{p.name}</Text>
-                            <Text style={[styles.colAmount, styles.cellText, { width: '30%' }]}>{p.balance.toLocaleString()} milhas</Text>
+                            <Text style={[styles.colAmount, styles.cellText, { width: '30%' }]}>{p.balance.toLocaleString('pt-BR')} milhas</Text>
                         </View>
                     ))}
                 </View>
@@ -246,13 +246,13 @@ const PDFReport: React.FC<PDFReportProps> = ({ data }) => {
                                 <Text style={[styles.colType, styles.cellBold, isNegative ? styles.negative : styles.positive]}>{h.type}</Text>
                                 <Text style={[styles.colProgram, styles.cellBold]}>{h.program}</Text>
                                 <Text style={[styles.colAmount, styles.cellText, isNegative ? styles.negative : {}]}>
-                                    {isNegative ? '-' : '+'}{h.amount.toLocaleString()}
+                                    {isNegative ? '-' : '+'}{h.amount.toLocaleString('pt-BR')}
                                 </Text>
                                 <Text style={[styles.colValue, styles.cellText]}>
                                     {h.negotiatedValue
-                                        ? `R$ ${h.negotiatedValue.toLocaleString()}` + (profitVal ? `\n(Lucro: R$ ${profitVal.toLocaleString(undefined, { minimumFractionDigits: 2 })})` : '')
+                                        ? `R$ ${h.negotiatedValue.toLocaleString('pt-BR')}` + (profitVal ? `\n(Lucro: R$ ${profitVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})` : '')
                                         : h.economyGenerated
-                                            ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}`
+                                            ? `(Eco) R$ ${h.economyGenerated.toLocaleString('pt-BR')}`
                                             : '-'}
                                 </Text>
                             </View>
