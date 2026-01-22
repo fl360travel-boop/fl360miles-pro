@@ -195,7 +195,7 @@ export async function createClient(clientData: Omit<Client, 'id'>): Promise<Clie
                 clientData.programs.map(p => ({
                     client_id: client.id,
                     name: p.name,
-                    balance: Number(p.balance) || 0,
+                    balance: Math.round(Number(p.balance) || 0), // Fix 22P02: Ensure Integer
                     icon: p.icon
                 }))
             );
@@ -220,12 +220,12 @@ export async function createClient(clientData: Omit<Client, 'id'>): Promise<Clie
                 date: m.date,
                 type: m.type,
                 program: m.program,
-                amount: Number(m.amount) || 0,
+                amount: Math.round(Number(m.amount) || 0), // Fix 22P02: Ensure Integer
                 description: m.description,
                 observation: m.observation,
                 negotiated_value: m.negotiatedValue,
                 economy_generated: m.economyGenerated,
-                passengers: m.passengers,
+                passengers: m.passengers ? Math.round(Number(m.passengers)) : null, // Fix 22P02
                 flight_class: m.flightClass,
                 ticket_value: m.ticketValue,
                 cpm: m.cpm,
