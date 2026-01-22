@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Client, MileageProgram, CreditCard, MileageMovement } from '../types';
 import { useSearch } from '../contexts/SearchContext';
-import { getClients, updateClient as updateClientAPI, deleteClient as deleteClientAPI, deleteMovement as deleteMovementAPI } from '../services/api';
+import { getClients, updateClient as updateClientAPI, deleteClient as deleteClientAPI, deleteMovement as deleteMovementAPI, subscribeToClients, subscribeToPrograms, subscribeToAllMovements } from '../services/api';
 import { BrandLogo, CardSkin } from '../components/BrandAssets';
 
 
@@ -27,8 +27,9 @@ const Clients: React.FC = () => {
 
     // Calculate reverse factor to revert balance
     // If original was "Inclusão" (factor 1), we need -1. 
-    // If "Venda" (factor -1), we need 1.
-    const originalFactor = ['Venda', 'Resgate', 'Transferência'].includes(movement.type) ? -1 : 1;
+    // If "Venda" or "Resgate" (factor -1), we need 1.
+    // "Transferência" with bonus is typically an INFLOW (Entry), so it should be treated as +1 originally.
+    const originalFactor = ['Venda', 'Resgate'].includes(movement.type) ? -1 : 1;
     const reverseFactor = originalFactor * -1;
 
     // Update Program Balance
@@ -85,7 +86,8 @@ const Clients: React.FC = () => {
     flightClass: 'Econômica',
     ticketVal: '',
     cpm: '15.00',
-    yieldCpm: ''
+    yieldCpm: '',
+    bonusPercent: ''
   });
   const [customProgram, setCustomProgram] = useState('');
 
@@ -98,7 +100,33 @@ const Clients: React.FC = () => {
       const economy = ticket - cost;
       setNewMove(prev => ({ ...prev, val: economy.toFixed(2) }));
     }
-  }, [newMove.type, newMove.ticketVal, newMove.amount, newMove.cpm]);
+    // Auto-calculate Profit for Sale (Liquidez)
+    if (newMove.type === 'Venda' && newMove.val && newMove.amount && newMove.cpm) {
+      const saleValue = parseFloat(newMove.val);
+      const miles = parseFloat(newMove.amount);
+      const cost = (miles / 1000) * parseFloat(newMove.cpm);
+      const profit = saleValue - cost;
+      // We don't overwrite 'val' here as it is the user input for Sale Price
+      // We just store the calculated profit ? We need a place to show it.
+      // Actually we need to verify if we want to show it in UI dynamically.
+      // For now, calculation happens at save time or render time.
+    }
+  }, [newMove.type, newMove.ticketVal, newMove.amount, newMove.cpm, newMove.val]);
+
+  // Auto-calculate Bonus for Transfer
+  useEffect(() => {
+    if (newMove.type === 'Transferência' && newMove.val && newMove.bonusPercent) {
+      // Here 'val' will be treated as BASE amount (miles)
+      const base = parseFloat(newMove.val);
+      const percent = parseFloat(newMove.bonusPercent);
+      if (base > 0) {
+        const total = base + (base * (percent / 100));
+        setNewMove(prev => ({ ...prev, amount: total.toFixed(0) }));
+      }
+    } else if (newMove.type === 'Transferência' && newMove.val && !newMove.bonusPercent) {
+      setNewMove(prev => ({ ...prev, amount: prev.val }));
+    }
+  }, [newMove.type, newMove.val, newMove.bonusPercent]);
 
   // Two-way binding: Ticket Value <-> Yield CPM
   const handleTicketValChange = (val: string) => {
@@ -170,6 +198,17 @@ const Clients: React.FC = () => {
       }
     };
     loadClients();
+
+    // Subscribe to Real-Time Changes
+    const unsubClients = subscribeToClients(() => loadClients());
+    const unsubPrograms = subscribeToPrograms(() => loadClients());
+    const unsubMovements = subscribeToAllMovements(() => loadClients());
+
+    return () => {
+      unsubClients();
+      unsubPrograms();
+      unsubMovements();
+    };
   }, [searchParams]);
 
   const saveClient = async (updatedClient: Client) => {
@@ -254,23 +293,28 @@ const Clients: React.FC = () => {
       observation: newMove.type === 'Resgate'
         ? `${newMove.obs || 'Resgate Manual'}. ${newMove.passengers} Pax • ${newMove.flightClass}.`
         : newMove.obs,
-      negotiatedValue: ['Venda', 'Compra'].includes(newMove.type) ? Number(newMove.val) : undefined,
-      economyGenerated: ['Inclusão', 'Resgate', 'Transferência'].includes(newMove.type) ? Number(newMove.val) : undefined,
+      negotiatedValue: ['Venda', 'Compra', 'Inclusão'].includes(newMove.type) ? Number(newMove.val) : undefined,
+      economyGenerated: ['Inclusão', 'Resgate'].includes(newMove.type) ? Number(newMove.val) : undefined,
       passengers: newMove.type === 'Resgate' ? Number(newMove.passengers) : undefined,
-      flightClass: newMove.type === 'Resgate' ? newMove.flightClass : undefined
+      flightClass: newMove.type === 'Resgate' ? newMove.flightClass : undefined,
+      ticketValue: newMove.type === 'Resgate' ? Number(newMove.ticketVal) : undefined,
+      cpm: ['Resgate', 'Venda'].includes(newMove.type) ? Number(newMove.cpm) : undefined,
+      profit: newMove.type === 'Venda' ? (Number(newMove.val) - (Number(newMove.amount) / 1000 * Number(newMove.cpm))) : undefined,
+      bonusPercent: newMove.type === 'Transferência' ? Number(newMove.bonusPercent) : undefined
     };
 
     // Update balances
     updatedProgs = updatedProgs.map(p => {
       if (p.name.toLowerCase() === effectiveProgram.toLowerCase()) {
-        const factor = ['Venda', 'Resgate', 'Transferência'].includes(m.type) ? -1 : 1;
+        // Transferência is now treated as Inflow (Entry with Bonus)
+        const factor = ['Venda', 'Resgate'].includes(m.type) ? -1 : 1;
         return { ...p, balance: p.balance + (m.amount * factor) };
       }
       return p;
     });
 
     updateCurrent({ ...selectedClient, history: [m, ...selectedClient.history], programs: updatedProgs });
-    setNewMove({ type: 'Inclusão', program: '', amount: '', desc: '', val: '', obs: '' });
+    setNewMove({ type: 'Inclusão', program: '', amount: '', desc: '', val: '', obs: '', bonusPercent: '' });
     setCustomProgram('');
   };
 
@@ -330,22 +374,39 @@ const Clients: React.FC = () => {
         return localDate >= start && localDate <= end;
       });
       const roi = fHistory.reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
-      const saving = fHistory.reduce((acc, h) => acc + (h.economyGenerated || 0), 0);
+      const saving = fHistory.reduce((acc, h) => {
+        let profit = Number(h.profit || 0);
+        if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
+          const estimatedCpm = Number(h.cpm || 15.00);
+          profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
+        }
+        return acc + Number(h.economyGenerated || 0) + profit;
+      }, 0);
       return { roi, saving, totalMoves: fHistory.length, filteredHistory: fHistory };
     }
 
     const startDate = new Date();
     startDate.setMonth(now.getMonth() - months);
     const fHistory = selectedClient.history.filter(h => new Date(h.date) >= startDate);
-    const roi = fHistory.reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
-    const saving = fHistory.reduce((acc, h) => acc + (h.economyGenerated || 0), 0);
+    const roi = fHistory
+      .filter(h => h.type === 'Venda')
+      .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+
+    const saving = fHistory.reduce((acc, h) => {
+      let profit = Number(h.profit || 0);
+      if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
+        const estimatedCpm = Number(h.cpm || 15.00);
+        profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
+      }
+      return acc + Number(h.economyGenerated || 0) + profit;
+    }, 0);
 
     // NEW METRICS FOR REPORT & CARDS
     const totalPoints = selectedClient.programs.reduce((acc, curr) => acc + curr.balance, 0);
     const totalValue = totalPoints * 0.0185; // Est. R$ 18,50/milheiro as per market standard
     const totalInvested = fHistory
       .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
-      .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+      .reduce((acc, h) => acc + (h.negotiatedValue || h.economyGenerated || 0), 0);
 
     return { roi, saving, totalMoves: fHistory.length, filteredHistory: fHistory, totalPoints, totalValue, totalInvested };
   }, [selectedClient, reportCycle, reportMonth, reportYear]);
@@ -402,19 +463,31 @@ const Clients: React.FC = () => {
           // Metrics Calculation
           const totalPoints = client.programs.reduce((acc, p) => acc + p.balance, 0);
           const totalValue = totalPoints * 0.0185;
-          const roi = client.history.reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+          const roi = client.history
+            .filter(h => h.type === 'Venda')
+            .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
           const totalInvested = client.history
             .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
-            .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+            .reduce((acc, h) => acc + (h.negotiatedValue || h.economyGenerated || 0), 0);
 
-          const totalEconomy = client.history.reduce((acc, h) => acc + (h.economyGenerated || 0), 0);
+          const totalEconomy = client.history.reduce((acc, h) => {
+            // Fallback Logic: If profit is missing but it's a Sale, calculate it
+            let profit = h.profit || 0;
+            if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
+              const estimatedCpm = h.cpm || 15.00; // Legacy Fallback
+              profit = h.negotiatedValue - ((h.amount / 1000) * estimatedCpm);
+            }
+            return acc + (h.economyGenerated || 0) + profit;
+          }, 0);
 
           let evolutionPercent = 0;
           if (totalInvested && totalInvested > 0) {
-            evolutionPercent = ((totalValue - totalInvested) / totalInvested) * 100;
-          } else if (totalValue > 0) {
-            evolutionPercent = 0; // Default to 0 instead of 100 to avoid confusion if cost is missing
+            // Evolution = ((Current Assets + Realized Liquidity) - Invested) / Invested
+            // This reflects Global Return (Holdings + Cashouts)
+            evolutionPercent = (((totalValue + roi) - totalInvested) / totalInvested) * 100;
+          } else if ((totalValue + roi) > 0) {
+            evolutionPercent = 100; // Pure profit if 0 invested
           }
 
           if (!Number.isFinite(evolutionPercent) || isNaN(evolutionPercent)) {
@@ -463,18 +536,25 @@ const Clients: React.FC = () => {
               </div>
 
               {/* NEW METRICS ROW */}
-              <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-4 mb-4">
+              <div className="grid grid-cols-3 gap-2 border-t border-white/5 pt-4 mb-4">
                 <div>
-                  <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mb-1">Evolução Global</p>
-                  <p className={`text-lg font-black italic tracking-tighter ${evolutionPercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1">Evolução</p>
+                  <p className={`text-sm font-black italic tracking-tighter ${evolutionPercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {evolutionPercent > 0 ? '+' : ''}{evolutionPercent.toFixed(1)}%
                   </p>
                 </div>
                 <div>
-                  <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mb-1">Economia Total</p>
-                  <p className="text-lg font-black text-white italic tracking-tighter">
-                    <span className="text-emerald-500 text-xs mr-1">R$</span>
+                  <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1">Economia</p>
+                  <p className="text-sm font-black text-white italic tracking-tighter">
+                    <span className="text-emerald-500 text-[10px] mr-1">R$</span>
                     {(totalEconomy / 1000).toFixed(1)}k
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1 text-right">Liquidez</p>
+                  <p className="text-sm font-black text-white italic tracking-tighter text-right">
+                    <span className="text-emerald-500 text-[10px] mr-1">R$</span>
+                    {(roi / 1000).toFixed(1)}k
                   </p>
                 </div>
               </div>
@@ -571,9 +651,32 @@ const Clients: React.FC = () => {
               {/* Ativos Tab */}
               {activeTab === 'programs' && (
                 <div className="space-y-10 animate-in fade-in duration-500">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => {
+                        if (!selectedClient) return;
+                        const newProgs = selectedClient.programs.map(p => ({ ...p, balance: 0 }));
+                        selectedClient.history.forEach(h => {
+                          // Default Factor +1 (Inclusão, Compra, Transferência, etc)
+                          let factor = 1;
+                          if (['Venda', 'Resgate'].includes(h.type)) factor = -1;
 
-                  {/* NEW: Smart Asset Cards (Evolution & Economy) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                          const pIndex = newProgs.findIndex(prog => prog.name.toLowerCase() === h.program.toLowerCase());
+                          if (pIndex >= 0) {
+                            newProgs[pIndex].balance += (h.amount * factor);
+                          }
+                        });
+                        updateCurrent({ ...selectedClient, programs: newProgs });
+                      }}
+                      className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#E2BE6A] hover:text-white transition-colors bg-[#E2BE6A]/10 hover:bg-[#E2BE6A]/20 px-4 py-2 rounded-xl"
+                    >
+                      <span className="material-symbols-outlined text-sm">sync</span>
+                      Sincronizar Saldos
+                    </button>
+                  </div>
+
+                  {/* NEW: Smart Asset Cards (Evolution & Economy) - UPDATED WITH LIQUIDITY */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <div className="bg-bg-surface border border-emerald-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-emerald-500/40 transition-all">
                       <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                         <span className="material-symbols-outlined text-6xl text-emerald-500">savings</span>
@@ -606,6 +709,22 @@ const Clients: React.FC = () => {
                         </span>
                         <span className="text-[9px] text-slate-600 font-bold">
                           (Mkt Val + ROI vs Invest)
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-bg-surface border border-indigo-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-indigo-500/40 transition-all">
+                      <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span className="material-symbols-outlined text-6xl text-indigo-500">payments</span>
+                      </div>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Liquidez Realizada (ROI)</p>
+                      <p className="text-4xl font-black text-white italic tracking-tighter">
+                        <span className="text-emerald-500 mr-2">R$</span>
+                        {reportMetrics.roi.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                      <div className="mt-4 flex items-center gap-2">
+                        <span className="text-[9px] bg-indigo-500/10 text-indigo-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
+                          Cash-out Real
                         </span>
                       </div>
                     </div>
@@ -778,14 +897,46 @@ const Clients: React.FC = () => {
                           </select>
                         )}
                       </div>
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Volume (Milhas)</label>
-                        <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none" value={newMove.amount} onChange={e => handleAmountChange(e.target.value)} placeholder="0" />
-                      </div>
                       {newMove.type !== 'Resgate' && (
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                            {newMove.type === 'Transferência' ? 'Milhas Originais (Base)' : 'Volume (Milhas)'}
+                          </label>
+                          {newMove.type === 'Transferência' ? (
+                            <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none" value={newMove.val} onChange={e => setNewMove({ ...newMove, val: e.target.value })} placeholder="0" />
+                          ) : (
+                            <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-white font-black italic outline-none" value={newMove.amount} onChange={e => handleAmountChange(e.target.value)} placeholder="0" />
+                          )}
+                        </div>
+                      )}
+
+                      {newMove.type === 'Transferência' && (
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Bônus %</label>
+                          <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-emerald-400 font-black italic outline-none" value={newMove.bonusPercent} onChange={e => setNewMove({ ...newMove, bonusPercent: e.target.value })} placeholder="0%" />
+                          {newMove.amount && (
+                            <div className="absolute right-4 top-10 text-xs font-bold text-emerald-400">
+                              Total: {Number(newMove.amount).toLocaleString()} mi
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {newMove.type !== 'Resgate' && newMove.type !== 'Transferência' && (
                         <div className="space-y-3">
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Valor Financeiro (R$)</label>
                           <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-xl text-emerald-500 font-black italic outline-none" value={newMove.val} onChange={e => setNewMove({ ...newMove, val: e.target.value })} placeholder="0.00" />
+                          {newMove.type === 'Venda' && newMove.val && newMove.amount && newMove.cpm && (
+                            <div className="absolute right-4 top-10 text-xs font-bold text-emerald-400">
+                              Lucro: R$ {(Number(newMove.val) - (Number(newMove.amount) / 1000 * Number(newMove.cpm))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                          )}
+                          {newMove.type === 'Venda' && (
+                            <div className="mt-2">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Custo CPM (R$)</label>
+                              <input type="number" className="w-full bg-bg-card border-none rounded-2xl py-3 px-4 text-sm text-slate-300 font-bold outline-none" value={newMove.cpm} onChange={e => setNewMove({ ...newMove, cpm: e.target.value })} placeholder="Custo Médio" />
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -843,13 +994,42 @@ const Clients: React.FC = () => {
                           </div>
                           <div>
                             <p className="text-xl font-black text-white uppercase italic tracking-tighter leading-none">{h.type} {h.program}</p>
-                            <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-3">{h.date} • {h.description || 'Verified Trail'}</p>
+                            <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-3">
+                              {h.date} • {h.description || 'Verified Trail'}
+                              {h.bonusPercent ? (
+                                <span className="text-emerald-400 ml-2">
+                                  (Bônus +{h.bonusPercent}%)
+                                  <span className="text-slate-500 text-[9px] ml-1 block font-normal tracking-wide lowercase">
+                                    base: <span className="text-white font-bold">{Math.round(h.amount / (1 + (h.bonusPercent / 100))).toLocaleString()}</span> |
+                                    bônus: <span className="text-emerald-400 font-bold">+{Math.round(h.amount - (h.amount / (1 + (h.bonusPercent / 100)))).toLocaleString()}</span>
+                                  </span>
+                                </span>
+                              ) : ''}
+                            </p>
                           </div>
                         </div>
                         <div className="text-right">
                           <p className={`text-3xl font-black italic tracking-tighter ${['Venda', 'Resgate', 'Transferência'].includes(h.type) ? 'text-red-400' : 'text-emerald-400'}`}>
                             {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString()}
                           </p>
+
+                          {(h.negotiatedValue || h.economyGenerated) && (
+                            <p className="text-xs font-black text-white italic mt-1">
+                              {h.negotiatedValue
+                                ? `R$ ${h.negotiatedValue.toLocaleString()}`
+                                : `Eco: R$ ${h.economyGenerated?.toLocaleString()}`
+                              }
+                            </p>
+                          )}
+
+                          {(() => {
+                            const profit = h.profit || (h.type === 'Venda' && h.negotiatedValue && h.amount ? (h.negotiatedValue - ((h.amount / 1000) * (h.cpm || 15))) : 0);
+                            return profit ? (
+                              <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-1">
+                                Lucro: R$ {profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </p>
+                            ) : null;
+                          })()}
                           <div className="flex items-center justify-end gap-2 mt-2">
                             <span className="material-symbols-outlined text-emerald-custom text-sm">verified</span>
                             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-700 italic">Audit Confirmed</span>
@@ -1078,7 +1258,40 @@ const Clients: React.FC = () => {
                                     {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{h.amount.toLocaleString()}
                                   </td>
                                   <td className="px-8 py-6 text-right text-[12px] font-black text-slate-900 italic tracking-tight print:px-4 print:py-2">
-                                    {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : h.economyGenerated ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}` : '-'}
+                                    {(() => {
+                                      // Render Logic for "Resultado" Column
+                                      if (h.type === 'Venda') {
+                                        // Venda: Show Value + Profit
+                                        const profit = h.profit || (h.negotiatedValue && h.amount ? (h.negotiatedValue - ((h.amount / 1000) * (h.cpm || 15))) : 0);
+                                        return (
+                                          <div>
+                                            {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : '-'}
+                                            {profit ? (
+                                              <div className="text-[8px] text-emerald-600 font-bold block mt-1">
+                                                Lucro: R$ {profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                              </div>
+                                            ) : null}
+                                          </div>
+                                        );
+                                      } else if (h.type === 'Resgate') {
+                                        // Resgate: Show Economy (which is stored in val/economyGenerated for display) or Calculated
+                                        // For Resgate, 'negotiatedValue' might be empty, we use 'economyGenerated'
+                                        // Actually in addMovement: economyGenerated = val
+                                        const eco = h.economyGenerated || (h.ticketValue && h.amount && h.cpm ? (h.ticketValue - ((h.amount / 1000) * h.cpm)) : 0);
+                                        return (
+                                          <div>
+                                            {eco ? (
+                                              <span className="text-emerald-600">
+                                                (Eco) R$ {eco.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                              </span>
+                                            ) : '-'}
+                                          </div>
+                                        );
+                                      } else {
+                                        // Other (Compra, etc)
+                                        return h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : '-';
+                                      }
+                                    })()}
                                   </td>
                                 </tr>
                               ))}

@@ -29,6 +29,12 @@ export interface Client {
         observation?: string;
         negotiatedValue?: number;
         economyGenerated?: number;
+        passengers?: number;
+        flightClass?: string;
+        ticketValue?: number;
+        cpm?: number;
+        profit?: number;
+        bonusPercent?: number;
     }>;
     notes: string;
     preferences: string;
@@ -75,35 +81,22 @@ function dbToClient(db: DbClient, programs: any[], cards: any[], movements: any[
             date: m.date,
             type: m.type,
             program: m.program,
-            amount: m.amount,
+            amount: Number(m.amount || 0),
             description: m.description,
             observation: m.observation,
-            negotiatedValue: m.negotiated_value,
-            economyGenerated: m.economyGenerated || m.economy_generated,
-            // Parse flight details from observation if not available (Fallback Strategy)
-            passengers: (() => {
-                if (m.passengers) return m.passengers;
-                const match = (m.observation || '').match(/(\d+) Pax/);
-                return match ? parseInt(match[1]) : undefined;
-            })(),
-            flightClass: (() => {
-                if (m.flightClass || m.flight_class) return m.flightClass || m.flight_class;
-                const match = (m.observation || '').match(/• ([^.]+)($|\.)/);
-                // Regex matches "• ClassName." or "• ClassName" at end
-                if (match) {
-                    // Filter out common false positives if observation has other bullets
-                    const candidate = match[1].trim();
-                    if (['Econômica', 'Premium Economy', 'Executiva', 'Primeira Classe'].some(c => candidate.includes(c))) {
-                        return candidate;
-                    }
-                }
-                return undefined;
-            })()
+            negotiatedValue: m.negotiated_value ? Number(m.negotiated_value) : undefined,
+            economyGenerated: (m.economyGenerated || m.economy_generated) ? Number(m.economyGenerated || m.economy_generated) : undefined,
+            passengers: m.passengers ? Number(m.passengers) : undefined,
+            flightClass: m.flightClass || m.flight_class,
+            ticketValue: (m.ticketValue || m.ticket_value) ? Number(m.ticketValue || m.ticket_value) : undefined,
+            cpm: m.cpm ? Number(m.cpm) : undefined,
+            profit: m.profit ? Number(m.profit) : undefined,
+            bonusPercent: m.bonusPercent || m.bonus_percent ? Number(m.bonusPercent || m.bonus_percent) : undefined
         })),
         economyHistory: economyHistory.map(e => ({
             month: e.month,
-            economyPercent: e.economy_percent,
-            mileageGrowth: e.mileage_growth
+            economyPercent: Number(e.economy_percent || 0),
+            mileageGrowth: Number(e.mileage_growth || 0)
         }))
     };
 }
@@ -192,48 +185,62 @@ export async function createClient(clientData: Omit<Client, 'id'>): Promise<Clie
 
     if (error) throw new Error(`Failed to create client: ${error.message}`);
 
-    // Insert related data
-    if (clientData.programs?.length) {
-        const { error: programsError } = await supabase.from('programs').insert(
-            clientData.programs.map(p => ({
+    // Insert related data in parallel for performance and validation
+    // Insert related data in sequence (safer than parallel if connections are flaky)
+
+
+    try {
+        if (clientData.programs?.length) {
+            const { error } = await supabase.from('programs').insert(
+                clientData.programs.map(p => ({
+                    client_id: client.id,
+                    name: p.name,
+                    balance: Number(p.balance) || 0,
+                    icon: p.icon
+                }))
+            );
+            if (error) throw new Error(`Failed to insert programs: ${error.message}`);
+        }
+
+        if (clientData.cards?.length) {
+            const { error } = await supabase.from('cards').insert(
+                clientData.cards.map(c => ({
+                    client_id: client.id,
+                    bank: c.bank,
+                    name: c.name,
+                    category: c.category || 'Black'
+                }))
+            );
+            if (error) throw new Error(`Failed to insert cards: ${error.message}`);
+        }
+
+        if (clientData.history?.length) {
+            const movementsToInsert = clientData.history.map(m => ({
                 client_id: client.id,
-                name: p.name,
-                balance: p.balance,
-                icon: p.icon
-            }))
-        );
-        if (programsError) console.error('Error inserting programs:', programsError);
-    }
+                date: m.date,
+                type: m.type,
+                program: m.program,
+                amount: Number(m.amount) || 0,
+                description: m.description,
+                observation: m.observation,
+                negotiated_value: m.negotiatedValue,
+                economy_generated: m.economyGenerated,
+                passengers: m.passengers,
+                flight_class: m.flightClass,
+                ticket_value: m.ticketValue,
+                cpm: m.cpm,
+                profit: m.profit,
+                bonus_percent: m.bonusPercent !== undefined ? m.bonusPercent : null
+            }));
 
-    if (clientData.cards?.length) {
-        const { error: cardsError } = await supabase.from('cards').insert(
-            clientData.cards.map(c => ({
-                client_id: client.id,
-                bank: c.bank,
-                name: c.name,
-                category: 'Black'
-            }))
-        );
-        if (cardsError) console.error('Error inserting cards:', cardsError);
-    }
-
-    // Insert history (new movements)
-    // Fix: Ensure initial history (like bonus) is saved upon creation
-    if (clientData.history?.length) {
-        const movementsToInsert = clientData.history.map(m => ({
-            client_id: client.id,
-            date: m.date,
-            type: m.type,
-            program: m.program,
-            amount: m.amount,
-            description: m.description,
-            observation: m.observation,
-            negotiated_value: m.negotiatedValue,
-            economy_generated: m.economyGenerated
-        }));
-
-        const { error: movError } = await supabase.from('movements').insert(movementsToInsert);
-        if (movError) console.error('Error inserting movements:', movError);
+            const { error } = await supabase.from('movements').insert(movementsToInsert);
+            if (error) throw new Error(`Failed to insert history: ${error.message}`);
+        }
+    } catch (insertError: any) {
+        console.error('Critical Error in createClient related data:', insertError);
+        // Clean up partial data
+        await supabase.from('clients').delete().eq('id', client.id);
+        throw new Error(`Transaction Failed: ${insertError.message}. Client creation rolled back.`);
     }
 
     return getClient(client.id);
@@ -328,7 +335,13 @@ export async function updateClient(id: string, clientData: Partial<Client>): Pro
                 description: m.description,
                 observation: m.observation,
                 negotiated_value: m.negotiatedValue,
-                economy_generated: m.economyGenerated
+                economy_generated: m.economyGenerated,
+                passengers: m.passengers,
+                flight_class: m.flightClass,
+                ticket_value: m.ticketValue,
+                cpm: m.cpm,
+                profit: m.profit,
+                bonus_percent: m.bonusPercent !== undefined ? m.bonusPercent : null
             }));
 
             const { error: movError } = await supabase.from('movements').insert(movementsToInsert);
@@ -374,7 +387,13 @@ export async function addMovement(clientId: string, movement: Omit<Client['histo
             description: movement.description,
             observation: movement.observation,
             negotiated_value: movement.negotiatedValue,
-            economy_generated: movement.economyGenerated
+            economy_generated: movement.economyGenerated,
+            passengers: movement.passengers,
+            flight_class: movement.flightClass,
+            ticket_value: movement.ticketValue,
+            cpm: movement.cpm,
+            profit: movement.profit,
+            bonus_percent: movement.bonusPercent
         });
 
     if (error) throw new Error(`Failed to add movement: ${error.message}`);

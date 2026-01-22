@@ -139,9 +139,14 @@ const Onboarding: React.FC = () => {
           date: now,
           type: 'Inclusão' as const,
           program: p.name,
-          amount: Number(p.balance), // Ensure number
+          amount: Number(p.balance) || 0, // Ensure number
           description: 'Saldo Inicial de Admissão',
-          observation: 'Carga inicial de ativos realizada durante o onboarding.'
+          observation: 'Carga inicial de ativos realizada durante o onboarding.',
+          negotiatedValue: (Number(p.balance) || 0) * 0.0185, // Standard Market Rate: R$ 18,50/k
+          economyGenerated: (Number(p.balance) || 0) * 0.0185, // Also track as economy for reference
+          cpm: 0,
+          profit: 0,
+          bonusPercent: 0
         }));
 
         await createClient({
@@ -168,7 +173,10 @@ const Onboarding: React.FC = () => {
             type: 'Inclusão',
             program: 'Geral',
             amount: 0,
-            description: 'Abertura de Protocolo de Gestão Elite'
+            description: 'Abertura de Protocolo de Gestão Elite',
+            cpm: 0,
+            profit: 0,
+            bonusPercent: 0
           }],
           notes: observations,
           preferences: '',

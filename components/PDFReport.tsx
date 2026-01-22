@@ -151,6 +151,8 @@ interface PDFReportProps {
             totalEconomy: number;
             totalInvested: number;
             lastUpdate: string;
+
+            programs: any[];
             filteredHistory: any[];
         };
         period: string;
@@ -201,6 +203,22 @@ const PDFReport: React.FC<PDFReportProps> = ({ data }) => {
                     </View>
                 </View>
 
+
+                {/* PROGRAMS / ASSETS */}
+                <Text style={styles.sectionTitle}>Carteira de Ativos (Programas)</Text>
+                <View style={[styles.table, { marginBottom: 20 }]}>
+                    <View style={styles.tableHeader}>
+                        <Text style={[styles.colProgram, { width: '70%' }]}>PROGRAMA</Text>
+                        <Text style={[styles.colAmount, { width: '30%' }]}>SALDO ATUAL</Text>
+                    </View>
+                    {data.metrics.programs.map((p: any, i: number) => (
+                        <View key={i} style={styles.tableRow}>
+                            <Text style={[styles.colProgram, styles.cellBold, { width: '70%' }]}>{p.name}</Text>
+                            <Text style={[styles.colAmount, styles.cellText, { width: '30%' }]}>{p.balance.toLocaleString()} milhas</Text>
+                        </View>
+                    ))}
+                </View>
+
                 {/* TABLE */}
                 <Text style={styles.sectionTitle}>Detalhamento de Movimentações</Text>
                 <View style={styles.table}>
@@ -214,6 +232,14 @@ const PDFReport: React.FC<PDFReportProps> = ({ data }) => {
 
                     {standardItems.map((h: any, i: number) => {
                         const isNegative = ['Venda', 'Resgate', 'Transferência'].includes(h.type);
+
+                        // Fallback Profit Calculation
+                        let profitVal = h.profit;
+                        if (!profitVal && h.type === 'Venda' && h.negotiatedValue && h.amount) {
+                            const estCpm = h.cpm || 15;
+                            profitVal = h.negotiatedValue - ((h.amount / 1000) * estCpm);
+                        }
+
                         return (
                             <View key={i} style={styles.tableRow} wrap={false}>
                                 <Text style={[styles.colDate, styles.cellText]}>{new Date(h.date).toLocaleDateString()}</Text>
@@ -224,7 +250,7 @@ const PDFReport: React.FC<PDFReportProps> = ({ data }) => {
                                 </Text>
                                 <Text style={[styles.colValue, styles.cellText]}>
                                     {h.negotiatedValue
-                                        ? `R$ ${h.negotiatedValue.toLocaleString()}`
+                                        ? `R$ ${h.negotiatedValue.toLocaleString()}` + (profitVal ? `\n(Lucro: R$ ${profitVal.toLocaleString(undefined, { minimumFractionDigits: 2 })})` : '')
                                         : h.economyGenerated
                                             ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}`
                                             : '-'}

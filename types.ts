@@ -38,6 +38,9 @@ export interface MileageMovement {
   economyGenerated?: number;
   passengers?: number;
   flightClass?: string;
+  cpm?: number;
+  profit?: number;
+  bonusPercent?: number;
 }
 
 export interface ExpirationAlert {

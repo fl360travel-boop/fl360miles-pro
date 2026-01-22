@@ -61,6 +61,10 @@ CREATE TABLE movements (
     observation TEXT,
     negotiated_value DECIMAL(10,2),
     economy_generated DECIMAL(10,2),
+    passengers INTEGER,
+    flight_class VARCHAR(50),
+    ticket_value DECIMAL(10,2),
+    cpm DECIMAL(10,2),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
