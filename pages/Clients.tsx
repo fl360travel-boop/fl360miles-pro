@@ -717,84 +717,7 @@ const Clients: React.FC = () => {
               {/* Ativos Tab */}
               {activeTab === 'programs' && (
                 <div className="space-y-10 animate-in fade-in duration-500">
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => {
-                        if (!selectedClient) return;
-
-                        // Confirmar antes de sincronizar pois pode alterar saldos
-                        if (!window.confirm('Atenção: Esta ação irá recalcular os saldos baseado no histórico de movimentações.\n\nProgramas SEM movimentações no histórico manterão seus saldos atuais.\n\nDeseja continuar?')) {
-                          return;
-                        }
-
-                        const balMap = new Map<string, number>();
-                        const nameMap = new Map<string, string>();
-                        const programsWithHistory = new Set<string>();
-
-                        // 1. Calculate balances from history
-                        selectedClient.history.forEach(h => {
-                          const key = h.program.trim().toLowerCase();
-                          if (!key) return;
-
-                          // Mark that this program has history entries
-                          programsWithHistory.add(key);
-
-                          // Store original display name if not yet stored
-                          if (!nameMap.has(key)) nameMap.set(key, h.program.trim());
-
-                          // Factor: Venda, Resgate são saídas (-1), outros são entradas (+1)
-                          // Nota: Transferência neste sistema é entrada COM bônus
-                          let factor = 1;
-                          if (['Venda', 'Resgate'].includes(h.type)) factor = -1;
-
-                          const current = balMap.get(key) || 0;
-                          balMap.set(key, current + (h.amount * factor));
-                        });
-
-                        // 2. Prepare new programs list
-                        // CORREÇÃO: Manter saldos originais para programas SEM histórico
-                        let newProgs = selectedClient.programs.map(p => {
-                          const key = p.name.trim().toLowerCase();
-                          // Se este programa tem histórico, será atualizado abaixo
-                          // Se NÃO tem histórico, mantemos o saldo atual
-                          if (programsWithHistory.has(key)) {
-                            return { ...p, balance: 0 }; // Será calculado abaixo
-                          } else {
-                            return { ...p }; // Preserva saldo atual
-                          }
-                        });
-                        const existingNamesLower = new Set(newProgs.map(p => p.name.toLowerCase()));
-
-                        // 3. Update existing (que têm histórico) or Create new programs from history
-                        balMap.forEach((balance, key) => {
-                          if (existingNamesLower.has(key)) {
-                            // Update existing with calculated balance
-                            const idx = newProgs.findIndex(p => p.name.toLowerCase() === key);
-                            if (idx !== -1) {
-                              newProgs[idx].balance = Math.max(0, balance); // Garantir não negativo
-                            }
-                          } else {
-                            // Create new program from history
-                            const displayName = nameMap.get(key) || key;
-                            newProgs.push({
-                              id: `P-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-                              name: displayName,
-                              balance: Math.max(0, balance),
-                              icon: 'diamond'
-                            });
-                          }
-                        });
-
-                        updateCurrent({ ...selectedClient, programs: newProgs });
-                      }}
-                      className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#E2BE6A] hover:text-white transition-colors bg-[#E2BE6A]/10 hover:bg-[#E2BE6A]/20 px-4 py-2 rounded-xl"
-                    >
-                      <span className="material-symbols-outlined text-sm">sync</span>
-                      Sincronizar Saldos
-                    </button>
-                  </div>
-
-                  {/* NEW: Smart Asset Cards (Evolution & Economy) - UPDATED WITH LIQUIDITY */}
+                  {/* Smart Asset Cards (Evolution & Economy) - UPDATED WITH LIQUIDITY */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <div className="bg-bg-surface border border-emerald-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-emerald-500/40 transition-all">
                       <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -1135,12 +1058,15 @@ const Clients: React.FC = () => {
                             {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{Number(h.amount).toLocaleString('pt-BR')}
                           </p>
 
-                          {(h.negotiatedValue || h.economyGenerated) && (
+                          {/* Ocultar valores zerados para não poluir a interface */}
+                          {h.negotiatedValue && Number(h.negotiatedValue) > 0 && (
                             <p className="text-xs font-black text-white italic mt-1">
-                              {h.negotiatedValue
-                                ? `R$ ${Number(h.negotiatedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                                : `Eco: R$ ${Number(h.economyGenerated || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                              }
+                              R$ {Number(h.negotiatedValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                          )}
+                          {!h.negotiatedValue && h.economyGenerated && Number(h.economyGenerated) > 0 && (
+                            <p className="text-xs font-black text-white italic mt-1">
+                              Eco: R$ {Number(h.economyGenerated).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                           )}
 
