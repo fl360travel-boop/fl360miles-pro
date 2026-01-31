@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Client, MileageProgram, CreditCard, MileageMovement } from '../types';
 import { useSearch } from '../contexts/SearchContext';
-import { getClients, updateClient as updateClientAPI, deleteClient as deleteClientAPI, deleteMovement as deleteMovementAPI, subscribeToClients, subscribeToPrograms, subscribeToAllMovements } from '../services/api';
+import { getClients, updateClient as updateClientAPI, deleteClient as deleteClientAPI, deleteMovement as deleteMovementAPI, subscribeToClients, subscribeToPrograms, subscribeToAllMovements, getClient } from '../services/api';
 import { BrandLogo, CardSkin } from '../components/BrandAssets';
 
 
@@ -263,59 +263,73 @@ const Clients: React.FC = () => {
   };
 
 
-  const addMovement = () => {
+  const addMovement = async () => {
     // Determine effective program name
     const effectiveProgram = newMove.program === '_NEW_' ? customProgram : newMove.program;
 
     if (!selectedClient || !effectiveProgram || !newMove.amount) return;
 
-    // Check if we need to create a new program
-    let updatedProgs = [...selectedClient.programs];
-    const existingProgIndex = updatedProgs.findIndex(p => p.name.toLowerCase() === effectiveProgram.toLowerCase());
+    try {
+      // Hardening: Fetch fresh client data
+      const freshClient = await getClient(selectedClient.id);
 
-    if (existingProgIndex === -1 && newMove.program === '_NEW_') {
-      // Create new program if it doesn't exist
-      updatedProgs.push({
-        id: `P-${Date.now()}`,
-        name: effectiveProgram,
-        balance: 0,
-        icon: 'diamond'
-      });
-    }
+      // Check if we need to create a new program
+      let updatedProgs = [...freshClient.programs];
+      const existingProgIndex = updatedProgs.findIndex(p => p.name.toLowerCase() === effectiveProgram.toLowerCase());
 
-    const m: MileageMovement = {
-      id: `H-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      type: newMove.type,
-      program: effectiveProgram,
-      amount: Number(newMove.amount),
-      description: newMove.desc || `${newMove.type} de milhas`,
-      observation: newMove.type === 'Resgate'
-        ? `${newMove.obs || 'Resgate Manual'}. ${newMove.passengers} Pax • ${newMove.flightClass}.`
-        : newMove.obs,
-      negotiatedValue: ['Venda', 'Compra', 'Inclusão'].includes(newMove.type) ? Number(newMove.val) : undefined,
-      economyGenerated: ['Inclusão', 'Resgate'].includes(newMove.type) ? Number(newMove.val) : undefined,
-      passengers: newMove.type === 'Resgate' ? Number(newMove.passengers) : undefined,
-      flightClass: newMove.type === 'Resgate' ? newMove.flightClass : undefined,
-      ticketValue: newMove.type === 'Resgate' ? Number(newMove.ticketVal) : undefined,
-      cpm: ['Resgate', 'Venda'].includes(newMove.type) ? Number(newMove.cpm) : undefined,
-      profit: newMove.type === 'Venda' ? (Number(newMove.val) - (Number(newMove.amount) / 1000 * Number(newMove.cpm))) : undefined,
-      bonusPercent: newMove.type === 'Transferência' ? Number(newMove.bonusPercent) : undefined
-    };
-
-    // Update balances
-    updatedProgs = updatedProgs.map(p => {
-      if (p.name.toLowerCase() === effectiveProgram.toLowerCase()) {
-        // Transferência is now treated as Inflow (Entry with Bonus)
-        const factor = ['Venda', 'Resgate'].includes(m.type) ? -1 : 1;
-        return { ...p, balance: p.balance + (m.amount * factor) };
+      if (existingProgIndex === -1 && newMove.program === '_NEW_') {
+        // Create new program if it doesn't exist
+        updatedProgs.push({
+          id: `P-${Date.now()}`,
+          name: effectiveProgram,
+          balance: 0,
+          icon: 'diamond'
+        });
       }
-      return p;
-    });
 
-    updateCurrent({ ...selectedClient, history: [m, ...selectedClient.history], programs: updatedProgs });
-    setNewMove({ type: 'Inclusão', program: '', amount: '', desc: '', val: '', obs: '', bonusPercent: '' });
-    setCustomProgram('');
+      const m: MileageMovement = {
+        id: `H-${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        type: newMove.type,
+        program: effectiveProgram,
+        amount: Number(newMove.amount),
+        description: newMove.desc || `${newMove.type} de milhas`,
+        observation: newMove.type === 'Resgate'
+          ? `${newMove.obs || 'Resgate Manual'}. ${newMove.passengers} Pax • ${newMove.flightClass}.`
+          : newMove.obs,
+        negotiatedValue: ['Venda', 'Compra', 'Inclusão'].includes(newMove.type) ? Number(newMove.val) : undefined,
+        economyGenerated: ['Inclusão', 'Resgate'].includes(newMove.type) ? Number(newMove.val) : undefined,
+        passengers: newMove.type === 'Resgate' ? Number(newMove.passengers) : undefined,
+        flightClass: newMove.type === 'Resgate' ? newMove.flightClass : undefined,
+        ticketValue: newMove.type === 'Resgate' ? Number(newMove.ticketVal) : undefined,
+        cpm: ['Resgate', 'Venda'].includes(newMove.type) ? Number(newMove.cpm) : undefined,
+        profit: newMove.type === 'Venda' ? (Number(newMove.val) - (Number(newMove.amount) / 1000 * Number(newMove.cpm))) : undefined,
+        bonusPercent: newMove.type === 'Transferência' ? Number(newMove.bonusPercent) : undefined
+      };
+
+      // Update balances
+      updatedProgs = updatedProgs.map(p => {
+        if (p.name.toLowerCase() === effectiveProgram.toLowerCase()) {
+          // Transferência is now treated as Inflow (Entry with Bonus)
+          const factor = ['Venda', 'Resgate'].includes(m.type) ? -1 : 1;
+          return { ...p, balance: p.balance + (m.amount * factor) };
+        }
+        return p;
+      });
+
+      // Use updateCurrent wrapper which calls saveClient -> updateClientAPI
+      // But updateCurrent expects a client object to set as Selected. 
+      // Since we fetched 'freshClient', we should update THAT.
+      // NOTE: updateCurrent updates 'selectedClient' state after saving. 
+      // We'll call updateCurrent with the modified freshClient.
+      await updateCurrent({ ...freshClient, history: [m, ...freshClient.history], programs: updatedProgs });
+
+      setNewMove({ type: 'Inclusão', program: '', amount: '', desc: '', val: '', obs: '', bonusPercent: '' });
+      setCustomProgram('');
+    } catch (error) {
+      console.error('Failed to add movement safely:', error);
+      alert('Erro de sincronização. Tente novamente.');
+    }
   };
 
   const startEditingBalance = (program: MileageProgram) => {
@@ -323,26 +337,46 @@ const Clients: React.FC = () => {
     setEditBalanceValue(program.balance.toString());
   };
 
-  const saveEditedBalance = (program: MileageProgram) => {
+  const saveEditedBalance = async (program: MileageProgram) => {
     if (!selectedClient || editBalanceValue === '') return;
-    const newBalance = Number(editBalanceValue);
-    const diff = newBalance - program.balance;
-    if (diff === 0) {
+
+    try {
+      const freshClient = await getClient(selectedClient.id);
+
+      // Find the fresh program state
+      const freshProgram = freshClient.programs.find(p => p.id === program.id);
+      // If program was deleted remotely, we might have an issue, but let's assume it exists or use the passed one as fallback logic? 
+      // Better: if not found, we can't update it.
+      if (!freshProgram) {
+        alert('Programa não encontrado na versão mais recente do cliente.');
+        return;
+      }
+
+      const newBalance = Number(editBalanceValue);
+      const diff = newBalance - freshProgram.balance; // diff against FRESH balance
+      if (diff === 0) {
+        setEditingProgramId(null);
+        return;
+      }
+
+      const m: MileageMovement = {
+        id: `H-ADJ-${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        type: diff > 0 ? 'Inclusão' : 'Resgate',
+        program: freshProgram.name,
+        amount: Math.abs(diff),
+        description: 'Ajuste Manual de Saldo',
+        observation: `Saldo anterior: ${freshProgram.balance.toLocaleString('pt-BR')} | Novo saldo: ${newBalance.toLocaleString('pt-BR')}`
+      };
+
+      const updatedProgs = freshClient.programs.map(p => p.id === freshProgram.id ? { ...p, balance: newBalance } : p);
+      await updateCurrent({ ...freshClient, programs: updatedProgs, history: [m, ...freshClient.history] });
       setEditingProgramId(null);
-      return;
+
+    } catch (error) {
+      console.error('Failed to save balance safely:', error);
+      alert('Erro ao salvar saldo. Tente novamente.');
     }
-    const m: MileageMovement = {
-      id: `H-ADJ-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      type: diff > 0 ? 'Inclusão' : 'Resgate',
-      program: program.name,
-      amount: Math.abs(diff),
-      description: 'Ajuste Manual de Saldo',
-      observation: `Saldo anterior: ${program.balance.toLocaleString('pt-BR')} | Novo saldo: ${newBalance.toLocaleString('pt-BR')}`
-    };
-    const updatedProgs = selectedClient.programs.map(p => p.id === program.id ? { ...p, balance: newBalance } : p);
-    updateCurrent({ ...selectedClient, programs: updatedProgs, history: [m, ...selectedClient.history] });
-    setEditingProgramId(null);
   };
 
   const filteredHistory = useMemo(() => {
@@ -687,17 +721,70 @@ const Clients: React.FC = () => {
                     <button
                       onClick={() => {
                         if (!selectedClient) return;
-                        const newProgs = selectedClient.programs.map(p => ({ ...p, balance: 0 }));
+
+                        // Confirmar antes de sincronizar pois pode alterar saldos
+                        if (!window.confirm('Atenção: Esta ação irá recalcular os saldos baseado no histórico de movimentações.\n\nProgramas SEM movimentações no histórico manterão seus saldos atuais.\n\nDeseja continuar?')) {
+                          return;
+                        }
+
+                        const balMap = new Map<string, number>();
+                        const nameMap = new Map<string, string>();
+                        const programsWithHistory = new Set<string>();
+
+                        // 1. Calculate balances from history
                         selectedClient.history.forEach(h => {
-                          // Default Factor +1 (Inclusão, Compra, Transferência, etc)
+                          const key = h.program.trim().toLowerCase();
+                          if (!key) return;
+
+                          // Mark that this program has history entries
+                          programsWithHistory.add(key);
+
+                          // Store original display name if not yet stored
+                          if (!nameMap.has(key)) nameMap.set(key, h.program.trim());
+
+                          // Factor: Venda, Resgate são saídas (-1), outros são entradas (+1)
+                          // Nota: Transferência neste sistema é entrada COM bônus
                           let factor = 1;
                           if (['Venda', 'Resgate'].includes(h.type)) factor = -1;
 
-                          const pIndex = newProgs.findIndex(prog => prog.name.toLowerCase() === h.program.toLowerCase());
-                          if (pIndex >= 0) {
-                            newProgs[pIndex].balance += (h.amount * factor);
+                          const current = balMap.get(key) || 0;
+                          balMap.set(key, current + (h.amount * factor));
+                        });
+
+                        // 2. Prepare new programs list
+                        // CORREÇÃO: Manter saldos originais para programas SEM histórico
+                        let newProgs = selectedClient.programs.map(p => {
+                          const key = p.name.trim().toLowerCase();
+                          // Se este programa tem histórico, será atualizado abaixo
+                          // Se NÃO tem histórico, mantemos o saldo atual
+                          if (programsWithHistory.has(key)) {
+                            return { ...p, balance: 0 }; // Será calculado abaixo
+                          } else {
+                            return { ...p }; // Preserva saldo atual
                           }
                         });
+                        const existingNamesLower = new Set(newProgs.map(p => p.name.toLowerCase()));
+
+                        // 3. Update existing (que têm histórico) or Create new programs from history
+                        balMap.forEach((balance, key) => {
+                          if (existingNamesLower.has(key)) {
+                            // Update existing with calculated balance
+                            const idx = newProgs.findIndex(p => p.name.toLowerCase() === key);
+                            if (idx !== -1) {
+                              newProgs[idx].balance = Math.max(0, balance); // Garantir não negativo
+                            }
+                          } else {
+                            // Create new program from history
+                            const displayName = nameMap.get(key) || key;
+                            newProgs.push({
+                              id: `P-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+                              name: displayName,
+                              balance: Math.max(0, balance),
+                              icon: 'diamond'
+                            });
+                          }
+                        });
+
                         updateCurrent({ ...selectedClient, programs: newProgs });
                       }}
                       className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#E2BE6A] hover:text-white transition-colors bg-[#E2BE6A]/10 hover:bg-[#E2BE6A]/20 px-4 py-2 rounded-xl"
