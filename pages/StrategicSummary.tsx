@@ -4,6 +4,9 @@ import { Client, MileageMovement } from '../types';
 import { useSearch } from '../contexts/SearchContext';
 import { getClients } from '../services/api';
 
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import PDFReport from '../components/PDFReport';
+
 type CardType = 'profit' | 'miles' | 'economy' | 'audit';
 
 const StrategicSummary: React.FC = () => {
@@ -50,14 +53,29 @@ const StrategicSummary: React.FC = () => {
     let totalMiles = 0;
     let totalEconomy = 0;
     let movementsCount = 0;
+
+    // New Metrics for Report
+    let totalPoints = 0; // Current Assets
+    let totalInvested = 0; // Lifetime Investment
+
     const allMovements: (MileageMovement & { clientName: string })[] = [];
 
     targetClients.forEach(c => {
+      // Aggregate Current Assets (Balance)
+      const clientPoints = c.programs.reduce((acc, p) => acc + (p.balance || 0), 0);
+      totalPoints += clientPoints;
+
       c.history.forEach(h => {
+        // Lifetime Investment (Compra/Inclusão)
+        if (h.type === 'Compra' || h.type === 'Inclusão') {
+          totalInvested += (h.negotiatedValue || h.economyGenerated || 0);
+        }
+
         const hDate = new Date(h.date);
         const now = new Date();
         let isInPeriod = false;
 
+        // timezone fix? usually day matches
         if (period === 'month') {
           isInPeriod = hDate.getMonth() === now.getMonth() && hDate.getFullYear() === now.getFullYear();
         } else if (period === 'quarter') {
@@ -78,7 +96,19 @@ const StrategicSummary: React.FC = () => {
       });
     });
 
-    return { totalProfit, totalMiles, totalEconomy, movementsCount, clientCount: targetClients.length, allMovements };
+    const totalValue = totalPoints * 0.0185; // Estimated Market Value of Current Assets
+
+    return {
+      totalProfit,
+      totalMiles,
+      totalEconomy,
+      movementsCount,
+      clientCount: targetClients.length,
+      allMovements,
+      totalPoints,
+      totalValue,
+      totalInvested
+    };
   }, [selectedClientId, searchFilteredClients, period]);
 
   const detailData = useMemo(() => {
@@ -103,10 +133,12 @@ const StrategicSummary: React.FC = () => {
 
   const handleExportGlobal = () => {
     setIsExporting(true);
+    // Give time for Portal to mount and images to load
     setTimeout(() => {
-      setIsExporting(false);
       window.print();
-    }, 1200);
+      // Delay cleanup so print dialog doesn't lose content immediately
+      setTimeout(() => setIsExporting(false), 500);
+    }, 500);
   };
 
   const handleExportDetail = () => {
@@ -127,8 +159,61 @@ const StrategicSummary: React.FC = () => {
     }
   };
 
+  // Prepare Data for HTMLReport
+  const printData = useMemo(() => {
+    const selectedClientName = selectedClientId === 'all'
+      ? 'Relatório Global Consolidado'
+      : clients.find(c => c.id === selectedClientId)?.name || 'Cliente Selecionado';
+
+    const selectedClientCpf = selectedClientId === 'all'
+      ? `${stats.clientCount} Titulares Filtrados`
+      : clients.find(c => c.id === selectedClientId)?.cpf || 'CPF Não Informado';
+
+    // Aggregate programs for the report
+    const aggregatedPrograms: { name: string; balance: number }[] = [];
+    const progMap = new Map<string, number>();
+
+    const targetClients = selectedClientId === 'all' ? searchFilteredClients : clients.filter(c => c.id === selectedClientId);
+
+    targetClients.forEach(c => {
+      c.programs.forEach(p => {
+        const curr = progMap.get(p.name) || 0;
+        progMap.set(p.name, curr + (p.balance || 0));
+      });
+    });
+
+    progMap.forEach((balance, name) => {
+      aggregatedPrograms.push({ name, balance });
+    });
+
+    // Sort by balance desc
+    aggregatedPrograms.sort((a, b) => b.balance - a.balance);
+
+    return {
+      clientName: selectedClientName,
+      clientCpf: selectedClientCpf,
+      metrics: {
+        totalPoints: stats.totalPoints,
+        totalValue: stats.totalValue,
+        totalEconomy: stats.totalEconomy,
+        totalInvested: stats.totalInvested,
+        lastUpdate: new Date().toISOString(),
+        programs: aggregatedPrograms,
+        filteredHistory: stats.allMovements
+      },
+      period: period.toUpperCase(),
+      generatedDate: new Date().toISOString()
+    };
+  }, [stats, selectedClientId, clients, period, searchFilteredClients]);
+
   return (
     <div className="space-y-12 max-w-7xl mx-auto animate-in fade-in duration-1000">
+
+      {/* HIDDEN PRINT REPORT - Fixed Placement & Style Injection */}
+      {/* HIDDEN PRINT REPORT - Fixed Placement & Style Injection */}
+      {/* HIDDEN PRINT REPORT - Moved to Portal to escape stacking context */}
+
+
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-10 print:hidden">
         <div>
           <h1 className="display-font text-3xl font-bold tracking-[0.1em] text-white italic uppercase leading-none">Intelligence Center</h1>
@@ -226,14 +311,17 @@ const StrategicSummary: React.FC = () => {
                 <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.4em] mt-3 italic border-l-2 border-primary pl-4 print:text-slate-400">Audit Period: {period.toUpperCase()}</p>
               </div>
               <div className="flex gap-4 print:hidden">
-                <button
-                  onClick={handleExportDetail}
-                  disabled={isExportingDetail}
-                  className="size-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-bg-dark transition-all shadow-xl group"
-                  title="Exportar Detalhamento PDF"
-                >
-                  {isExportingDetail ? <span className="material-symbols-outlined animate-spin text-xl">sync</span> : <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">picture_as_pdf</span>}
-                </button>
+                <div className="flex items-center">
+                  <PDFDownloadLink
+                    document={<PDFReport data={printData} />}
+                    fileName={`Audit_Detail_${period}_${new Date().toISOString().split('T')[0]}.pdf`}
+                    className="size-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-bg-dark transition-all shadow-xl group"
+                  >
+                    {({ loading }) => (
+                      loading ? <span className="material-symbols-outlined animate-spin text-xl">sync</span> : <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">picture_as_pdf</span>
+                    )}
+                  </PDFDownloadLink>
+                </div>
                 <button onClick={() => setActiveDetail(null)} className="size-12 rounded-full bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-all hover:rotate-90">
                   <span className="material-symbols-outlined">close</span>
                 </button>
@@ -311,14 +399,20 @@ const StrategicSummary: React.FC = () => {
             Sincronize o terminal e gere relatórios auditados de performance individual ou consolidada para prestação de contas de alto nível.
           </p>
         </div>
-        <button
-          onClick={handleExportGlobal}
-          disabled={isExporting}
-          className="bg-primary hover:bg-primary-dark text-bg-dark px-16 py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all shadow-2xl shadow-primary/30 flex items-center gap-4 active:scale-95 disabled:opacity-50 relative z-10 group"
-        >
-          {isExporting ? <span className="material-symbols-outlined animate-spin">sync</span> : <span className="material-symbols-outlined group-hover:scale-110 transition-transform">print_connect</span>}
-          {isExporting ? 'PROCESSANDO AUDITORIA...' : 'GERAR WEALTH REPORT GLOBAL'}
-        </button>
+        <div className="relative z-10 group">
+          <PDFDownloadLink
+            document={<PDFReport data={printData} />}
+            fileName={`Audit_Wealth_${new Date().toISOString().split('T')[0]}.pdf`}
+            className="bg-primary hover:bg-primary-dark text-bg-dark px-16 py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all shadow-2xl shadow-primary/30 flex items-center gap-4 active:scale-95 disabled:opacity-50"
+          >
+            {({ blob, url, loading, error }) => (
+              <>
+                {loading ? <span className="material-symbols-outlined animate-spin">sync</span> : <span className="material-symbols-outlined group-hover:scale-110 transition-transform">picture_as_pdf</span>}
+                {loading ? 'PROCESSANDO AUDITORIA...' : 'GERAR WEALTH REPORT GLOBAL (PDF)'}
+              </>
+            )}
+          </PDFDownloadLink>
+        </div>
       </div>
 
       {/* Audit Trail Preview */}

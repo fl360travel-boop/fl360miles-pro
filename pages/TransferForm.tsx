@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Client, MileageMovement } from '../types';
-import { getClients, updateClient } from '../services/api';
+import { getClients, updateClient, getClient } from '../services/api';
 
 const TransferForm: React.FC = () => {
   const navigate = useNavigate();
@@ -55,43 +55,58 @@ const TransferForm: React.FC = () => {
 
     setIsProcessing(true);
 
-    const now = new Date();
-    // Fix: Use local date to avoid timezone issues (UTC vs Local)
-    const localDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-
-    const movement: MileageMovement = {
-      id: `TRF-${Date.now()}`,
-      date: localDate,
-      type: 'Transferência',
-      program: `${sourceProgram} -> ${destProgram}`,
-      amount: Number(points),
-      description: `Transferência Estratégica: ${bonus}% bônus`,
-      observation: `Transferência de ${points} da ${sourceProgram} para ${destProgram} (${calculatedMiles} mi finais).`
-    };
-
-    const client = clients.find(c => c.id === selectedClientId);
-    if (!client) return;
-
-    let updatedPrograms = [...client.programs];
-
-    const sourceIdx = updatedPrograms.findIndex(p => p.name.toLowerCase() === sourceProgram.toLowerCase());
-    if (sourceIdx >= 0) {
-      updatedPrograms[sourceIdx].balance -= Number(points);
-    } else {
-      updatedPrograms.push({ id: `P-${Date.now()}-1`, name: sourceProgram, balance: -Number(points), icon: 'diamond' });
-    }
-
-    const destIdx = updatedPrograms.findIndex(p => p.name.toLowerCase() === destProgram.toLowerCase());
-    if (destIdx >= 0) {
-      updatedPrograms[destIdx].balance += calculatedMiles;
-    } else {
-      updatedPrograms.push({ id: `P-${Date.now()}-2`, name: destProgram, balance: calculatedMiles, icon: 'flight_takeoff' });
-    }
-
     try {
+      // Fetch fresh client data
+      const client = await getClient(selectedClientId);
+
+      const now = new Date();
+      // Fix: Use local date to avoid timezone issues (UTC vs Local)
+      const localDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+
+      // CORREÇÃO: Criar DUAS movimentações separadas para rastreamento correto
+      // 1. Movimentação de SAÍDA (do programa origem)
+      const movementOut: MileageMovement = {
+        id: `TRF-OUT-${Date.now()}`,
+        date: localDate,
+        type: 'Venda', // Usar 'Venda' como tipo de saída para contabilização correta
+        program: sourceProgram,
+        amount: Number(points),
+        description: `Transferência para ${destProgram}`,
+        observation: `Saída de ${points} pontos de ${sourceProgram} para ${destProgram}`
+      };
+
+      // 2. Movimentação de ENTRADA (no programa destino)
+      const movementIn: MileageMovement = {
+        id: `TRF-IN-${Date.now() + 1}`,
+        date: localDate,
+        type: 'Inclusão', // Usar 'Inclusão' como tipo de entrada para contabilização correta
+        program: destProgram,
+        amount: calculatedMiles,
+        description: `Transferência de ${sourceProgram} (${bonus}% bônus)`,
+        observation: `Entrada de ${calculatedMiles} milhas vindas de ${sourceProgram}. Base: ${points}, Bônus: ${bonus}%`,
+        bonusPercent: bonus > 0 ? bonus : undefined
+      };
+
+      let updatedPrograms = [...client.programs];
+
+      const sourceIdx = updatedPrograms.findIndex(p => p.name.toLowerCase() === sourceProgram.toLowerCase());
+      if (sourceIdx >= 0) {
+        updatedPrograms[sourceIdx].balance -= Number(points);
+      } else {
+        updatedPrograms.push({ id: `P-${Date.now()}-1`, name: sourceProgram, balance: -Number(points), icon: 'diamond' });
+      }
+
+      const destIdx = updatedPrograms.findIndex(p => p.name.toLowerCase() === destProgram.toLowerCase());
+      if (destIdx >= 0) {
+        updatedPrograms[destIdx].balance += calculatedMiles;
+      } else {
+        updatedPrograms.push({ id: `P-${Date.now()}-2`, name: destProgram, balance: calculatedMiles, icon: 'flight_takeoff' });
+      }
+
+      // Adicionar AMBAS as movimentações ao histórico
       await updateClient(selectedClientId, {
         programs: updatedPrograms,
-        history: [movement, ...client.history]
+        history: [movementIn, movementOut, ...client.history]
       });
 
       setTimeout(() => {
@@ -100,8 +115,9 @@ const TransferForm: React.FC = () => {
         navigate('/clients');
       }, 1000);
     } catch (error) {
+      console.error('Error processing transfer:', error);
       setIsProcessing(false);
-      alert('Erro ao processar transferência.');
+      alert('Erro ao processar transferência: Falha na sincronização.');
     }
   };
 

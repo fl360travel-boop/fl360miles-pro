@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Client, MileageMovement } from '../types';
-import { getClients, updateClient } from '../services/api';
+import { getClients, updateClient, getClient } from '../services/api';
 
 const SaleForm: React.FC = () => {
   const navigate = useNavigate();
@@ -52,29 +52,29 @@ const SaleForm: React.FC = () => {
 
     setIsProcessing(true);
 
-    const movement: MileageMovement = {
-      id: `SALE-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      type: 'Venda',
-      program: program,
-      amount: Number(amount),
-      description: `Venda de Ativos - ${program}`,
-      negotiatedValue: Number(negotiatedValue),
-      observation: `Liquidação de ${amount} mi de ${program}. ROI: R$ ${profit.toLocaleString()}.`
-    };
-
-    const client = clients.find(c => c.id === selectedClientId);
-    if (!client) return;
-
-    const updatedPrograms = [...client.programs];
-    const idx = updatedPrograms.findIndex(p => p.name.toLowerCase() === program.toLowerCase());
-    if (idx >= 0) {
-      updatedPrograms[idx].balance -= Number(amount);
-    } else {
-      updatedPrograms.push({ id: `P-${Date.now()}`, name: program, balance: -Number(amount), icon: 'sell' });
-    }
-
     try {
+      // Fetch latest client data to avoid stale state (Zero Failure Mode)
+      const client = await getClient(selectedClientId);
+
+      const movement: MileageMovement = {
+        id: `SALE-${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        type: 'Venda',
+        program: program,
+        amount: Number(amount),
+        description: `Venda de Ativos - ${program}`,
+        negotiatedValue: Number(negotiatedValue),
+        observation: `Liquidação de ${amount} mi de ${program}. ROI: R$ ${profit.toLocaleString()}.`
+      };
+
+      const updatedPrograms = [...client.programs];
+      const idx = updatedPrograms.findIndex(p => p.name.toLowerCase() === program.toLowerCase());
+      if (idx >= 0) {
+        updatedPrograms[idx].balance -= Number(amount);
+      } else {
+        updatedPrograms.push({ id: `P-${Date.now()}`, name: program, balance: -Number(amount), icon: 'sell' });
+      }
+
       await updateClient(selectedClientId, {
         programs: updatedPrograms,
         history: [movement, ...client.history]
@@ -86,8 +86,9 @@ const SaleForm: React.FC = () => {
         navigate('/clients');
       }, 1000);
     } catch (error) {
+      console.error('Error processing sale:', error);
       setIsProcessing(false);
-      alert('Erro ao processar venda.');
+      alert('Erro ao processar venda: Falha na sincronização.');
     }
   };
 

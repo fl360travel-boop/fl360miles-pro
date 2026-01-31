@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Client, MileageMovement } from '../types';
-import { getClients, updateClient } from '../services/api';
+import { getClients, updateClient, getClient } from '../services/api';
 
 const RedemptionForm: React.FC = () => {
   const navigate = useNavigate();
@@ -57,33 +57,33 @@ const RedemptionForm: React.FC = () => {
 
     setIsProcessing(true);
 
-    const movement: MileageMovement = {
-      id: `RED-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      type: 'Resgate',
-      program: program,
-      amount: Number(milesUsed),
-      description: `Emissão VIP: ${airline || 'Cia Aérea'}`,
-      airline: airline,
-      ticketValue: Number(ticketValue),
-      economyGenerated: economy,
-      passengers: Number(passengers),
-      flightClass: flightClass,
-      observation: `Resgate de ${milesUsed} mi via ${program}. Economia: R$ ${economy.toLocaleString()} (${economyPercentage.toFixed(1)}%). ${Number(passengers)} Pax • ${flightClass}.`
-    };
-
-    const client = clients.find(c => c.id === selectedClientId);
-    if (!client) return;
-
-    const updatedPrograms = [...client.programs];
-    const idx = updatedPrograms.findIndex(p => p.name.toLowerCase() === program.toLowerCase());
-    if (idx >= 0) {
-      updatedPrograms[idx].balance -= Number(milesUsed);
-    } else {
-      updatedPrograms.push({ id: `P-${Date.now()}`, name: program, balance: -Number(milesUsed), icon: 'airplane_ticket' });
-    }
-
     try {
+      // Fetch latest client data to avoid stale state
+      const client = await getClient(selectedClientId);
+
+      const movement: MileageMovement = {
+        id: `RED-${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        type: 'Resgate',
+        program: program,
+        amount: Number(milesUsed),
+        description: `Emissão VIP: ${airline || 'Cia Aérea'}`,
+        airline: airline,
+        ticketValue: Number(ticketValue),
+        economyGenerated: economy,
+        passengers: Number(passengers),
+        flightClass: flightClass,
+        observation: `Resgate de ${milesUsed} mi via ${program}. Economia: R$ ${economy.toLocaleString()} (${economyPercentage.toFixed(1)}%). ${Number(passengers)} Pax • ${flightClass}.`
+      };
+
+      const updatedPrograms = [...client.programs];
+      const idx = updatedPrograms.findIndex(p => p.name.toLowerCase() === program.toLowerCase());
+      if (idx >= 0) {
+        updatedPrograms[idx].balance -= Number(milesUsed);
+      } else {
+        updatedPrograms.push({ id: `P-${Date.now()}`, name: program, balance: -Number(milesUsed), icon: 'airplane_ticket' });
+      }
+
       await updateClient(selectedClientId, {
         programs: updatedPrograms,
         history: [movement, ...client.history]
@@ -95,8 +95,9 @@ const RedemptionForm: React.FC = () => {
         navigate('/clients');
       }, 1000);
     } catch (error) {
+      console.error('Error processing redemption:', error);
       setIsProcessing(false);
-      alert('Erro ao processar emissão.');
+      alert('Erro ao processar emissão: Falha na sincronização.');
     }
   };
 

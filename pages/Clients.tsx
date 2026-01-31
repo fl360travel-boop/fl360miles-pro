@@ -821,7 +821,7 @@ const Clients: React.FC = () => {
                     {selectedClient.programs.length === 0 && (
                       <p className="text-center text-slate-600 italic text-xs py-10 opacity-50">Nenhum ativo vinculado.</p>
                     )}
-                    {selectedClient.programs.map(p => (
+                    {selectedClient.programs.filter(p => p.balance > 0).map(p => (
                       <div key={p.id} className="bg-bg-card border-b border-white/5 p-4 rounded-xl flex items-center justify-between group hover:bg-white/5 transition-all">
                         {/* Left: Icon & Info */}
                         <div className="flex items-center gap-6">
@@ -1268,9 +1268,33 @@ const Clients: React.FC = () => {
                   </div>
                 </section>
 
+                {/* NOVA SEÇÃO: Composição do Patrimônio por Programa */}
                 <section>
                   <div className="flex items-center gap-6 mb-12">
                     <span className="text-primary font-black italic text-4xl display-font">02</span>
+                    <h3 className="text-[14px] font-black text-slate-800 uppercase tracking-[0.5em] border-b-2 border-slate-100 flex-1 pb-4">Composição do Patrimônio</h3>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 print:gap-4">
+                    {selectedClient.programs.filter(p => p.balance > 0).map(p => (
+                      <div key={p.id} className="bg-slate-50 p-6 rounded-2xl print:p-4 print:bg-slate-50 border border-slate-100">
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">{p.name}</p>
+                        <p className="text-2xl font-black text-slate-900 italic tracking-tighter print:text-xl">
+                          {p.balance.toLocaleString('pt-BR')} <span className="text-xs opacity-40 uppercase">mi</span>
+                        </p>
+                        <p className="text-[9px] text-slate-400 font-bold mt-1">
+                          ≈ R$ {(p.balance * 0.0185).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                    ))}
+                    {selectedClient.programs.filter(p => p.balance > 0).length === 0 && (
+                      <p className="text-slate-400 italic text-sm col-span-4 text-center py-8">Nenhum programa com saldo ativo</p>
+                    )}
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-6 mb-12">
+                    <span className="text-primary font-black italic text-4xl display-font">03</span>
                     <h3 className="text-[14px] font-black text-slate-800 uppercase tracking-[0.5em] border-b-2 border-slate-100 flex-1 pb-4">Extrato Detalhado</h3>
                   </div>
                   <div className="overflow-hidden border border-slate-100 rounded-[32px] print:overflow-visible print:border-none print:rounded-none">
