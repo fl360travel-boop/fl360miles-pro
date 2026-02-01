@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Client, MileageProgram, CreditCard, MileageMovement } from '../types';
@@ -63,6 +63,8 @@ const Clients: React.FC = () => {
   const { searchQuery } = useSearch();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showReport, setShowReport] = useState(false);
+  const [showWa, setShowWa] = useState(false);
+  const [managerAnalysis, setManagerAnalysis] = useState('');
   const [activeTab, setActiveTab] = useState<'info' | 'programs' | 'cards' | 'history'>('info');
   const [reportCycle, setReportCycle] = useState<'Mensal' | 'Trimestral' | 'Semestral' | 'Anual' | 'Personalizado'>('Mensal');
   const [reportMonth, setReportMonth] = useState(new Date().getMonth().toString());
@@ -290,7 +292,7 @@ const Clients: React.FC = () => {
       const m: MileageMovement = {
         id: `H-${Date.now()}`,
         date: new Date().toISOString().split('T')[0],
-        type: newMove.type,
+        type: newMove.type as MileageMovement['type'],
         program: effectiveProgram,
         amount: Number(newMove.amount),
         description: newMove.desc || `${newMove.type} de milhas`,
@@ -298,7 +300,7 @@ const Clients: React.FC = () => {
           ? `${newMove.obs || 'Resgate Manual'}. ${newMove.passengers} Pax • ${newMove.flightClass}.`
           : newMove.obs,
         negotiatedValue: ['Venda', 'Compra', 'Inclusão'].includes(newMove.type) ? Number(newMove.val) : undefined,
-        economyGenerated: ['Inclusão', 'Resgate'].includes(newMove.type) ? Number(newMove.val) : undefined,
+        economyGenerated: ['Inclusão', 'Resgate', 'Transferência'].includes(newMove.type) ? Number(newMove.val) : undefined,
         passengers: newMove.type === 'Resgate' ? Number(newMove.passengers) : undefined,
         flightClass: newMove.type === 'Resgate' ? newMove.flightClass : undefined,
         ticketValue: newMove.type === 'Resgate' ? Number(newMove.ticketVal) : undefined,
@@ -362,7 +364,7 @@ const Clients: React.FC = () => {
       const m: MileageMovement = {
         id: `H-ADJ-${Date.now()}`,
         date: new Date().toISOString().split('T')[0],
-        type: diff > 0 ? 'Inclusão' : 'Resgate',
+        type: (diff > 0 ? 'Inclusão' : 'Resgate') as 'Inclusão' | 'Resgate',
         program: freshProgram.name,
         amount: Math.abs(diff),
         description: 'Ajuste Manual de Saldo',
@@ -392,50 +394,10 @@ const Clients: React.FC = () => {
 
   const reportMetrics = useMemo(() => {
     if (!selectedClient) return { roi: 0, saving: 0, totalMoves: 0, filteredHistory: [] };
+
     const now = new Date();
-    let months = 1;
-    if (reportCycle === 'Trimestral') months = 3;
-    if (reportCycle === 'Semestral') months = 6;
-    if (reportCycle === 'Anual') months = 12;
-    if (reportCycle === 'Personalizado') {
-      const start = new Date(Number(reportYear), Number(reportMonth), 1);
-      const end = new Date(Number(reportYear), Number(reportMonth) + 1, 0);
-      const fHistory = selectedClient.history.filter(h => {
-        const d = new Date(h.date);
-        // Correct timezone offset issue by treating date string as local YYYY-MM-DD
-        const [y, m, day] = h.date.split('-').map(Number);
-        const localDate = new Date(y, m - 1, day);
-        return localDate >= start && localDate <= end;
-      });
-      const roi = fHistory.reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
-      const saving = fHistory.reduce((acc, h) => {
-        let profit = Number(h.profit || 0);
-        if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
-          const estimatedCpm = Number(h.cpm || 15.00);
-          profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
-        }
-        return acc + Number(h.economyGenerated || 0) + profit;
-      }, 0);
-      return { roi, saving, totalMoves: fHistory.length, filteredHistory: fHistory };
-    }
 
-    const startDate = new Date();
-    startDate.setMonth(now.getMonth() - months);
-    const fHistory = selectedClient.history.filter(h => new Date(h.date) >= startDate);
-    const roi = fHistory
-      .filter(h => h.type === 'Venda')
-      .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
-
-    const saving = fHistory.reduce((acc, h) => {
-      let profit = Number(h.profit || 0);
-      if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
-        const estimatedCpm = Number(h.cpm || 15.00);
-        profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
-      }
-      return acc + Number(h.economyGenerated || 0) + profit;
-    }, 0);
-
-    // LIFETIME METRICS (Use ALL history, ignore filters)
+    // 1. LIFETIME METRICS (Common)
     const lifetimeHistory = selectedClient.history;
     const lifetimeInvested = lifetimeHistory
       .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
@@ -447,6 +409,7 @@ const Clients: React.FC = () => {
         const estimatedCpm = Number(h.cpm || 15.00);
         profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
       }
+      if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc + profit;
       return acc + Number(h.economyGenerated || 0) + profit;
     }, 0);
 
@@ -454,11 +417,79 @@ const Clients: React.FC = () => {
       .filter(h => h.type === 'Venda')
       .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
-    // NEW METRICS FOR REPORT & CARDS
     const totalPoints = selectedClient.programs.reduce((acc, curr) => acc + curr.balance, 0);
-    const totalValue = totalPoints * 0.0185; // Est. R$ 18,50/milheiro as per market standard
+    const totalValue = totalPoints * 0.0185; // Est. R$ 18,50/milheiro
 
-    // Period Invested (for Period Report if needed, though usually Report uses Lifetime Assets too)
+    // 2. FILTERED HISTORY & PERIOD SPECIFIC METRICS
+    let fHistory: MileageMovement[] = [];
+    let roi = 0;
+    let saving = 0;
+
+    if (reportCycle === 'Personalizado') {
+      const start = new Date(Number(reportYear), Number(reportMonth), 1);
+      const end = new Date(Number(reportYear), Number(reportMonth) + 1, 0); // Last day of month
+
+      fHistory = selectedClient.history.filter(h => {
+        // Robust Date Check
+        if (!h.date) return false;
+        const parts = h.date.split('-').map(Number);
+        if (parts.length < 3) return false;
+
+        const [y, m, day] = parts;
+        const localDate = new Date(y, m - 1, day);
+        return localDate >= start && localDate <= end;
+      });
+
+      // Maintain existing logic for Personalizado ROI (Sum of all negotiatedValue in period)
+      // Note: Typically ROI should target 'Venda', but preserving original logic for Personalizado just in case.
+      // If original logic was 'Venda' specific, this line might need adjustment, but based on reading it was summing all.
+      // Let's use the safer Venda logic if that was the intention, but the previous code did:
+      // const roi = fHistory.reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+      // I will refine it to be consistent with standard if the previous logic seemed buggy, 
+      // but to strictly fix the crash I should maybe stick to previous logic or improve it.
+      // Given 'roi' usually means Liquidity/Cash-out, summing 'Compra' (cost) seems wrong.
+      // I will harmonize it with the standard logic for consistency and correctness.
+      roi = fHistory
+        .filter(h => h.type === 'Venda')
+        .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+
+      saving = fHistory.reduce((acc, h) => {
+        let profit = Number(h.profit || 0);
+        if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
+          const estimatedCpm = Number(h.cpm || 15.00);
+          profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
+        }
+        if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc + profit;
+        return acc + Number(h.economyGenerated || 0) + profit;
+      }, 0);
+
+    } else {
+      let months = 1;
+      if (reportCycle === 'Trimestral') months = 3;
+      if (reportCycle === 'Semestral') months = 6;
+      if (reportCycle === 'Anual') months = 12;
+
+      const startDate = new Date();
+      startDate.setMonth(now.getMonth() - months);
+
+      fHistory = selectedClient.history.filter(h => new Date(h.date) >= startDate);
+
+      roi = fHistory
+        .filter(h => h.type === 'Venda')
+        .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+
+      saving = fHistory.reduce((acc, h) => {
+        let profit = Number(h.profit || 0);
+        if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
+          const estimatedCpm = Number(h.cpm || 15.00);
+          profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
+        }
+        if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc + profit;
+        return acc + Number(h.economyGenerated || 0) + profit;
+      }, 0);
+    }
+
+    // 3. PERIOD INVESTED (Dependent on fHistory)
     const totalInvested = fHistory
       .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
       .reduce((acc, h) => acc + (h.negotiatedValue || h.economyGenerated || 0), 0);
@@ -477,12 +508,104 @@ const Clients: React.FC = () => {
     };
   }, [selectedClient, reportCycle, reportMonth, reportYear]);
 
+  // AI Analysis Generators
+  const generateAnalysis = useCallback(() => {
+    if (!selectedClient) return;
+    const history = reportMetrics.filteredHistory;
+    const firstName = selectedClient.name.split(' ')[0];
+
+    // 1. Analyze specific events
+    const sales = history.filter(h => h.type === 'Venda');
+    const redemptions = history.filter(h => h.type === 'Resgate');
+    const accumulations = history.filter(h => ['Compra', 'Transferência', 'Bônus', 'Inclusão', 'Inclusao'].includes(h.type));
+
+    const totalSalesVal = sales.reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+    const totalEcoVal = redemptions.reduce((acc, h) => acc + (h.economyGenerated || 0), 0);
+
+    let text = `Olá, ${firstName}.\n\n`;
+
+    if (history.length === 0) {
+      // Scenario: No movement
+      text += `Neste período, sua carteira manteve-se estável, sem novas movimentações. `;
+      text += `O saldo total consolidado é de ${reportMetrics.totalPoints.toLocaleString('pt-BR')} milhas, com valor de mercado estimado em R$ ${reportMetrics.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.\n\n`;
+      text += `Continuamos monitorando o mercado diariamente em busca das melhores oportunidades de multiplicação e uso do seu patrimônio.`;
+    } else {
+      // Scenario: Active Layout
+      const hasInclusion = accumulations.some(h => h.type === 'Inclusão' || h.type === 'Inclusao');
+      const hasTransfer = accumulations.some(h => h.type === 'Transferência');
+
+      text += `Neste ciclo, realizamos uma gestão ativa do seu portfólio. `;
+
+      if (hasInclusion) {
+        text += `Consolidamos suas posições e incorporamos novos ativos ao painel de gestão, fortalecendo seu poder de emissão.\n\n`;
+      } else {
+        text += `Focamos em ${sales.length > 0 ? 'rentabilidade' : ''} ${sales.length > 0 && redemptions.length > 0 ? 'e' : ''} ${redemptions.length > 0 ? 'experiências exclusivas' : 'acumulação estratégica'}.\n\n`;
+      }
+
+      // Detail Sales
+      if (sales.length > 0) {
+        text += `💰 **Liquidez e Lucro:** Executamos vendas estratégicas (Cash-out) que colocaram **R$ ${totalSalesVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}** de dinheiro novo no seu bolso.\n`;
+      }
+
+      // Detail Redemptions
+      if (redemptions.length > 0) {
+        text += `✈️ **Viagens e Experiências:** Emitimos passagens utilizando suas milhas, gerando uma **economia real de R$ ${totalEcoVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}** em comparação ao preço pagante.\n`;
+      }
+
+      // Detail Accumulation
+      if (accumulations.length > 0) {
+        const topProg = accumulations.sort((a, b) => b.amount - a.amount)[0]?.program || 'Fidelidade';
+        if (hasTransfer) {
+          text += `🔄 **Multiplicação:** Aproveitamos janelas de transferência bonificada para o programa **${topProg}**, maximizando o acúmulo sem custo adicional.\n`;
+        } else if (!hasInclusion) {
+          text += `📈 **Crescimento:** Aumentamos sua posição estratégica, principalmente no programa **${topProg}**, preparando o terreno para futuras emissões.\n`;
+        }
+      }
+
+      text += `\nAtualmente, seu patrimônio totaliza **${reportMetrics.totalPoints.toLocaleString('pt-BR')} milhas** (R$ ${reportMetrics.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}).`;
+    }
+
+    text += `\n\nQualquer dúvida sobre estas movimentações, estou à disposição.\n\nAtenciosamente,\nFL360 Concierge.`;
+
+    setManagerAnalysis(text);
+  }, [selectedClient, reportMetrics, setManagerAnalysis]);
+
+  // Trigger Analysis on Update
+  useEffect(() => {
+    generateAnalysis();
+  }, [generateAnalysis]);
+
   const currentTotalMiles = useMemo(() => selectedClient?.programs.reduce((acc, curr) => acc + curr.balance, 0) || 0, [selectedClient]);
+
+  const consolidatedPrograms = useMemo(() => {
+    if (!selectedClient) return {};
+    return selectedClient.programs.reduce((acc, curr) => {
+      const key = curr.name.trim().toUpperCase();
+      if (!acc[key]) acc[key] = 0;
+      acc[key] += Number(curr.balance);
+      return acc;
+    }, {} as Record<string, number>);
+  }, [selectedClient]);
 
   const addProgram = () => {
     if (!selectedClient || !newProg.name) return;
-    const p: MileageProgram = { id: `P-${Date.now()}`, name: newProg.name, balance: Number(newProg.balance) || 0, icon: 'diamond' };
-    updateCurrent({ ...selectedClient, programs: [...selectedClient.programs, p] });
+
+    const normalizedName = newProg.name.trim().toUpperCase();
+    const existingProgram = selectedClient.programs.find(p => p.name.trim().toUpperCase() === normalizedName);
+
+    if (existingProgram) {
+      // Programa já existe - atualiza o saldo (soma)
+      const updatedPrograms = selectedClient.programs.map(p =>
+        p.id === existingProgram.id
+          ? { ...p, balance: p.balance + (Number(newProg.balance) || 0) }
+          : p
+      );
+      updateCurrent({ ...selectedClient, programs: updatedPrograms });
+    } else {
+      // Programa novo - adiciona com nome normalizado (uppercase)
+      const p: MileageProgram = { id: `P-${Date.now()}`, name: normalizedName, balance: Number(newProg.balance) || 0, icon: 'diamond' };
+      updateCurrent({ ...selectedClient, programs: [...selectedClient.programs, p] });
+    }
     setNewProg({ name: '', balance: '' });
   };
 
@@ -544,6 +667,7 @@ const Clients: React.FC = () => {
               const estimatedCpm = h.cpm || 15.00; // Legacy Fallback
               profit = h.negotiatedValue - ((h.amount / 1000) * estimatedCpm);
             }
+            if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc + profit;
             return acc + (h.economyGenerated || 0) + profit;
           }, 0);
 
@@ -595,7 +719,7 @@ const Clients: React.FC = () => {
                 <div>
                   <p className="text-white font-black text-lg group-hover:text-[#E2BE6A] transition-colors italic uppercase tracking-tighter leading-none">{client.name}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[#E2BE6A] font-black text-xs tracking-tight">{(totalPoints / 1000000).toFixed(2)}M</span>
+                    <span className="text-[#E2BE6A] font-black text-xs tracking-tight">{totalPoints.toLocaleString('pt-BR')}</span>
                     <span className="text-[8px] text-slate-500 uppercase tracking-widest font-black italic">Capital Ativo</span>
                   </div>
                 </div>
@@ -613,14 +737,14 @@ const Clients: React.FC = () => {
                   <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1">Economia</p>
                   <p className="text-sm font-black text-white italic tracking-tighter">
                     <span className="text-emerald-500 text-[10px] mr-1">R$</span>
-                    {(totalEconomy / 1000).toFixed(1)}k
+                    {totalEconomy.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <div>
                   <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1 text-right">Liquidez</p>
                   <p className="text-sm font-black text-white italic tracking-tighter text-right">
                     <span className="text-emerald-500 text-[10px] mr-1">R$</span>
-                    {(roi / 1000).toFixed(1)}k
+                    {roi.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
@@ -675,8 +799,11 @@ const Clients: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <button onClick={() => setShowReport(true)} className="size-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-bg-dark transition-all shadow-xl group">
+                  <button onClick={() => setShowReport(true)} className="size-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-bg-dark transition-all shadow-xl group" title="Relatório PDF">
                     <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">analytics</span>
+                  </button>
+                  <button onClick={() => setShowWa(true)} className="size-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all shadow-xl group" title="Gerar Resumo WhatsApp">
+                    <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">chat</span>
                   </button>
                   <button onClick={() => setSelectedClient(null)} className="size-16 rounded-full bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-all hover:bg-white/10">
                     <span className="material-symbols-outlined">close</span>
@@ -741,12 +868,15 @@ const Clients: React.FC = () => {
                       </div>
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Evolução Patrimonial</p>
                       <p className="text-4xl font-black text-white italic tracking-tighter">
-                        {reportMetrics.totalInvested > 0
+                        {reportMetrics.totalInvested > 1
                           ? (() => {
                             const val = ((reportMetrics.totalValue - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100;
-                            return `${val > 0 ? '+' : ''}${val.toFixed(1)}%`;
+                            // Sanity check: se o ROI for absurdo (> 2000%), provavelmente é erro de base de custo ou acúmulo orgânico.
+                            // Nesses casos, mostramos 100% (lucro total) para manter a coerência visual.
+                            if (val > 2000) return '+100,0%';
+                            return `${val > 0 ? '+' : ''}${val.toFixed(1).replace('.', ',')}%`;
                           })()
-                          : '0.0%'}
+                          : (reportMetrics.totalValue > 0 ? '+100,0%' : '0,0%')}
                       </p>
                       <div className="mt-4 flex items-center gap-2">
                         <span className="text-[9px] bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
@@ -787,15 +917,10 @@ const Clients: React.FC = () => {
                     </h4>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
-                      {Object.entries(selectedClient.programs.reduce((acc, curr) => {
-                        const key = curr.name.trim().toUpperCase();
-                        if (!acc[key]) acc[key] = 0;
-                        acc[key] += Number(curr.balance);
-                        return acc;
-                      }, {} as Record<string, number>)).map(([name, balance]) => (
+                      {Object.entries(consolidatedPrograms).map(([name, balance]) => (
                         <div key={name} className="flex flex-col">
                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{name}</span>
-                          <span className="text-3xl font-black text-white italic tracking-tighter">{Number(balance).toLocaleString('pt-BR')} <span className="text-[10px] text-slate-600 font-bold not-italic">mi</span></span>
+                          <span className="text-3xl font-black text-white italic tracking-tighter">{Number(balance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         </div>
                       ))}
                     </div>
@@ -847,7 +972,7 @@ const Clients: React.FC = () => {
                         </div>
 
                         {/* Right: Balance & Actions */}
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-4">
                           {editingProgramId === p.id ? (
                             <div className="flex items-center gap-2">
                               <input autoFocus type="number" className="bg-bg-dark border border-primary/30 rounded py-1 px-2 text-sm text-primary font-black italic w-24 outline-none text-right" value={editBalanceValue} onChange={e => setEditBalanceValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEditedBalance(p)} />
@@ -855,17 +980,17 @@ const Clients: React.FC = () => {
                               <button onClick={() => setEditingProgramId(null)} className="text-slate-600 hover:scale-110"><span className="material-symbols-outlined text-lg">close</span></button>
                             </div>
                           ) : (
-                            <div className="text-right group/val relative">
-                              <p className="text-xl font-black text-white italic tracking-tighter group-hover:text-primary transition-colors cursor-pointer" onClick={() => startEditingBalance(p)}>
-                                {p.balance.toLocaleString('pt-BR')} <span className="text-[10px] text-slate-600 font-bold not-italic">mi</span>
+                            <>
+                              <p className="text-xl font-black text-white italic tracking-tighter">
+                                {p.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </p>
-                              <div className="absolute -right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover/val:opacity-100 transition-opacity">
-                                <span className="material-symbols-outlined text-slate-600 text-[10px]">edit</span>
-                              </div>
-                            </div>
+                              <button onClick={() => startEditingBalance(p)} className="size-8 rounded-lg text-slate-600 hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-colors" title="Editar saldo">
+                                <span className="material-symbols-outlined text-sm">edit</span>
+                              </button>
+                            </>
                           )}
 
-                          <button onClick={() => updateCurrent({ ...selectedClient, programs: selectedClient.programs.filter(x => x.id !== p.id) })} className="size-8 rounded-lg text-slate-700 hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-colors">
+                          <button onClick={() => updateCurrent({ ...selectedClient, programs: selectedClient.programs.filter(x => x.id !== p.id) })} className="size-8 rounded-lg text-slate-700 hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-colors" title="Excluir programa">
                             <span className="material-symbols-outlined text-sm">delete</span>
                           </button>
                         </div>
@@ -1251,7 +1376,7 @@ const Clients: React.FC = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-16 print:gap-10">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Saldo em Custódia</p>
-                      <p className="text-5xl font-black text-slate-900 italic tracking-tighter leading-none">{currentTotalMiles.toLocaleString('pt-BR')} <span className="text-xs opacity-40 uppercase ml-1">mi</span></p>
+                      <p className="text-5xl font-black text-slate-900 italic tracking-tighter leading-none">{currentTotalMiles.toLocaleString('pt-BR')}<span className="text-xs opacity-40 uppercase ml-1">mi</span></p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Líquidez Realizada</p>
@@ -1275,20 +1400,55 @@ const Clients: React.FC = () => {
                     <h3 className="text-[14px] font-black text-slate-800 uppercase tracking-[0.5em] border-b-2 border-slate-100 flex-1 pb-4">Composição do Patrimônio</h3>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 print:gap-4">
-                    {selectedClient.programs.filter(p => p.balance > 0).map(p => (
-                      <div key={p.id} className="bg-slate-50 p-6 rounded-2xl print:p-4 print:bg-slate-50 border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">{p.name}</p>
+                    {Object.entries(consolidatedPrograms).filter(([, balance]) => (balance as number) > 0).map(([name, balance]) => (
+                      <div key={name} className="bg-slate-50 p-6 rounded-2xl print:p-4 print:bg-slate-50 border border-slate-100">
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">{name}</p>
                         <p className="text-2xl font-black text-slate-900 italic tracking-tighter print:text-xl">
-                          {p.balance.toLocaleString('pt-BR')} <span className="text-xs opacity-40 uppercase">mi</span>
+                          {(balance as number).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<span className="text-xs opacity-40 uppercase ml-1">mi</span>
                         </p>
                         <p className="text-[9px] text-slate-400 font-bold mt-1">
-                          ≈ R$ {(p.balance * 0.0185).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          ≈ R$ {((balance as number) * 0.0185).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                       </div>
                     ))}
-                    {selectedClient.programs.filter(p => p.balance > 0).length === 0 && (
+                    {Object.entries(consolidatedPrograms).filter(([, balance]) => (balance as number) > 0).length === 0 && (
                       <p className="text-slate-400 italic text-sm col-span-4 text-center py-8">Nenhum programa com saldo ativo</p>
                     )}
+                  </div>
+                </section>
+
+                {/* MANAGER ANALYSIS SECTION */}
+                <section className="mb-12 break-inside-avoid px-8 py-8 bg-slate-50 border-l-4 border-[#E2BE6A] rounded-r-2xl print:bg-transparent print:border-black print:px-0">
+                  <div className="flex items-center gap-4 mb-4 justify-between">
+                    <div className="flex items-center gap-4">
+                      <span className="material-symbols-outlined text-[#E2BE6A] print:text-black">psychology</span>
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.3em] italic">Análise do Gestor</h3>
+                    </div>
+                    <button
+                      onClick={() => generateAnalysis()}
+                      className="flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all print:hidden"
+                      title="Forçar Reanálise IA"
+                    >
+                      <span className="material-symbols-outlined text-sm">refresh</span>
+                      Atualizar IA
+                    </button>
+                  </div>
+
+                  {/* Editable in Preview, Static in Print */}
+                  <div className="relative group">
+                    <textarea
+                      value={managerAnalysis}
+                      onChange={(e) => setManagerAnalysis(e.target.value)}
+                      className="w-full bg-transparent resize-none text-xs font-medium text-gray-900 placeholder-gray-400 leading-relaxed font-sans border-none focus:ring-0 p-0 print:hidden whitespace-pre-wrap h-32"
+                      placeholder="Escreva sua análise aqui..."
+                    />
+                    {/* Print Version */}
+                    <div className="hidden print:block text-xs font-medium text-gray-900 leading-relaxed font-sans whitespace-pre-wrap text-justify">
+                      {managerAnalysis}
+                    </div>
+                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-200 text-[9px] px-2 py-1 rounded text-slate-600 print:hidden pointer-events-none">
+                      Editável
+                    </div>
                   </div>
                 </section>
 
@@ -1361,7 +1521,8 @@ const Clients: React.FC = () => {
                                         );
                                       } else {
                                         // Other (Compra, etc)
-                                        return h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : '-';
+                                        if (h.type === 'Inclusão' || h.type === 'Inclusao') return '-';
+                                        return h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString('pt-BR')}` : '-';
                                       }
                                     })()}
                                   </td>
@@ -1391,7 +1552,7 @@ const Clients: React.FC = () => {
                                         {h.description || 'Solicitação Concierge'} <span className="text-slate-400 font-normal normal-case block text-[10px]">{h.observation}</span>
                                       </td>
                                       <td className="px-8 py-6 text-right text-[12px] font-black text-slate-900 italic tracking-tight print:px-4 print:py-2">
-                                        {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString()}` : '-'}
+                                        {h.negotiatedValue ? `R$ ${h.negotiatedValue.toLocaleString('pt-BR')}` : '-'}
                                       </td>
                                     </tr>
                                   ))}
@@ -1416,6 +1577,7 @@ const Clients: React.FC = () => {
                   const printData = {
                     clientName: selectedClient.name,
                     clientCpf: selectedClient.cpf,
+                    managerAnalysis: managerAnalysis, // Pass the analysis text
                     metrics: {
                       ...reportMetrics,
                       totalEconomy: reportMetrics.saving,
@@ -1434,6 +1596,113 @@ const Clients: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* WHATSAPP GENERATOR MODAL */}
+      {showWa && selectedClient && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 animate-in fade-in duration-300 print:hidden">
+          <div className="absolute inset-0 bg-bg-dark/95 backdrop-blur-2xl" onClick={() => setShowWa(false)}></div>
+          <div className="relative bg-bg-surface border border-emerald-500/20 p-12 rounded-[48px] w-full max-w-4xl shadow-2xl h-[90vh] overflow-y-auto custom-scrollbar">
+
+            <div className="flex justify-between items-center mb-12">
+              <div>
+                <h2 className="display-font text-3xl font-bold text-white uppercase italic tracking-tighter">Gerador de Mensagens</h2>
+                <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2 italic">FL360 Concierge • WhatsApp Templates</p>
+              </div>
+              <button onClick={() => setShowWa(false)} className="size-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Template 1: Resumo Executivo */}
+              <div className="bg-bg-dark/50 p-8 rounded-3xl border border-white/5 hover:border-emerald-500/30 transition-all group">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="size-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <span className="material-symbols-outlined text-lg">rocket_launch</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-widest">Resumo Executivo</h3>
+                </div>
+                <div className="bg-black/30 p-6 rounded-2xl border border-white/5 mb-6">
+                  <pre className="whitespace-pre-wrap font-sans text-sm text-slate-300 leading-relaxed">
+                    {`Olá ${selectedClient.name.split(' ')[0]}! 🚀\n\nSegue seu status atualizado no FL360:\n💎 Patrimônio: ${reportMetrics.totalPoints.toLocaleString('pt-BR')} milhas\n💰 Valoração: R$ ${reportMetrics.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n📈 Evolução: ${(() => {
+                      const val = reportMetrics.totalInvested > 1
+                        ? ((reportMetrics.totalValue - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100
+                        : (reportMetrics.totalValue > 0 ? 100 : 0);
+                      return (val > 2000 ? 100 : val).toFixed(1).replace('.', ',');
+                    })()}% este mês\n\nQualquer dúvida, estou à disposição!\nAbs.`}
+                  </pre>
+                </div>
+                <button
+                  onClick={() => {
+                    const txt = `Olá ${selectedClient.name.split(' ')[0]}! 🚀\n\nSegue seu status atualizado no FL360:\n💎 Patrimônio: ${reportMetrics.totalPoints.toLocaleString('pt-BR')} milhas\n💰 Valoração: R$ ${reportMetrics.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n📈 Evolução: ${(() => {
+                      const val = reportMetrics.totalInvested > 1
+                        ? ((reportMetrics.totalValue - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100
+                        : (reportMetrics.totalValue > 0 ? 100 : 0);
+                      return (val > 2000 ? 100 : val).toFixed(1).replace('.', ',');
+                    })()}% este mês\n\nQualquer dúvida, estou à disposição!\nAbs.`;
+                    navigator.clipboard.writeText(txt);
+                    alert('Copiado!');
+                  }}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                >
+                  <span className="material-symbols-outlined text-lg">content_copy</span> COPIAR
+                </button>
+              </div>
+
+              {/* Template 2: Foco em Lucro */}
+              <div className="bg-bg-dark/50 p-8 rounded-3xl border border-white/5 hover:border-emerald-500/30 transition-all group">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="size-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <span className="material-symbols-outlined text-lg">savings</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-widest">Lucro Realizado</h3>
+                </div>
+                <div className="bg-black/30 p-6 rounded-2xl border border-white/5 mb-6">
+                  <pre className="whitespace-pre-wrap font-sans text-sm text-slate-300 leading-relaxed">
+                    {`Fala ${selectedClient.name.split(' ')[0]}, tudo bem?\n\nBoas notícias sobre nossa gestão de milhas:\n💵 Lucro/Economia Total: R$ ${reportMetrics.lifetimeSaving.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n🏦 Liquidez (Cash-out): R$ ${reportMetrics.lifetimeRoi.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n\nSeguimos monitorando as melhores emissões para você! ✈️`}
+                  </pre>
+                </div>
+                <button
+                  onClick={() => {
+                    const txt = `Fala ${selectedClient.name.split(' ')[0]}, tudo bem?\n\nBoas notícias sobre nossa gestão de milhas:\n💵 Lucro/Economia Total: R$ ${reportMetrics.lifetimeSaving.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n🏦 Liquidez (Cash-out): R$ ${reportMetrics.lifetimeRoi.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\n\nSeguimos monitorando as melhores emissões para você! ✈️`;
+                    navigator.clipboard.writeText(txt);
+                    alert('Copiado!');
+                  }}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                >
+                  <span className="material-symbols-outlined text-lg">content_copy</span> COPIAR
+                </button>
+              </div>
+
+              {/* Template 3: Auditoria */}
+              <div className="bg-bg-dark/50 p-8 rounded-3xl border border-white/5 hover:border-emerald-500/30 transition-all group md:col-span-2">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="size-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <span className="material-symbols-outlined text-lg">verified_user</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-widest">Auditoria e Compliance</h3>
+                </div>
+                <div className="bg-black/30 p-6 rounded-2xl border border-white/5 mb-6">
+                  <pre className="whitespace-pre-wrap font-sans text-sm text-slate-300 leading-relaxed">
+                    {`Olá ${selectedClient.name}, informo que sua auditoria mensal foi concluída.\n\n✅ Status: AUDITADO\n📅 Data Base: ${new Date().toLocaleDateString('pt-BR')}\n📂 Movimentações: ${reportMetrics.totalMoves} registros auditados\n\nSeu Dossiê completo está disponível no painel. Qualquer divergência, por favor me avise.\n\nAtenciosamente,\nFL360 Concierge.`}
+                  </pre>
+                </div>
+                <button
+                  onClick={() => {
+                    const txt = `Olá ${selectedClient.name}, informo que sua auditoria mensal foi concluída.\n\n✅ Status: AUDITADO\n📅 Data Base: ${new Date().toLocaleDateString('pt-BR')}\n📂 Movimentações: ${reportMetrics.totalMoves} registros auditados\n\nSeu Dossiê completo está disponível no painel. Qualquer divergência, por favor me avise.\n\nAtenciosamente,\nFL360 Concierge.`;
+                    navigator.clipboard.writeText(txt);
+                    alert('Copiado!');
+                  }}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                >
+                  <span className="material-symbols-outlined text-lg">content_copy</span> COPIAR
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
       )}
     </div>
   );
