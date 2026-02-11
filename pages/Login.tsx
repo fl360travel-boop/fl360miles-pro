@@ -100,12 +100,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       <div className="relative w-full max-w-md animate-in fade-in zoom-in duration-1000">
         <div className="text-center mb-12">
-          <div className="size-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-primary/20 rotate-3">
-            <span className="material-symbols-outlined text-bg-dark text-4xl font-black">diamond</span>
-          </div>
-          <h1 className="display-font text-2xl font-bold tracking-[0.4em] text-white uppercase italic">
-            FL360<span className="text-primary">MILES</span>
-          </h1>
+          <img src="/login-logo.png" alt="FL360 Miles Logo" className="w-48 mx-auto mb-6 object-contain drop-shadow-2xl" />
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.6em] mt-4">Terminal de Gestão Confidencial</p>
         </div>
 
