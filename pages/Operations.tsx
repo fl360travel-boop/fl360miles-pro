@@ -101,7 +101,7 @@ const Operations: React.FC = () => {
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-slate-500 text-[10px] font-black tracking-widest uppercase italic">{op.date} • {op.clientName} • {op.program}</p>
                   <p className={`text-sm font-black italic ${['Venda', 'Resgate', 'Transferência'].includes(op.type) ? 'text-red-400' : 'text-emerald-400'}`}>
-                    {['Venda', 'Resgate', 'Transferência'].includes(op.type) ? '-' : '+'}{op.amount.toLocaleString()} mi
+                    {['Venda', 'Resgate', 'Transferência'].includes(op.type) ? '-' : '+'}{op.amount.toLocaleString('pt-BR')} mi
                   </p>
                 </div>
               </div>

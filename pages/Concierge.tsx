@@ -132,13 +132,49 @@ const Concierge: React.FC = () => {
           <div className="pt-10 border-t border-white/10">
             {activeTab === 'Vôos' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-top-4 duration-500">
-                <div className="space-y-2">
-                  <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-1">Origem / Destino</label>
-                  <input className="w-full bg-bg-card border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary italic" value={route} onChange={e => setRoute(e.target.value)} placeholder="Ex: GRU -> LHR" />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-1">Origem / Destino</label>
+                    <input className="w-full bg-card-dark border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary italic" value={route} onChange={e => setRoute(e.target.value)} placeholder="Ex: GRU -> LHR" />
+                  </div>
+
+                  {/* Smart Flight Tools */}
+                  <div className="flex gap-3">
+                    <a
+                      href={(() => {
+                        const codes = route.match(/([a-zA-Z]{3})/g);
+                        if (codes && codes.length >= 2) {
+                          return `https://www.flightconnections.com/pt/voos-de-${codes[0].toLowerCase()}-para-${codes[1].toLowerCase()}`;
+                        }
+                        return 'https://www.flightconnections.com/pt';
+                      })()}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all"
+                    >
+                      <span className="material-symbols-outlined text-slate-400 group-hover:text-emerald-400 text-xs transition-colors">hub</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">FlightConnections</span>
+                    </a>
+                    <a
+                      href={(() => {
+                        const codes = route.match(/([a-zA-Z]{3})/g);
+                        if (codes && codes.length >= 2) {
+                          return `https://seats.aero/search?origins=${codes[0].toUpperCase()}&destinations=${codes[1].toUpperCase()}&date=${new Date().toISOString().split('T')[0]}`;
+                        }
+                        return 'https://seats.aero/search';
+                      })()}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all"
+                    >
+                      <span className="material-symbols-outlined text-slate-400 group-hover:text-blue-400 text-xs transition-colors">travel_explore</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Seats.aero</span>
+                    </a>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-1">Classe Requerida</label>
-                  <select className="w-full bg-bg-card border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none italic">
+                  <select className="w-full bg-card-dark border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary appearance-none italic">
                     <option>First Class (Padrão Elite)</option>
                     <option>Business Class</option>
                     <option>Premium Economy</option>
