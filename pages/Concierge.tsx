@@ -140,36 +140,32 @@ const Concierge: React.FC = () => {
 
                   {/* Smart Flight Tools */}
                   <div className="flex gap-3">
-                    <a
-                      href={(() => {
+                    <button
+                      onClick={() => {
                         const codes = route.match(/([a-zA-Z]{3})/g);
-                        if (codes && codes.length >= 2) {
-                          return `https://www.flightconnections.com/pt/voos-de-${codes[0].toLowerCase()}-para-${codes[1].toLowerCase()}`;
-                        }
-                        return 'https://www.flightconnections.com/pt';
-                      })()}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all"
+                        const url = codes && codes.length >= 2
+                          ? `https://www.flightconnections.com/pt/voos-de-${codes[0].toLowerCase()}-para-${codes[1].toLowerCase()}`
+                          : 'https://www.flightconnections.com/pt';
+                        window.open(url, '_blank', 'noopener');
+                      }}
+                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-slate-400 group-hover:text-emerald-400 text-xs transition-colors">hub</span>
                       <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">FlightConnections</span>
-                    </a>
-                    <a
-                      href={(() => {
+                    </button>
+                    <button
+                      onClick={() => {
                         const codes = route.match(/([a-zA-Z]{3})/g);
-                        if (codes && codes.length >= 2) {
-                          return `https://seats.aero/search?origins=${codes[0].toUpperCase()}&destinations=${codes[1].toUpperCase()}&date=${new Date().toISOString().split('T')[0]}`;
-                        }
-                        return 'https://seats.aero/search';
-                      })()}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all"
+                        const url = codes && codes.length >= 2
+                          ? `https://seats.aero/search?origins=${codes[0].toUpperCase()}&destinations=${codes[1].toUpperCase()}&date=${new Date().toISOString().split('T')[0]}`
+                          : 'https://seats.aero/search';
+                        window.open(url, '_blank', 'noopener');
+                      }}
+                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-slate-400 group-hover:text-blue-400 text-xs transition-colors">travel_explore</span>
                       <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Seats.aero</span>
-                    </a>
+                    </button>
                   </div>
                 </div>
                 <div className="space-y-2">
