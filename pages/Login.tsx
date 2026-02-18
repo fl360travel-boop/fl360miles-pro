@@ -8,7 +8,7 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const { signIn, resetPassword } = useAuth();
+  const { signIn, signInAsDemo, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -203,11 +203,24 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <div className="text-center pt-4 border-t border-white/5 space-y-4">
                 <button
                   type="button"
-                  onClick={() => {
-                    setEmail('demo@fl360miles.com');
-                    setPassword('demo123');
+                  disabled={isLoading}
+                  onClick={async () => {
+                    setIsLoading(true);
+                    setError('');
+                    try {
+                      const { error } = await signInAsDemo();
+                      if (error) {
+                        setError('Erro ao entrar no modo demo: ' + error.message);
+                      } else {
+                        onLogin();
+                      }
+                    } catch (err: any) {
+                      setError(err.message || 'Erro ao entrar no modo demo');
+                    } finally {
+                      setIsLoading(false);
+                    }
                   }}
-                  className="w-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold py-3 rounded-2xl text-[10px] uppercase tracking-widest transition-all border border-white/5 hover:border-white/20 flex items-center justify-center gap-2"
+                  className="w-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold py-3 rounded-2xl text-[10px] uppercase tracking-widest transition-all border border-white/5 hover:border-white/20 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-sm">smart_toy</span>
                   Modo Demonstração

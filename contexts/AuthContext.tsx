@@ -33,6 +33,17 @@ export const useAuth = () => {
     return context;
 };
 
+// Timeout helper para evitar chamadas que travam
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((resolve) => setTimeout(() => {
+            console.warn(`Timeout de ${ms}ms atingido. Usando fallback.`);
+            resolve(fallback);
+        }, ms))
+    ]);
+}
+
 // Busca o role do usuário no banco de dados
 async function fetchUserRole(userId: string): Promise<UserRole> {
     try {
@@ -54,6 +65,17 @@ async function fetchUserRole(userId: string): Promise<UserRole> {
     }
 }
 
+// Busca subscription com tratamento de erro
+async function fetchSubscriptionSafe(): Promise<Subscription | null> {
+    try {
+        const sub = await getSubscription();
+        return sub as Subscription;
+    } catch (err) {
+        console.warn('Erro ao buscar subscription:', err);
+        return null;
+    }
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
@@ -62,16 +84,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [subscription, setSubscription] = useState<Subscription | null>(null);
 
     useEffect(() => {
+        let currentUserId: string | null = null;
+
         // Get initial session
         supabase.auth.getSession().then(async ({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
 
             if (session?.user) {
-                const role = await fetchUserRole(session.user.id);
+                currentUserId = session.user.id;
+                const [role, sub] = await Promise.all([
+                    withTimeout(fetchUserRole(session.user.id), 5000, 'developer' as UserRole),
+                    withTimeout(fetchSubscriptionSafe(), 5000, null)
+                ]);
                 setUserRole(role);
-                const sub = await getSubscription();
-                setSubscription(sub as Subscription);
+                setSubscription(sub);
             }
 
             setLoading(false);
@@ -84,11 +111,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(session?.user ?? null);
 
                 if (session?.user) {
-                    const role = await fetchUserRole(session.user.id);
+                    // Evita chamadas duplicadas se o usuário já foi carregado
+                    if (currentUserId === session.user.id) {
+                        setLoading(false);
+                        return;
+                    }
+                    currentUserId = session.user.id;
+                    const [role, sub] = await Promise.all([
+                        withTimeout(fetchUserRole(session.user.id), 5000, 'developer' as UserRole),
+                        withTimeout(fetchSubscriptionSafe(), 5000, null)
+                    ]);
                     setUserRole(role);
-                    const sub = await getSubscription();
-                    setSubscription(sub as Subscription);
+                    setSubscription(sub);
                 } else {
+                    currentUserId = null;
                     setUserRole(null);
                     setSubscription(null);
                 }
