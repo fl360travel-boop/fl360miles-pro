@@ -200,8 +200,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               {showResetPassword ? '← Voltar ao Login' : 'Esqueceu sua senha?'}
             </button>
             {!showResetPassword && (
-              <div className="text-center pt-4 border-t border-white/5">
-                <Link to="/signup" className="text-primary hover:text-primary-light text-[10px] uppercase tracking-widest font-bold transition-colors">
+              <div className="text-center pt-4 border-t border-white/5 space-y-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('demo@fl360miles.com');
+                    setPassword('demo123');
+                  }}
+                  className="w-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold py-3 rounded-2xl text-[10px] uppercase tracking-widest transition-all border border-white/5 hover:border-white/20 flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">smart_toy</span>
+                  Modo Demonstração
+                </button>
+                <Link to="/signup" className="text-primary hover:text-primary-light text-[10px] uppercase tracking-widest font-bold transition-colors block">
                   Não tem conta? Crie agora
                 </Link>
               </div>
