@@ -10,6 +10,7 @@ const navItems = [
   { label: 'Alertas', path: '/alerts', icon: 'notifications_active' },
   { label: 'Concierge', path: '/concierge', icon: 'support_agent' },
   { label: 'Audit Log', path: '/settings', icon: 'security' },
+  { label: 'Equipe', path: '/settings/team', icon: 'diversity_3' },
 ];
 
 const Sidebar: React.FC = () => {
@@ -26,7 +27,7 @@ const Sidebar: React.FC = () => {
             FL360<span className="text-primary">MILES</span>
           </span>
         </div>
-        
+
         <nav className="space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -34,11 +35,10 @@ const Sidebar: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${
-                  isActive 
-                    ? 'bg-primary/10 text-primary border-r-2 border-primary shadow-lg shadow-primary/5' 
+                className={`flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${isActive
+                    ? 'bg-primary/10 text-primary border-r-2 border-primary shadow-lg shadow-primary/5'
                     : 'text-slate-500 hover:text-white hover:bg-white/5'
-                }`}
+                  }`}
               >
                 <span className="material-symbols-outlined text-lg">{item.icon}</span>
                 {item.label}

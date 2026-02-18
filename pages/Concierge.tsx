@@ -174,6 +174,7 @@ const Concierge: React.FC = () => {
                     <option>First Class (Padrão Elite)</option>
                     <option>Business Class</option>
                     <option>Premium Economy</option>
+                    <option>Econômica</option>
                   </select>
                 </div>
               </div>

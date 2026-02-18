@@ -70,7 +70,7 @@ const Settings: React.FC = () => {
         </div>
         <div className="bg-bg-surface p-8 rounded-3xl border border-white/5 shadow-2xl hover:border-primary/20 transition-all">
           <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-4">Volume Acumulado</p>
-          <h3 className="display-font text-3xl font-black text-primary italic">{(stats.totalVolume / 1000000).toFixed(2)}M <span className="text-xs opacity-40 uppercase">milhas</span></h3>
+          <h3 className="display-font text-3xl font-black text-primary italic">{stats.totalVolume.toLocaleString('pt-BR')} <span className="text-xs opacity-40 uppercase">milhas</span></h3>
         </div>
         <div className="bg-bg-surface p-8 rounded-3xl border border-white/5 shadow-2xl hover:border-emerald-custom/20 transition-all">
           <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-4">Atualizações Hoje</p>
@@ -136,7 +136,7 @@ const Settings: React.FC = () => {
                   </td>
                   <td className="px-8 py-5 text-xs text-slate-400 font-bold italic">{m.program}</td>
                   <td className={`px-8 py-5 text-right text-sm font-black italic ${['Venda', 'Resgate', 'Transferência'].includes(m.type) ? 'text-red-400' : 'text-emerald-400'}`}>
-                    {['Venda', 'Resgate', 'Transferência'].includes(m.type) ? '-' : '+'}{m.amount.toLocaleString()}
+                    {['Venda', 'Resgate', 'Transferência'].includes(m.type) ? '-' : '+'}{m.amount.toLocaleString('pt-BR')}
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">

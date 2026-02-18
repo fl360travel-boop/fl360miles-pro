@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 interface LoginProps {
   onLogin: () => void;
@@ -198,6 +199,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             >
               {showResetPassword ? '← Voltar ao Login' : 'Esqueceu sua senha?'}
             </button>
+            {!showResetPassword && (
+              <div className="text-center pt-4 border-t border-white/5">
+                <Link to="/signup" className="text-primary hover:text-primary-light text-[10px] uppercase tracking-widest font-bold transition-colors">
+                  Não tem conta? Crie agora
+                </Link>
+              </div>
+            )}
           </form>
         </div>
 

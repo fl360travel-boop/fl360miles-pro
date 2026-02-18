@@ -261,7 +261,7 @@ const Alerts: React.FC = () => {
                   <p className="display-font text-5xl font-black text-white italic tracking-tighter leading-none group-hover:text-primary transition-colors">{alert.amount} <span className="text-[12px] opacity-40 uppercase ml-1">Anos</span></p>
                 </div>
               ) : (
-                <p className="display-font text-5xl font-black text-white italic tracking-tighter leading-none group-hover:text-primary transition-colors">{alert.amount.toLocaleString()} <span className="text-[12px] opacity-40 uppercase ml-1">mi</span></p>
+                <p className="display-font text-5xl font-black text-white italic tracking-tighter leading-none group-hover:text-primary transition-colors">{alert.amount.toLocaleString('pt-BR')} <span className="text-[12px] opacity-40 uppercase ml-1">mi</span></p>
               )}
 
               {/* Cronograma de Vencimento Clicável */}

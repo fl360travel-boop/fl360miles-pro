@@ -73,7 +73,7 @@ const RedemptionForm: React.FC = () => {
         economyGenerated: economy,
         passengers: Number(passengers),
         flightClass: flightClass,
-        observation: `Resgate de ${milesUsed} mi via ${program}. Economia: R$ ${economy.toLocaleString()} (${economyPercentage.toFixed(1)}%). ${Number(passengers)} Pax • ${flightClass}.`
+        observation: `Resgate de ${milesUsed} mi via ${program}. Economia: R$ ${economy.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${economyPercentage.toFixed(1)}%). ${Number(passengers)} Pax • ${flightClass}.`
       };
 
       const updatedPrograms = [...client.programs];
@@ -204,7 +204,7 @@ const RedemptionForm: React.FC = () => {
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-emerald-custom uppercase tracking-[0.2em]">Economia Gerada</p>
                   <h3 className="display-font text-5xl font-black text-white italic tracking-tighter">
-                    R$ {economy.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    R$ {economy.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </h3>
                 </div>
               </div>

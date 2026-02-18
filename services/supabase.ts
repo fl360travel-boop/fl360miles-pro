@@ -31,6 +31,7 @@ export interface DbClient {
     notes?: string;
     preferences?: string;
     travel_notes?: string;
+    user_id?: string;
     created_at?: string;
     updated_at?: string;
 }
@@ -41,6 +42,7 @@ export interface DbProgram {
     name: string;
     balance: number;
     icon: string;
+    user_id?: string;
     created_at?: string;
 }
 
@@ -50,6 +52,7 @@ export interface DbCard {
     bank: string;
     name: string;
     category: string;
+    user_id?: string;
     created_at?: string;
 }
 
@@ -64,6 +67,7 @@ export interface DbMovement {
     observation?: string;
     negotiated_value?: number;
     economy_generated?: number;
+    user_id?: string;
     created_at?: string;
 }
 
@@ -73,6 +77,7 @@ export interface DbEconomyHistory {
     month: string;
     economy_percent: number;
     mileage_growth: number;
+    user_id?: string;
     created_at?: string;
 }
 

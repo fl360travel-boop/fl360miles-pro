@@ -64,7 +64,7 @@ const SaleForm: React.FC = () => {
         amount: Number(amount),
         description: `Venda de Ativos - ${program}`,
         negotiatedValue: Number(negotiatedValue),
-        observation: `Liquidação de ${amount} mi de ${program}. ROI: R$ ${profit.toLocaleString()}.`
+        observation: `Liquidação de ${amount} mi de ${program}. ROI: R$ ${profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`
       };
 
       const updatedPrograms = [...client.programs];
@@ -160,7 +160,7 @@ const SaleForm: React.FC = () => {
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Resumo da Liquidação</p>
                   <h3 className="display-font text-5xl font-black text-white italic tracking-tighter">
-                    R$ {Number(negotiatedValue || 0).toLocaleString()}
+                    R$ {Number(negotiatedValue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </h3>
                 </div>
               </div>
@@ -169,7 +169,7 @@ const SaleForm: React.FC = () => {
                 <div className="text-left">
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Lucro Estimado</p>
                   <p className={`text-2xl font-black italic ${profit >= 0 ? 'text-emerald-custom' : 'text-red-500'}`}>
-                    R$ {profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    R$ {profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>

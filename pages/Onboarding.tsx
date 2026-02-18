@@ -368,11 +368,11 @@ const Onboarding: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 text-left max-w-lg mx-auto">
                 <div className="bg-bg-card p-6 rounded-2xl border border-white/5">
                   <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Patrimônio Inicial</p>
-                  <p className="text-xl font-black text-white italic tracking-tighter">{programs.reduce((acc, curr) => acc + (Number(curr.balance) || 0), 0).toLocaleString()} <span className="text-[10px] opacity-40">mi</span></p>
+                  <p className="text-xl font-black text-white italic tracking-tighter">{programs.reduce((acc, curr) => acc + (Number(curr.balance) || 0), 0).toLocaleString('pt-BR')} <span className="text-[10px] opacity-40">mi</span></p>
                 </div>
                 <div className="bg-bg-card p-6 rounded-2xl border border-white/5">
                   <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Honorário</p>
-                  <p className="text-xl font-black text-primary italic tracking-tighter">R$ {Number(fee || 0).toLocaleString()}</p>
+                  <p className="text-xl font-black text-primary italic tracking-tighter">R$ {Number(fee || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </div>
@@ -408,7 +408,7 @@ const Onboarding: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Patrimônio</p>
-                  <p className="text-[10px] text-white font-black italic">{programs.reduce((a, b) => a + (Number(b.balance) || 0), 0).toLocaleString()} mi</p>
+                  <p className="text-[10px] text-white font-black italic">{programs.reduce((a, b) => a + (Number(b.balance) || 0), 0).toLocaleString('pt-BR')} mi</p>
                 </div>
               </div>
             </div>

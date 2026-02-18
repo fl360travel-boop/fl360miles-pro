@@ -9,6 +9,16 @@ export type PaymentMethod = 'A vista' | 'Cartão' | 'Boleto';
 export type ManagementLevel = 'Standard' | 'Premium' | 'Elite';
 export type BillingCycle = 'Mensal' | 'Anual';
 
+export type SubscriptionStatus = 'active' | 'trial' | 'past_due' | 'canceled' | 'lifetime' | 'legacy';
+
+export interface Subscription {
+  planId: 'starter' | 'pro' | 'elite' | 'demo' | 'legacy';
+  status: SubscriptionStatus;
+  trialEndsAt: string | null;
+  currentPeriodEnd: string | null;
+  updatedAt: string | null;
+}
+
 export interface MileageProgram {
   id: string;
   name: string;
@@ -89,4 +99,32 @@ export interface Operation {
   value: string;
   status: OperationStatus;
   amount?: string;
+}
+
+export interface DashboardStats {
+  metrics: {
+    totalMiles: number;
+    totalProfit: number;
+    totalEconomy: number;
+    activeClients: number;
+  };
+  recentOps: Array<{
+    id: string;
+    date: string;
+    type: string;
+    program: string;
+    amount: number;
+    clientName: string;
+    clientId: string;
+  }>;
+  programMetrics: Array<{
+    name: string;
+    balance: number;
+    clientCount: number;
+  }>;
+  chartData: Array<{
+    n: string;
+    v: number;
+    year: number;
+  }>;
 }

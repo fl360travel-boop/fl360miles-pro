@@ -491,3 +491,160 @@ export async function deleteMovement(id: string): Promise<void> {
 
     if (error) throw new Error(`Failed to delete movement: ${error.message}`);
 }
+
+// ============================================
+// ORGANIZATION & TEAMS
+// ============================================
+
+export interface Organization {
+    id: string;
+    name: string;
+    slug: string;
+    role?: 'admin' | 'gestor' | 'operador' | 'viewer' | 'owner';
+}
+
+export interface TeamMember {
+    id: string; // membership id
+    userId: string;
+    name: string;
+    email: string;
+    role: 'admin' | 'gestor' | 'operador' | 'viewer' | 'owner';
+    joinedAt: string;
+    avatar?: string;
+}
+
+// Get user's organizations
+export async function getOrganizations(): Promise<Organization[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    // Query memberships to get org IDs, then join organizations
+    // Note: Supabase JS syntax for joins depends on foreign keys
+    const { data, error } = await supabase
+        .from('memberships')
+        .select(`
+            role,
+            organization:organizations (
+                id,
+                name,
+                slug
+            )
+        `)
+        .eq('user_id', user.id);
+
+    if (error) {
+        console.error('Error fetching organizations:', error);
+        return [];
+    }
+
+    return data.map((item: any) => ({
+        id: item.organization.id,
+        name: item.organization.name,
+        slug: item.organization.slug,
+        role: item.role
+    }));
+}
+
+// Get current organization subscription
+export async function getSubscription(): Promise<{ planId: string, status: string, trialEndsAt: string | null, currentPeriodEnd: string | null, updatedAt: string | null } | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    // Get the first organization for now (assuming single org per user context)
+    const { data: memberships } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+    if (!memberships || memberships.length === 0) return null;
+
+    const orgId = memberships[0].organization_id;
+
+    const { data: sub, error } = await supabase
+        .from('subscriptions')
+        .select('plan_id, status, trial_ends_at, current_period_end, updated_at')
+        .eq('organization_id', orgId)
+        .single();
+
+    if (error) {
+        console.error('Error fetching subscription:', error);
+        return null;
+    }
+
+    return {
+        planId: sub.plan_id,
+        status: sub.status,
+        trialEndsAt: sub.trial_ends_at,
+        currentPeriodEnd: sub.current_period_end,
+        updatedAt: sub.updated_at
+    };
+}
+
+// Get members of an organization
+export async function getOrganizationMembers(organizationId: string): Promise<TeamMember[]> {
+    // First, verify we have access
+    const { data: members, error } = await supabase
+        .from('memberships')
+        .select(`
+            id,
+            user_id,
+            role,
+            created_at
+        `)
+        .eq('organization_id', organizationId);
+
+    if (error) {
+        console.error("API Error fetching members", error);
+        throw error;
+    }
+
+    // Now fetch profiles for these users
+    const userIds = members.map((m: any) => m.user_id);
+    const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('user_id, display_name, email')
+        .in('user_id', userIds);
+
+    const profileMap = new Map(profiles?.map((p: any) => [p.user_id, p]) || []);
+
+    return members.map((m: any) => {
+        const profile = profileMap.get(m.user_id);
+        return {
+            id: m.id,
+            userId: m.user_id,
+            name: profile?.display_name || 'Usuário',
+            email: profile?.email || '...',
+            role: m.role,
+            joinedAt: m.created_at,
+            avatar: `https://ui-avatars.com/api/?name=${profile?.display_name || 'User'}&background=random`
+        };
+    });
+}
+
+// Add member (Simple direct insert for now - in production use Invite System)
+export async function inviteMember(organizationId: string, email: string, role: string): Promise<void> {
+    console.warn("Invite API not fully implemented yet. Needs Backend Edge Function.");
+    throw new Error("Funcionalidade de Convite requer Edge Function (Fase 4 - Pendente).");
+}
+
+// Remove member
+export async function removeMember(membershipId: string): Promise<void> {
+    const { error } = await supabase
+        .from('memberships')
+        .delete()
+        .eq('id', membershipId);
+
+    if (error) throw new Error(`Failed to remove member: ${error.message}`);
+}
+// Get Optimized Dashboard Stats
+export async function getDashboardStats(): Promise<import('../types').DashboardStats | null> {
+    const { data, error } = await supabase.rpc('get_dashboard_stats');
+
+    if (error) {
+        console.error('Error fetching dashboard stats:', error);
+        return null;
+    }
+
+    return data as import('../types').DashboardStats;
+}

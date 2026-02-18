@@ -35,6 +35,19 @@ const HTMLReport: React.FC<HTMLReportProps> = ({ data }) => {
                 </div>
             </header>
 
+            {/* MANAGER ANALYSIS */}
+            {data.managerAnalysis && (
+                <div className="mb-8 p-6 bg-slate-50 border-l-4 border-[#E2BE6A] rounded-r-lg print:bg-white print:border-black print:pl-4 print:py-2">
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">psychology</span>
+                        Análise do Gestor
+                    </h3>
+                    <p className="text-xs text-slate-700 leading-relaxed font-serif whitespace-pre-wrap text-justify print:text-black">
+                        {data.managerAnalysis}
+                    </p>
+                </div>
+            )}
+
             {/* METRICS GRID */}
             <div className="grid grid-cols-4 gap-4 mb-8">
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
@@ -91,11 +104,13 @@ const HTMLReport: React.FC<HTMLReportProps> = ({ data }) => {
                                     {isNegative ? '-' : '+'}{h.amount.toLocaleString()}
                                 </div>
                                 <div className="w-[20%] text-xs text-slate-500 font-medium text-right">
-                                    {h.negotiatedValue
-                                        ? `R$ ${h.negotiatedValue.toLocaleString()}`
-                                        : h.economyGenerated
-                                            ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}`
-                                            : '-'}
+                                    {(h.type === 'Inclusão' || h.type === 'Inclusao')
+                                        ? '-'
+                                        : h.negotiatedValue
+                                            ? `R$ ${h.negotiatedValue.toLocaleString()}`
+                                            : h.economyGenerated
+                                                ? `(Eco) R$ ${h.economyGenerated.toLocaleString()}`
+                                                : '-'}
                                 </div>
                             </div>
                         );

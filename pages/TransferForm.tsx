@@ -242,7 +242,7 @@ const TransferForm: React.FC = () => {
                 <div className="space-y-1 text-left">
                   <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Resultado Estimado</p>
                   <h3 className="display-font text-5xl font-black text-white italic tracking-tighter">
-                    {calculatedMiles.toLocaleString()}
+                    {calculatedMiles.toLocaleString('pt-BR')}
                   </h3>
                   <p className="text-xs text-slate-500 font-bold uppercase tracking-widest italic">Milhas Creditadas</p>
                 </div>
@@ -251,7 +251,7 @@ const TransferForm: React.FC = () => {
               <div className="space-y-4 bg-white/5 p-6 rounded-2xl border border-white/5">
                 <div className="flex justify-between text-xs font-bold">
                   <span className="text-emerald-custom uppercase font-black">Valor Patrimonial Projetado</span>
-                  <span className="text-emerald-custom text-xl font-black italic">R$ {projectedValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span className="text-emerald-custom text-xl font-black italic">R$ {projectedValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
 

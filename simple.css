@@ -1,0 +1,10 @@
+body {
+    background-color: #2ecc71 !important;
+    /* Green */
+    color: white;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}

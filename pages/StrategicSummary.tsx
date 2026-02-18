@@ -249,9 +249,9 @@ const StrategicSummary: React.FC = () => {
 
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 print:hidden">
         {[
-          { id: 'profit' as CardType, label: 'Lucro de Liquidação', value: `R$ ${stats.totalProfit.toLocaleString()}`, trend: '+14.2%', sub: 'Efetividade Patrimonial' },
-          { id: 'miles' as CardType, label: 'Ativos Gerenciados', value: `${(stats.totalMiles / 1000).toFixed(0)}k`, trend: '+28.5%', sub: 'Volume Consolidado' },
-          { id: 'economy' as CardType, label: 'Economia Concierge', value: `R$ ${stats.totalEconomy.toLocaleString()}`, trend: '+9.4%', sub: 'Saving em Emissões' },
+          { id: 'profit' as CardType, label: 'Lucro de Liquidação', value: `R$ ${stats.totalProfit.toLocaleString('pt-BR')}`, trend: '+14.2%', sub: 'Efetividade Patrimonial' },
+          { id: 'miles' as CardType, label: 'Ativos Gerenciados', value: stats.totalMiles.toLocaleString('pt-BR'), trend: '+28.5%', sub: 'Volume Consolidado' },
+          { id: 'economy' as CardType, label: 'Economia Concierge', value: `R$ ${stats.totalEconomy.toLocaleString('pt-BR')}`, trend: '+9.4%', sub: 'Saving em Emissões' },
           { id: 'audit' as CardType, label: 'Escopo de Auditoria', value: stats.movementsCount, trend: 'Protocolo Elite', sub: `${stats.clientCount} Titulares Filtrados` }
         ].map((card, i) => (
           <div
@@ -349,7 +349,7 @@ const StrategicSummary: React.FC = () => {
                 {activeDetail === 'profit' && (
                   <div className="text-right border-l border-white/10 pl-10 print:border-slate-200">
                     <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1 print:text-slate-400">Volume Consolidado</p>
-                    <p className="text-primary font-black text-lg italic tracking-tighter">R$ {detailData.reduce((acc, curr) => acc + (curr.negotiatedValue || 0), 0).toLocaleString()}</p>
+                    <p className="text-primary font-black text-lg italic tracking-tighter">R$ {detailData.reduce((acc, curr) => acc + (curr.negotiatedValue || 0), 0).toLocaleString('pt-BR')}</p>
                   </div>
                 )}
               </div>
@@ -372,7 +372,7 @@ const StrategicSummary: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className={`text-xl font-black italic tracking-tighter print:text-sm ${m.type === 'Venda' || m.type === 'Resgate' ? 'text-white print:text-slate-900' : 'text-primary'}`}>
-                        {activeDetail === 'profit' ? `R$ ${m.negotiatedValue?.toLocaleString()}` : activeDetail === 'economy' ? `R$ ${m.economyGenerated?.toLocaleString()}` : `${m.amount.toLocaleString()} mi`}
+                        {activeDetail === 'profit' ? `R$ ${m.negotiatedValue?.toLocaleString('pt-BR')}` : activeDetail === 'economy' ? `R$ ${m.economyGenerated?.toLocaleString('pt-BR')}` : `${m.amount.toLocaleString('pt-BR')} mi`}
                       </p>
                       <span className="text-[8px] font-black uppercase text-slate-600 tracking-widest print:text-[7px]">Protocolo Auditado</span>
                     </div>
@@ -431,7 +431,7 @@ const StrategicSummary: React.FC = () => {
                 <span className="text-[10px] text-slate-500 font-bold">{h.date}</span>
                 <span className="text-xs font-black text-white uppercase tracking-tighter">{h.clientName}</span>
                 <span className="text-xs text-primary font-bold">{h.program}</span>
-                <span className="text-right text-sm font-black text-white">{h.amount.toLocaleString()}</span>
+                <span className="text-right text-sm font-black text-white">{h.amount.toLocaleString('pt-BR')}</span>
               </div>
             ))}
           </div>

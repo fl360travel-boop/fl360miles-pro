@@ -16,6 +16,7 @@ interface PrintData {
     };
     period: string;
     generatedDate: string;
+    managerAnalysis?: string; // New field
 }
 
 const PrintReportPage: React.FC = () => {
