@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { getDollarRate, ExchangeRate } from '../services/finance';
 
-const REFRESH_INTERVAL = 30 * 1000; // 30 segundos
+const REFRESH_INTERVAL = 10 * 1000; // 10 segundos — tempo real
 
 const DollarTicker: React.FC = () => {
     const [rate, setRate] = useState<ExchangeRate | null>(null);
