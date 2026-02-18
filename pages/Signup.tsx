@@ -2,10 +2,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../services/supabase';
 
 const Signup: React.FC = () => {
     const { signUp } = useAuth();
     const navigate = useNavigate();
+    const [companyName, setCompanyName] = useState('');
+    const [advisorName, setAdvisorName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,6 +18,16 @@ const Signup: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!companyName.trim()) {
+            setError('Nome da empresa é obrigatório');
+            return;
+        }
+
+        if (!advisorName.trim()) {
+            setError('Seu nome é obrigatório');
+            return;
+        }
 
         if (password !== confirmPassword) {
             setError('As senhas não coincidem');
@@ -31,14 +44,32 @@ const Signup: React.FC = () => {
         setSuccessMessage('');
 
         try {
-            const { error } = await signUp(email, password);
-            if (error) {
-                setError(error.message);
-            } else {
-                setSuccessMessage('Conta criada com sucesso! Verifique seu email para confirmar.');
-                // Opcional: Redirecionar após alguns segundos ou manter na tela com mensagem
-                setTimeout(() => navigate('/'), 3000);
+            // 1. Criar conta no Supabase Auth
+            const { error: signUpError } = await signUp(email, password);
+            if (signUpError) {
+                setError(signUpError.message);
+                setIsLoading(false);
+                return;
             }
+
+            // 2. Aguardar um momento para a sessão ser estabelecida
+            await new Promise(r => setTimeout(r, 1500));
+
+            // 3. Chamar RPC para criar organização + perfil + trial
+            const { error: rpcError } = await supabase.rpc('handle_new_signup', {
+                p_org_name: companyName.trim(),
+                p_display_name: advisorName.trim()
+            });
+
+            if (rpcError) {
+                console.error('Erro ao criar organização:', rpcError);
+                // Não bloquear o usuário — a org pode ser criada depois
+                setSuccessMessage('Conta criada! Verifique seu email para confirmar. A configuração será completada no primeiro login.');
+            } else {
+                setSuccessMessage('🎉 Conta criada com sucesso! Verifique seu email para confirmar e comece seus 14 dias grátis.');
+            }
+
+            setTimeout(() => navigate('/'), 4000);
         } catch (err: any) {
             setError(err.message || 'Erro ao criar conta');
         } finally {
@@ -48,12 +79,11 @@ const Signup: React.FC = () => {
 
     return (
         <div className="fixed inset-0 z-[500] bg-bg-dark flex items-center justify-center p-6 overflow-hidden">
-            {/* Background Image - Reusing Login BG */}
+            {/* Background Image */}
             <div
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: 'url(/login-bg.png)' }}
             />
-            {/* Dark Overlay Gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-bg-dark/95 via-bg-dark/80 to-bg-dark/95" />
 
             {/* Decorative Glow */}
@@ -69,6 +99,35 @@ const Signup: React.FC = () => {
 
                 <div className="bg-bg-surface/95 backdrop-blur-3xl border border-white/10 p-8 rounded-[40px] shadow-2xl">
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
+                                    Sua Empresa
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={companyName}
+                                    onChange={e => setCompanyName(e.target.value)}
+                                    className="w-full bg-bg-card border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
+                                    placeholder="FL360 Travel"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
+                                    Seu Nome
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={advisorName}
+                                    onChange={e => setAdvisorName(e.target.value)}
+                                    className="w-full bg-bg-card border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
+                                    placeholder="João Silva"
+                                />
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
                                 Email Profissional
@@ -83,28 +142,29 @@ const Signup: React.FC = () => {
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">Senha</label>
-                            <input
-                                type="password"
-                                required
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                className="w-full bg-bg-card border border-white/5 rounded-2xl py-3 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
-                                placeholder="••••••••"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">Confirmar Senha</label>
-                            <input
-                                type="password"
-                                required
-                                value={confirmPassword}
-                                onChange={e => setConfirmPassword(e.target.value)}
-                                className="w-full bg-bg-card border border-white/5 rounded-2xl py-3 px-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
-                                placeholder="••••••••"
-                            />
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">Senha</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    className="w-full bg-bg-card border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">Confirmar</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    className="w-full bg-bg-card border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-700"
+                                    placeholder="••••••••"
+                                />
+                            </div>
                         </div>
 
                         {error && (
@@ -126,11 +186,15 @@ const Signup: React.FC = () => {
                                 <span className="material-symbols-outlined animate-spin">sync</span>
                             ) : (
                                 <>
-                                    INICIAR TRIAL
+                                    INICIAR TRIAL GRÁTIS
                                     <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
                                 </>
                             )}
                         </button>
+
+                        <p className="text-center text-[9px] text-slate-500 mt-2">
+                            14 dias grátis • Sem cartão de crédito • Cancele quando quiser
+                        </p>
 
                         <div className="text-center mt-6">
                             <Link
