@@ -18,11 +18,8 @@ export interface ChatMessage {
     parts: [{ text: string }];
 }
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-
-function getApiKey(): string {
-    return import.meta.env.VITE_GEMINI_API_KEY || '';
-}
+// Proxy seguro via Netlify Function — a chave fica apenas no servidor
+const GEMINI_PROXY_URL = '/api/gemini';
 
 const SYSTEM_PROMPT = `Você é a Altitude AI, a assistente de inteligência artificial premium da FL360 Miles — uma plataforma de gestão de milhas aéreas e pontos de fidelidade.
 
@@ -51,10 +48,6 @@ export class AIAdvisorService {
 
     // Chat com Gemini API
     static async chat(userMessage: string, history: ChatMessage[], clientContext?: string): Promise<string> {
-        const apiKey = getApiKey();
-        if (!apiKey) {
-            return '⚠️ A Altitude AI precisa de uma chave de API do Google Gemini para funcionar. Adicione `VITE_GEMINI_API_KEY` no arquivo `.env.local`.';
-        }
 
         try {
             // Build context with system prompt and client data
@@ -73,7 +66,7 @@ export class AIAdvisorService {
                 { role: 'user', parts: [{ text: userMessage }] }
             ];
 
-            const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+            const response = await fetch(GEMINI_PROXY_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -108,15 +101,6 @@ export class AIAdvisorService {
 
     // Gerar insight estratégico real usando Gemini
     static async getStrategicInsight(clientContext?: string): Promise<string> {
-        const apiKey = getApiKey();
-        if (!apiKey) {
-            // Fallback local se não tem API key
-            const insights = [
-                "💡 Configure sua chave Gemini para receber insights personalizados em tempo real.",
-                "📊 A Altitude AI está pronta para analisar sua carteira assim que conectada.",
-            ];
-            return insights[Math.floor(Math.random() * insights.length)];
-        }
 
         try {
             let prompt = `${SYSTEM_PROMPT}\n\nGere UM insight curto e útil (máximo 2 frases) sobre o mercado de milhas aéreas brasileiro hoje. Seja específico e prático. Não use listas, apenas texto corrido.`;
@@ -125,7 +109,7 @@ export class AIAdvisorService {
                 prompt += `\n\nBaseie o insight nos dados acima se possível.`;
             }
 
-            const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+            const response = await fetch(GEMINI_PROXY_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
