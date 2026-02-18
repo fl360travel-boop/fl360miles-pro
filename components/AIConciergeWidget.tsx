@@ -1,55 +1,65 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AIAdvisorService, Opportunity } from '../services/ai_advisor';
-import { getClients } from '../services/api'; // Assuming we can fetch clients to analyze
+import { AIAdvisorService, Opportunity, ChatMessage } from '../services/ai_advisor';
+import { getClients } from '../services/api';
 
 const AIConciergeWidget: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', type?: 'opportunity', data?: Opportunity }[]>([]);
     const [input, setInput] = useState('');
     const [hasUnread, setHasUnread] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
+    const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+    const [clientContext, setClientContext] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const initialized = useRef(false);
 
-    // Initial Greeting & Analysis
+    // Load client data for context
     useEffect(() => {
-        const init = async () => {
-            // Add greeting
+        const loadContext = async () => {
+            try {
+                const clients = await getClients();
+                const ctx = AIAdvisorService.buildClientContext(clients);
+                setClientContext(ctx);
+                return clients;
+            } catch {
+                return [];
+            }
+        };
+
+        if (!initialized.current) {
+            initialized.current = true;
+
+            // Greeting
             setMessages([
-                { id: '1', text: 'Olá! Sou a Altitude AI. 🏔️\nEstou analisando sua carteira em tempo real em busca de oportunidades.', sender: 'ai' }
+                { id: '1', text: 'Olá! Sou a **Altitude AI** 🏔️\nEstou conectada e pronta para ajudar.\n\nPosso analisar sua carteira, sugerir estratégias de milhas e responder qualquer dúvida sobre o mercado.', sender: 'ai' }
             ]);
 
-            // Simulate analysis delay
+            // Load and analyze
             setTimeout(async () => {
-                const clients = await getClients(); // Fetch current clients
+                const clients = await loadContext();
+
+                // Get real AI insight
+                const ctx = AIAdvisorService.buildClientContext(clients);
+                const insight = await AIAdvisorService.getStrategicInsight(ctx);
+                setMessages(prev => [...prev, { id: '2', text: `💡 **Insight:**\n${insight}`, sender: 'ai' }]);
+
+                // Portfolio analysis (local, instant)
                 const opps = AIAdvisorService.analyzePortfolio(clients);
-                const insight = await AIAdvisorService.getStrategicInsight();
-
-                // Add Insight
-                setMessages(prev => [...prev, { id: '2', text: `💡 **Insight de Mercado:**\n${insight}`, sender: 'ai' }]);
-
-                // Add Opportunities one by one
                 opps.forEach((opp, index) => {
                     setTimeout(() => {
                         setMessages(prev => [...prev, {
                             id: `opp-${index}`,
-                            text: `Encontrei uma oportunidade de ${opp.priority.toUpperCase()} prioridade!`,
+                            text: `Encontrei uma oportunidade de **${opp.priority.toUpperCase()}** prioridade!`,
                             sender: 'ai',
                             type: 'opportunity',
                             data: opp
                         }]);
                         if (!isOpen) setHasUnread(true);
-                    }, 3000 + (index * 2000));
+                    }, 2000 + (index * 1500));
                 });
             }, 1500);
-        };
-
-        if (isOpen) {
-            setHasUnread(false);
         }
-
-        // Only run once on mount (simulated for now)
-        // In a real app, this would subscribe to a websocket or poll
-        init();
     }, []);
 
     // Scroll to bottom
@@ -57,17 +67,45 @@ const AIConciergeWidget: React.FC = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isOpen]);
 
-    const handleSend = () => {
-        if (!input.trim()) return;
+    const handleSend = async () => {
+        if (!input.trim() || isTyping) return;
 
-        const userMsg = input;
-        setMessages(prev => [...prev, { id: Date.now().toString(), text: userMsg, sender: 'user' }]);
+        const userMsg = input.trim();
         setInput('');
+        setMessages(prev => [...prev, { id: Date.now().toString(), text: userMsg, sender: 'user' }]);
+        setIsTyping(true);
 
-        // Fake response
-        setTimeout(() => {
-            setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: 'Ainda estou em fase de aprendizado (BETA), mas já registrei seu pedido! Em breve poderei buscar passagens em tempo real para você.', sender: 'ai' }]);
-        }, 1000);
+        try {
+            const response = await AIAdvisorService.chat(userMsg, chatHistory, clientContext);
+
+            // Update chat history for context continuity
+            setChatHistory(prev => [
+                ...prev,
+                { role: 'user', parts: [{ text: userMsg }] },
+                { role: 'model', parts: [{ text: response }] }
+            ]);
+
+            setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: response, sender: 'ai' }]);
+        } catch (error) {
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                text: '❌ Erro ao processar sua mensagem. Tente novamente.',
+                sender: 'ai'
+            }]);
+        } finally {
+            setIsTyping(false);
+        }
+    };
+
+    // Format text with basic markdown (bold)
+    const formatText = (text: string) => {
+        const parts = text.split(/(\*\*.*?\*\*)/g);
+        return parts.map((part, i) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={i} className="text-emerald-300 font-bold">{part.slice(2, -2)}</strong>;
+            }
+            return <span key={i}>{part}</span>;
+        });
     };
 
     return (
@@ -84,7 +122,7 @@ const AIConciergeWidget: React.FC = () => {
                             <div>
                                 <h3 className="font-black text-white text-sm tracking-wider uppercase italic">Altitude AI</h3>
                                 <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-1">
-                                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online
+                                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Gemini · Online
                                 </p>
                             </div>
                         </div>
@@ -98,12 +136,11 @@ const AIConciergeWidget: React.FC = () => {
                         {messages.map((msg, idx) => (
                             <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${msg.sender === 'user'
-                                        ? 'bg-emerald-600 text-white rounded-tr-none'
-                                        : 'bg-white/5 text-slate-200 rounded-tl-none border border-white/5'
+                                    ? 'bg-emerald-600 text-white rounded-tr-none'
+                                    : 'bg-white/5 text-slate-200 rounded-tl-none border border-white/5'
                                     }`}>
-                                    <p className="whitespace-pre-line leading-relaxed">{msg.text}</p>
+                                    <p className="whitespace-pre-line leading-relaxed">{formatText(msg.text)}</p>
 
-                                    {/* Validar se é Opportunity */}
                                     {msg.type === 'opportunity' && msg.data && (
                                         <div className="mt-3 bg-black/20 rounded-xl p-3 border-l-2 border-emerald-500">
                                             <div className="flex justify-between items-start mb-1">
@@ -125,6 +162,20 @@ const AIConciergeWidget: React.FC = () => {
                                 </div>
                             </div>
                         ))}
+
+                        {/* Typing indicator */}
+                        {isTyping && (
+                            <div className="flex justify-start">
+                                <div className="bg-white/5 rounded-2xl rounded-tl-none border border-white/5 p-3 px-5">
+                                    <div className="flex gap-1.5 items-center">
+                                        <span className="size-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                        <span className="size-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                        <span className="size-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div ref={messagesEndRef} />
                     </div>
 
@@ -137,11 +188,13 @@ const AIConciergeWidget: React.FC = () => {
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                                 placeholder="Pergunte algo à Altitude..."
-                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-all font-medium"
+                                disabled={isTyping}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-all font-medium disabled:opacity-50"
                             />
                             <button
                                 onClick={handleSend}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400 p-1.5 transition-colors"
+                                disabled={isTyping}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400 p-1.5 transition-colors disabled:opacity-50"
                             >
                                 <span className="material-symbols-outlined text-lg">send</span>
                             </button>
