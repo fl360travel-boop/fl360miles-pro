@@ -84,7 +84,26 @@ export class AIAdvisorService {
                 const error = await response.json().catch(() => ({}));
                 console.error('Gemini API error:', error);
                 if (response.status === 429) {
-                    return '⏳ Limite de requisições atingido. Aguarde alguns segundos e tente novamente.';
+                    // Auto-retry after 3 seconds for rate limit
+                    await new Promise(r => setTimeout(r, 3000));
+                    const retryResponse = await fetch(GEMINI_PROXY_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents,
+                            generationConfig: {
+                                temperature: 0.7,
+                                topP: 0.95,
+                                topK: 40,
+                                maxOutputTokens: 1024,
+                            }
+                        })
+                    });
+                    if (retryResponse.ok) {
+                        const retryData = await retryResponse.json();
+                        return retryData?.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui gerar uma resposta.';
+                    }
+                    return '⏳ O serviço está ocupado no momento. Tente novamente em 30 segundos.';
                 }
                 return '❌ Erro ao se comunicar com a IA. Tente novamente em instantes.';
             }
