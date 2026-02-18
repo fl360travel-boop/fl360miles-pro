@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<!-- FL360Miles Pro v1.0.1 - Build trigger 2026-01-14 -->
+<!-- FL360Miles Pro v1.2.0 - Forced Cache Bust 2026-02-18 -->
 <html lang="pt-BR" class="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="app-version" content="1.2.0-2026-02-18">
     <title>FL360MILES Pro | Terminal de Gestão Elite</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
@@ -14,7 +15,14 @@
 </head>
 
 <body class="bg-bg-dark text-slate-100 min-h-screen selection:bg-primary selection:text-bg-dark antialiased">
-    <div id="root"></div>
+    <div id="root">
+        <div
+            style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0f172a; color: #94a3b8; font-family: sans-serif;">
+            <div style="margin-bottom: 20px;">FL360 SYSTEMS</div>
+            <div style="font-size: 14px;">Carregando versão v1.2.0...</div>
+            <!-- If this stays visible for more than 5s, please Hard Refresh (Shift+Cmd+R) -->
+        </div>
+    </div>
     <script type="module" src="/index.tsx"></script>
 </body>
 
