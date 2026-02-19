@@ -17,6 +17,8 @@ import Concierge from './pages/Concierge';
 import Team from './pages/Settings/Team'; // Add import
 
 import Landing from './pages/Landing';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -135,6 +137,8 @@ const AuthenticatedApp: React.FC = () => {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login onLogin={() => { }} />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );

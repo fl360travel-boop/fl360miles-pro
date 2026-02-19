@@ -1,9 +1,10 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { BrandLogo, CardSkin } from '../components/BrandAssets';
+import { useSEO } from '../hooks/useSEO';
 
 const Landing: React.FC = () => {
+    useSEO('Gestão Profissional de Milhas', 'A plataforma definitiva para gestores de milhas. Controle múltiplos CPFs, automatize cotações e maximize seus lucros.');
     const navigate = useNavigate();
     const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -344,9 +345,9 @@ const Landing: React.FC = () => {
                     </div>
 
                     <div className="flex gap-8 text-sm text-slate-500">
-                        <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>
-                        <a href="#" className="hover:text-white transition-colors">Privacidade</a>
-                        <a href="#" className="hover:text-white transition-colors">Contato</a>
+                        <Link to="/terms" className="hover:text-white transition-colors">Termos de Uso</Link>
+                        <Link to="/privacy" className="hover:text-white transition-colors">Privacidade</Link>
+                        <a href="mailto:contato@fl360miles.com" className="hover:text-white transition-colors">Contato</a>
                     </div>
 
                     <p className="text-xs text-slate-600">
