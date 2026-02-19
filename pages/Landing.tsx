@@ -313,6 +313,76 @@ const Landing: React.FC = () => {
                 </div>
             </section>
 
+            {/* 6. INVESTIMENTO (Ancoragem) */}
+            <section className="py-32 px-6 bg-bg-dark border-t border-white/5 relative">
+                <div className="max-w-7xl mx-auto">
+                    <RevealOnScroll>
+                        <div className="text-center mb-20">
+                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block">Investimento no Negócio</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6">Escolha seu Nível de Acesso</h2>
+                            <p className="text-slate-400">O custo de oportunidade de não começar hoje é muito maior.</p>
+                        </div>
+                    </RevealOnScroll>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                        <RevealOnScroll delay={200}>
+                            <div className="p-8 rounded-2xl bg-bg-card border border-white/5 hover:border-white/10 transition-all group">
+                                <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Nível 1</div>
+                                <h3 className="text-2xl font-black text-white mb-2">Validação</h3>
+                                <div className="flex items-baseline gap-1 mb-6">
+                                    <span className="text-sm text-slate-400">R$</span>
+                                    <span className="text-4xl font-black text-white">799</span>
+                                    <span className="text-sm text-slate-400">/mês</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Até 20 Clientes</li>
+                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Scanner Award</li>
+                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Relatórios Padrão</li>
+                                </ul>
+                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl border border-white/10 text-white font-bold uppercase text-xs hover:bg-white hover:text-bg-dark transition-all">Iniciar Validação</button>
+                            </div>
+                        </RevealOnScroll>
+
+                        <RevealOnScroll delay={400}>
+                            <div className="p-8 rounded-2xl bg-bg-card border border-primary/30 relative shadow-2xl shadow-primary/5 group transform md:-translate-y-4">
+                                <div className="absolute top-0 right-0 bg-primary text-bg-dark px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-bl-xl">Recomendado</div>
+                                <div className="text-xs font-bold text-primary uppercase tracking-widest mb-4">Nível 2</div>
+                                <h3 className="text-2xl font-black text-white mb-2">Escala</h3>
+                                <div className="flex items-baseline gap-1 mb-6">
+                                    <span className="text-sm text-slate-400">R$</span>
+                                    <span className="text-4xl font-black text-white">1.299</span>
+                                    <span className="text-sm text-slate-400">/mês</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Até 100 Clientes</li>
+                                    <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>AI Advisor Completo</li>
+                                    <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Múltiplos Usuários</li>
+                                </ul>
+                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl bg-primary text-bg-dark font-bold uppercase text-xs hover:bg-white transition-all shadow-lg shadow-primary/20">Acessar Sistema</button>
+                            </div>
+                        </RevealOnScroll>
+
+                        <RevealOnScroll delay={600}>
+                            <div className="p-8 rounded-2xl bg-bg-card border border-white/5 hover:border-primary/30 transition-all group">
+                                <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-4">Nível 3</div>
+                                <h3 className="text-2xl font-black text-white mb-2">Domínio</h3>
+                                <div className="flex items-baseline gap-1 mb-6">
+                                    <span className="text-sm text-slate-400">R$</span>
+                                    <span className="text-4xl font-black text-white">2.399</span>
+                                    <span className="text-sm text-slate-400">/mês</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Clientes Ilimitados</li>
+                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>White Label Total</li>
+                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>API Dedicada</li>
+                                </ul>
+                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl border border-white/10 text-white font-bold uppercase text-xs hover:bg-white hover:text-bg-dark transition-all">Falar com Consultor</button>
+                            </div>
+                        </RevealOnScroll>
+                    </div>
+                </div>
+            </section>
+
             {/* 6. ESCASSEZ & POLARIZAÇÃO (CTA FINAL) */}
             <section className="py-32 px-6 relative overflow-hidden flex items-center justify-center min-h-[80vh]">
                 <div className="absolute inset-0 bg-bg-card"></div>
