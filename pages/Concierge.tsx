@@ -17,6 +17,11 @@ const Concierge: React.FC = () => {
   const [hotel, setHotel] = useState('');
   const [additionalObs, setAdditionalObs] = useState('');
 
+  // New Flight Fields
+  const [tripType, setTripType] = useState<'round' | 'one'>('round');
+  const [dateOut, setDateOut] = useState('');
+  const [dateBack, setDateBack] = useState('');
+
   useEffect(() => {
     const loadClients = async () => {
       try {
@@ -37,13 +42,17 @@ const Concierge: React.FC = () => {
 
     setIsProcessing(true);
 
+    const flightDetails = activeTab === 'Vôos'
+      ? ` | Tipo: ${tripType === 'round' ? 'Ida e Volta' : 'Só Ida'} | Datas: ${dateOut}${tripType === 'round' ? ` - ${dateBack}` : ''}`
+      : '';
+
     const movement: MileageMovement = {
       id: `CONC-${Date.now()}`,
       date: new Date().toISOString().split('T')[0],
       type: 'Resgate',
       program: 'Concierge VIP',
       amount: 0,
-      description: `Solicitação Concierge: ${activeTab} - ${route || hotel || 'Serviço Premium'}`,
+      description: `Solicitação Concierge: ${activeTab} - ${route || hotel || 'Serviço Premium'}${flightDetails}`,
       observation: `[CONCIERGE] Atendimento para ${peopleCount} pax. Detalhes: ${additionalObs}`,
     };
 
@@ -61,6 +70,10 @@ const Concierge: React.FC = () => {
         setRoute('');
         setHotel('');
         setAdditionalObs('');
+        // Reset flight fields
+        setTripType('round');
+        setDateOut('');
+        setDateBack('');
       }, 1000);
     } catch (error) {
       setIsProcessing(false);
@@ -138,8 +151,50 @@ const Concierge: React.FC = () => {
                     <input className="w-full bg-card-dark border-none rounded-xl py-4 px-6 text-sm text-white focus:ring-1 focus:ring-primary italic" value={route} onChange={e => setRoute(e.target.value)} placeholder="Ex: GRU -> LHR" />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Trip Type */}
+                    <div className="space-y-2">
+                      <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-1">Tipo de Viagem</label>
+                      <div className="flex bg-bg-card border border-white/5 p-1 rounded-xl">
+                        <button
+                          onClick={() => setTripType('round')}
+                          className={`flex-1 py-3 text-xs font-bold rounded-lg transition-all ${tripType === 'round' ? 'bg-primary text-bg-dark' : 'text-slate-500 hover:text-white'}`}
+                        >
+                          Ida e Volta
+                        </button>
+                        <button
+                          onClick={() => setTripType('one')}
+                          className={`flex-1 py-3 text-xs font-bold rounded-lg transition-all ${tripType === 'one' ? 'bg-primary text-bg-dark' : 'text-slate-500 hover:text-white'}`}
+                        >
+                          Só Ida
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Dates */}
+                    <div className="space-y-2">
+                      <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-1">Datas</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="date"
+                          className="w-full bg-card-dark border-none rounded-xl py-3 px-4 text-xs text-white focus:ring-1 focus:ring-primary"
+                          value={dateOut}
+                          onChange={(e) => setDateOut(e.target.value)}
+                        />
+                        {tripType === 'round' && (
+                          <input
+                            type="date"
+                            className="w-full bg-card-dark border-none rounded-xl py-3 px-4 text-xs text-white focus:ring-1 focus:ring-primary"
+                            value={dateBack}
+                            onChange={(e) => setDateBack(e.target.value)}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Smart Flight Tools */}
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 pt-2">
                     <button
                       onClick={() => {
                         const codes = route.match(/([a-zA-Z]{3})/g);
@@ -151,13 +206,13 @@ const Concierge: React.FC = () => {
                       className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-slate-400 group-hover:text-emerald-400 text-xs transition-colors">hub</span>
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">FlightConnections</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Connections</span>
                     </button>
                     <button
                       onClick={() => {
                         const codes = route.match(/([a-zA-Z]{3})/g);
                         const url = codes && codes.length >= 2
-                          ? `https://seats.aero/search?origins=${codes[0].toUpperCase()}&destinations=${codes[1].toUpperCase()}&date=${new Date().toISOString().split('T')[0]}`
+                          ? `https://seats.aero/search?origins=${codes[0].toUpperCase()}&destinations=${codes[1].toUpperCase()}&date=${dateOut || new Date().toISOString().split('T')[0]}`
                           : 'https://seats.aero/search';
                         window.open(url, '_blank', 'noopener');
                       }}
@@ -170,14 +225,14 @@ const Concierge: React.FC = () => {
                       onClick={() => {
                         const codes = route.match(/([a-zA-Z]{3})/g);
                         const url = codes && codes.length >= 2
-                          ? `https://www.google.com/travel/flights?q=Flights%20to%20${codes[1].toUpperCase()}%20from%20${codes[0].toUpperCase()}`
+                          ? `https://www.google.com/travel/flights?q=Flights%20to%20${codes[1].toUpperCase()}%20from%20${codes[0].toUpperCase()}${dateOut ? `%20on%20${dateOut}` : ''}`
                           : 'https://www.google.com/travel/flights';
                         window.open(url, '_blank', 'noopener');
                       }}
                       className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-slate-400 group-hover:text-red-400 text-xs transition-colors">travel</span>
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Google Flights</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Google</span>
                     </button>
                   </div>
                 </div>
