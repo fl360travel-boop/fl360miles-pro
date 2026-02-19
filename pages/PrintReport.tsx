@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import HTMLReport from '../components/HTMLReport';
+import HTMLReport from '../components/HTMLReport'; // Keep for specific legacy needs if any, or remove
+import PowerReport from '../components/PowerReport';
 
 // Types
 interface PrintData {
@@ -67,7 +68,7 @@ const PrintReportPage: React.FC = () => {
             {/* Preview Area */}
             <div className="p-8 print:p-0 flex justify-center">
                 <div className="shadow-2xl print:shadow-none pointer-events-none print:pointer-events-auto origin-top transition-transform">
-                    <HTMLReport data={data} />
+                    <PowerReport data={data} />
                 </div>
             </div>
 

@@ -1571,27 +1571,50 @@ const Clients: React.FC = () => {
                 </section>
               </div>
 
-              <div className="p-12 bg-slate-50 border-t border-slate-200 flex justify-end gap-6 sticky bottom-0 print:hidden mt-auto">
-                <button onClick={() => setShowReport(false)} className="px-10 py-5 text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] hover:text-bg-dark transition-all">DESCARTAR</button>
-                <button onClick={() => {
-                  const printData = {
-                    clientName: selectedClient.name,
-                    clientCpf: selectedClient.cpf,
-                    managerAnalysis: managerAnalysis, // Pass the analysis text
-                    metrics: {
-                      ...reportMetrics,
-                      totalEconomy: reportMetrics.saving,
-                      lastUpdate: new Date().toLocaleDateString('pt-BR')
-                    },
-                    period: reportCycle === 'Personalizado' ? reportMonth : reportCycle,
-                    generatedDate: new Date().toISOString()
-                  };
-                  localStorage.setItem('fl360_print_data', JSON.stringify(printData));
-                  window.open('#/print-report', '_blank');
-                }} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
-                  <span className="material-symbols-outlined text-2xl">print_connect</span>
-                  IMPRIMIR PDF OFICIAL
-                </button>
+              <div className="p-12 bg-slate-50 border-t border-slate-200 sticky bottom-0 print:hidden mt-auto space-y-6">
+
+                {/* Manager Analysis Input */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Análise do Gestor (Personalização)</label>
+                    <button
+                      onClick={generateAnalysis}
+                      className="text-[9px] font-bold text-primary hover:text-primary-dark transition-colors uppercase tracking-widest flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                      Gerar com IA
+                    </button>
+                  </div>
+                  <textarea
+                    className="w-full h-32 bg-white border border-slate-200 rounded-xl p-4 text-xs text-slate-700 font-medium focus:ring-2 focus:ring-[#E2BE6A] focus:border-transparent outline-none resize-none shadow-inner"
+                    placeholder="Escreva uma análise executiva sobre a performance do cliente neste período..."
+                    value={managerAnalysis}
+                    onChange={(e) => setManagerAnalysis(e.target.value)}
+                  ></textarea>
+                </div>
+
+                <div className="flex justify-end gap-6">
+                  <button onClick={() => setShowReport(false)} className="px-10 py-5 text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] hover:text-bg-dark transition-all">DESCARTAR</button>
+                  <button onClick={() => {
+                    const printData = {
+                      clientName: selectedClient.name,
+                      clientCpf: selectedClient.cpf,
+                      managerAnalysis: managerAnalysis, // Pass the analysis text
+                      metrics: {
+                        ...reportMetrics,
+                        totalEconomy: reportMetrics.saving,
+                        lastUpdate: new Date().toLocaleDateString('pt-BR')
+                      },
+                      period: reportCycle === 'Personalizado' ? reportMonth : reportCycle,
+                      generatedDate: new Date().toISOString()
+                    };
+                    localStorage.setItem('fl360_print_data', JSON.stringify(printData));
+                    window.open('#/print-report', '_blank');
+                  }} className="bg-black text-white px-20 py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] shadow-2xl hover:bg-slate-900 transition-all flex items-center gap-4 active:scale-95">
+                    <span className="material-symbols-outlined text-2xl">print_connect</span>
+                    IMPRIMIR PDF OFICIAL
+                  </button>
+                </div>
               </div>
             </div>
           </div>
