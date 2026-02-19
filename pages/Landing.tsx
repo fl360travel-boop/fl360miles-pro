@@ -229,7 +229,64 @@ const Landing: React.FC = () => {
                 </div>
             </section>
 
-            {/* 4. REPOSICIONAMENTO (OS - 4 Pilares) */}
+            {/* 4. DIAGNÓSTICO ESTRATÉGICO (Inevitabilidade) */}
+            <section className="py-24 px-6 bg-bg-dark relative border-t border-white/5">
+                <div className="max-w-3xl mx-auto text-center">
+                    <RevealOnScroll>
+                        <h2 className="text-3xl md:text-5xl font-black text-white mb-8 leading-tight">
+                            "Milhas não são produto.<br />
+                            <span className="text-primary">São alavancagem.</span>"
+                        </h2>
+                    </RevealOnScroll>
+
+                    <RevealOnScroll delay={200}>
+                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 md:p-12 text-left mb-12">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 border-b border-white/5 pb-4">Diagnóstico Estratégico</h3>
+
+                            <div className="space-y-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0 mt-1">
+                                        <span className="text-[10px] text-slate-400">1</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-lg text-white font-medium">Sua agência tem receita recorrente previsível?</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0 mt-1">
+                                        <span className="text-[10px] text-slate-400">2</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-lg text-white font-medium">Você controla sua margem ou depende de comissão?</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0 mt-1">
+                                        <span className="text-[10px] text-slate-400">3</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-lg text-white font-medium">Sua operação de milhas é automatizada ou manual?</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 pt-8 border-t border-white/5">
+                                <p className="text-slate-400 text-sm italic">
+                                    <span className="text-red-400 font-bold not-italic">⚠️ Alerta:</span> Se respondeu <strong className="text-white">"não"</strong> para 2 ou mais, você está operando no <strong className="text-white">Modelo Antigo</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </RevealOnScroll>
+
+                    <RevealOnScroll delay={400}>
+                        <p className="text-xl text-slate-300 font-light max-w-2xl mx-auto">
+                            Se você ainda não estruturou milhas, <strong className="text-white font-bold">está competindo errado.</strong>
+                        </p>
+                    </RevealOnScroll>
+                </div>
+            </section>
+
+            {/* 5. REPOSICIONAMENTO (OS - 4 Pilares) */}
             <section id="os" className="py-32 px-6 bg-bg-surface relative border-y border-white/5">
                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
 
