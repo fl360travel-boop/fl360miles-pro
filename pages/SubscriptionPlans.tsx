@@ -6,22 +6,25 @@ const plans = [
     {
         id: 'starter',
         name: 'Starter',
-        price: 97,
-        features: ['Até 50 clientes', 'Gestão básica', 'Suporte por email'],
+        price: 799,
+        cycle: 'ano',
+        features: ['Até 20 clientes', 'Gestão completa de milhas', 'Dashboard inteligente', 'Suporte por email'],
         recommended: false
     },
     {
         id: 'pro',
         name: 'Profissional',
-        price: 197,
-        features: ['Clientes ilimitados', 'Gestão avançada', 'Suporte prioritário', 'Relatórios PDF'],
+        price: 1299,
+        cycle: 'ano',
+        features: ['Até 100 clientes', 'Tudo do Starter', 'AI Concierge (Altitude AI)', 'Relatórios PDF personalizados', 'Suporte prioritário'],
         recommended: true
     },
     {
         id: 'enterprise',
-        name: 'Enterprise',
-        price: 497,
-        features: ['Tudo do Pro', 'API dedicada', 'Gerente de conta', 'Whitelabel'],
+        name: 'White Label',
+        price: 2399,
+        cycle: 'ano',
+        features: ['Clientes ilimitados', 'Tudo do Profissional', 'Plataforma personalizada', 'Sua marca, seu domínio', 'Gerente de conta dedicado'],
         recommended: false
     }
 ];
@@ -67,8 +70,8 @@ const SubscriptionPlans: React.FC = () => {
                         <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
                         <div className="flex items-baseline gap-1 mb-6">
                             <span className="text-sm text-slate-400">R$</span>
-                            <span className="text-4xl font-black text-white">{plan.price}</span>
-                            <span className="text-sm text-slate-400">/mês</span>
+                            <span className="text-4xl font-black text-white">{plan.price.toLocaleString('pt-BR')}</span>
+                            <span className="text-sm text-slate-400">/{plan.cycle}</span>
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-1">
@@ -84,8 +87,8 @@ const SubscriptionPlans: React.FC = () => {
                             onClick={() => handleSubscribe(plan.id)}
                             disabled={isLoading}
                             className={`w-full py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${plan.recommended
-                                    ? 'bg-primary text-bg-dark hover:bg-primary-dark shadow-lg shadow-primary/20'
-                                    : 'bg-white/5 text-white hover:bg-white/10'
+                                ? 'bg-primary text-bg-dark hover:bg-primary-dark shadow-lg shadow-primary/20'
+                                : 'bg-white/5 text-white hover:bg-white/10'
                                 }`}
                         >
                             {isLoading ? 'Processando...' : 'Escolher Plano'}

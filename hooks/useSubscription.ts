@@ -5,8 +5,8 @@ import { supabase } from '../services/supabase';
 
 // Limites por plano
 const PLAN_LIMITS: Record<string, number> = {
-    starter: 50,
-    pro: Infinity,
+    starter: 20,
+    pro: 100,
     elite: Infinity,
     enterprise: Infinity,
     demo: 5,
