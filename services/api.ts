@@ -521,7 +521,7 @@ export async function getOrganizations(): Promise<Organization[]> {
     // Query memberships to get org IDs, then join organizations
     // Note: Supabase JS syntax for joins depends on foreign keys
     const { data, error } = await supabase
-        .from('memberships')
+        .from('organization_members')
         .select(`
             role,
             organization:organizations (
@@ -585,7 +585,7 @@ export async function getSubscription(): Promise<{ planId: string, status: strin
 export async function getOrganizationMembers(organizationId: string): Promise<TeamMember[]> {
     // First, verify we have access
     const { data: members, error } = await supabase
-        .from('memberships')
+        .from('organization_members')
         .select(`
             id,
             user_id,
@@ -631,7 +631,7 @@ export async function inviteMember(organizationId: string, email: string, role: 
 // Remove member
 export async function removeMember(membershipId: string): Promise<void> {
     const { error } = await supabase
-        .from('memberships')
+        .from('organization_members')
         .delete()
         .eq('id', membershipId);
 
