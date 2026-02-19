@@ -94,10 +94,10 @@ const Landing: React.FC = () => {
                     {/* Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-10 border-y border-white/5 bg-white/[0.02]">
                         {[
-                            { label: 'Contas Gerenciadas', value: '+15.000' },
-                            { label: 'Milhas Otimizadas', value: '2.5 Bilhões' },
-                            { label: 'Economia Gerada', value: 'R$ 120 Mi' },
-                            { label: 'Crescimento Médio', value: '315%' }
+                            { label: 'Agências Pioneiras', value: '+350' },
+                            { label: 'Milhas Gerenciadas', value: '+450 Milhões' },
+                            { label: 'Lucro nos Clientes', value: 'R$ 12 Mi' },
+                            { label: 'ROI Médio', value: '5x' }
                         ].map((stat, i) => (
                             <div key={i}>
                                 <div className="text-3xl font-black text-white mb-2">{stat.value}</div>
@@ -349,8 +349,8 @@ const Landing: React.FC = () => {
 
                             <div className="flex items-baseline gap-1 mb-8">
                                 <span className="text-sm text-slate-400">R$</span>
-                                <span className="text-5xl font-black text-white">799</span>
-                                <span className="text-sm text-slate-400">/ano</span>
+                                <span className="text-5xl font-black text-white">97</span>
+                                <span className="text-sm text-slate-400">/mês</span>
                             </div>
 
                             <ul className="space-y-4 mb-10 flex-1">
@@ -384,8 +384,8 @@ const Landing: React.FC = () => {
 
                             <div className="flex items-baseline gap-1 mb-8">
                                 <span className="text-sm text-slate-400">R$</span>
-                                <span className="text-5xl font-black text-white">1.299</span>
-                                <span className="text-sm text-slate-400">/ano</span>
+                                <span className="text-5xl font-black text-white">297</span>
+                                <span className="text-sm text-slate-400">/mês</span>
                             </div>
 
                             <ul className="space-y-4 mb-10 flex-1">
@@ -417,8 +417,8 @@ const Landing: React.FC = () => {
 
                             <div className="flex items-baseline gap-1 mb-8">
                                 <span className="text-sm text-slate-400">R$</span>
-                                <span className="text-5xl font-black text-white">2.399</span>
-                                <span className="text-sm text-slate-400">/ano</span>
+                                <span className="text-5xl font-black text-white">997</span>
+                                <span className="text-sm text-slate-400">/mês</span>
                             </div>
 
                             <ul className="space-y-4 mb-10 flex-1">
