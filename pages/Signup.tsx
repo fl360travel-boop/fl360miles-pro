@@ -66,7 +66,7 @@ const Signup: React.FC = () => {
                 // Não bloquear o usuário — a org pode ser criada depois
                 setSuccessMessage('Conta criada! Verifique seu email para confirmar. A configuração será completada no primeiro login.');
             } else {
-                setSuccessMessage('🎉 Conta criada com sucesso! Verifique seu email para confirmar e comece seus 14 dias grátis.');
+                setSuccessMessage('🎉 Conta criada com sucesso! Verifique seu email para confirmar e comece seus 7 dias grátis.');
             }
 
             setTimeout(() => navigate('/'), 4000);
@@ -94,7 +94,7 @@ const Signup: React.FC = () => {
                 <div className="text-center mb-8">
                     <img src="/login-logo.png" alt="FL360 Miles Logo" className="w-40 mx-auto mb-4 object-contain drop-shadow-2xl" />
                     <h2 className="text-2xl font-bold text-white mb-2">Crie sua conta</h2>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.4em]">Comece seus 14 dias grátis</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.4em]">Comece seus 7 dias grátis</p>
                 </div>
 
                 <div className="bg-bg-surface/95 backdrop-blur-3xl border border-white/10 p-8 rounded-[40px] shadow-2xl">
@@ -193,7 +193,7 @@ const Signup: React.FC = () => {
                         </button>
 
                         <p className="text-center text-[9px] text-slate-500 mt-2">
-                            14 dias grátis • Sem cartão de crédito • Cancele quando quiser
+                            7 dias grátis • Sem cartão de crédito • Cancele quando quiser
                         </p>
 
                         <div className="text-center mt-6">
