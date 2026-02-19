@@ -2,33 +2,54 @@
 import { supabase } from '../services/supabase';
 import { SubscriptionResponse } from '../types/asaas';
 
-// URL da sua Edge Function (em produção)
-// Em desenvolvimento, você pode mockar ou usar tunnel
-const EDGE_FUNCTION_URL = import.meta.env.VITE_SUPABASE_URL + '/functions/v1';
+// Netlify Functions endpoint
+const API_URL = '/api';
 
 export const asaasService = {
     /**
-     * Cria uma assinatura para o usuário atual
+     * Cria uma assinatura anual para o usuário atual
      * @param planId 'starter' | 'pro' | 'enterprise'
-     * @param cycle 'MONTHLY' | 'YEARLY'
      * @param billingType 'PIX' | 'BOLETO' | 'CREDIT_CARD'
      */
-    async createSubscription(planId: string, cycle: 'MONTHLY' | 'YEARLY', billingType: 'PIX' | 'BOLETO' | 'CREDIT_CARD'): Promise<SubscriptionResponse> {
+    async createSubscription(planId: string, billingType: 'PIX' | 'BOLETO' | 'CREDIT_CARD' = 'PIX'): Promise<SubscriptionResponse> {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Usuário não autenticado');
 
-        const response = await fetch(`${EDGE_FUNCTION_URL}/create-subscription`, {
+        // Buscar dados da organização do usuário
+        const { data: membership } = await supabase
+            .from('organization_members')
+            .select('organization_id')
+            .eq('user_id', session.user.id)
+            .limit(1)
+            .single();
+
+        if (!membership) throw new Error('Organização não encontrada');
+
+        // Buscar nome do usuário
+        const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('display_name, email')
+            .eq('user_id', session.user.id)
+            .single();
+
+        const response = await fetch(`${API_URL}/create-subscription`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`,
             },
-            body: JSON.stringify({ planId, cycle, billingType }),
+            body: JSON.stringify({
+                planId,
+                billingType,
+                userEmail: session.user.email,
+                userName: profile?.display_name || session.user.email,
+                organizationId: membership.organization_id,
+                userId: session.user.id,
+            }),
         });
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Erro ao criar assinatura');
+            throw new Error(error.error || 'Erro ao criar assinatura');
         }
 
         return await response.json();

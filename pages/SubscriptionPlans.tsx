@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useBilling } from '../hooks/useBilling';
+import { useSubscription } from '../hooks/useSubscription';
 
 const plans = [
     {
@@ -29,15 +30,27 @@ const plans = [
     }
 ];
 
+const paymentMethods = [
+    { id: 'PIX' as const, label: 'PIX', icon: 'qr_code_2' },
+    { id: 'BOLETO' as const, label: 'Boleto', icon: 'receipt_long' },
+    { id: 'CREDIT_CARD' as const, label: 'Cartão', icon: 'credit_card' },
+];
+
 const SubscriptionPlans: React.FC = () => {
     const { subscribe, isLoading, error } = useBilling();
+    const { isBlocked, isTrialing, daysLeft, planId: currentPlan } = useSubscription();
+    const [selectedMethod, setSelectedMethod] = useState<'PIX' | 'BOLETO' | 'CREDIT_CARD'>('PIX');
+    const [successMessage, setSuccessMessage] = useState('');
 
     const handleSubscribe = async (planId: string) => {
         try {
-            // Por enquanto hardcoded mensal e PIX para teste
-            const result = await subscribe(planId, 'MONTHLY', 'PIX');
+            setSuccessMessage('');
+            const result = await subscribe(planId, 'YEARLY', selectedMethod);
             if (result.paymentLink) {
-                window.location.href = result.paymentLink;
+                setSuccessMessage('Redirecionando para pagamento...');
+                setTimeout(() => {
+                    window.open(result.paymentLink, '_blank');
+                }, 500);
             }
         } catch (err) {
             console.error(err);
@@ -45,25 +58,79 @@ const SubscriptionPlans: React.FC = () => {
     };
 
     return (
-        <div className="p-8">
-            <h1 className="text-2xl font-bold text-white mb-2">Planos e Preços</h1>
-            <p className="text-slate-400 mb-8">Escolha o plano ideal para escalar sua operação de milhas.</p>
+        <div className="p-8 max-w-5xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-10">
+                <h1 className="display-font text-3xl font-bold text-white italic uppercase tracking-tighter mb-3">Planos e Preços</h1>
+                <p className="text-slate-400 text-sm">Escolha o plano ideal para escalar sua operação de milhas.</p>
 
+                {isBlocked && (
+                    <div className="mt-4 bg-red-500/10 text-red-400 px-6 py-3 rounded-2xl border border-red-500/20 inline-flex items-center gap-3">
+                        <span className="material-symbols-outlined">warning</span>
+                        <span className="text-sm font-bold">Seu acesso está bloqueado. Escolha um plano para continuar.</span>
+                    </div>
+                )}
+
+                {isTrialing && daysLeft > 0 && (
+                    <div className="mt-4 bg-indigo-500/10 text-indigo-400 px-6 py-3 rounded-2xl border border-indigo-500/20 inline-flex items-center gap-3">
+                        <span className="material-symbols-outlined">timer</span>
+                        <span className="text-sm font-bold">{daysLeft} dias restantes no trial gratuito</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Errors */}
             {error && (
-                <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-8 border border-red-500/20">
+                <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-8 border border-red-500/20 flex items-center gap-3">
+                    <span className="material-symbols-outlined">error</span>
                     {error}
                 </div>
             )}
 
+            {/* Success */}
+            {successMessage && (
+                <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-xl mb-8 border border-emerald-500/20 flex items-center gap-3">
+                    <span className="material-symbols-outlined">check_circle</span>
+                    {successMessage}
+                </div>
+            )}
+
+            {/* Payment Method Selector */}
+            <div className="mb-10">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 text-center">Forma de Pagamento</p>
+                <div className="flex justify-center gap-3">
+                    {paymentMethods.map((method) => (
+                        <button
+                            key={method.id}
+                            onClick={() => setSelectedMethod(method.id)}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${selectedMethod === method.id
+                                ? 'bg-primary/10 border-primary text-primary border'
+                                : 'bg-bg-surface border border-white/5 text-slate-500 hover:border-primary/30'
+                                }`}
+                        >
+                            <span className="material-symbols-outlined text-lg">{method.icon}</span>
+                            {method.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Plans Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {plans.map((plan) => (
                     <div
                         key={plan.id}
-                        className={`relative bg-bg-card border rounded-3xl p-8 flex flex-col ${plan.recommended ? 'border-primary shadow-2xl shadow-primary/10' : 'border-white/5'}`}
+                        className={`relative bg-bg-card border rounded-3xl p-8 flex flex-col ${plan.recommended ? 'border-primary shadow-2xl shadow-primary/10' : 'border-white/5'} ${currentPlan === plan.id ? 'ring-2 ring-emerald-500/30' : ''}`}
                     >
                         {plan.recommended && (
                             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-bg-dark text-[10px] font-black uppercase tracking-widest py-1 px-4 rounded-full">
                                 Recomendado
+                            </div>
+                        )}
+
+                        {currentPlan === plan.id && (
+                            <div className="absolute -top-4 right-4 bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest py-1 px-3 rounded-full">
+                                Plano Atual
                             </div>
                         )}
 
@@ -85,17 +152,28 @@ const SubscriptionPlans: React.FC = () => {
 
                         <button
                             onClick={() => handleSubscribe(plan.id)}
-                            disabled={isLoading}
-                            className={`w-full py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${plan.recommended
-                                ? 'bg-primary text-bg-dark hover:bg-primary-dark shadow-lg shadow-primary/20'
-                                : 'bg-white/5 text-white hover:bg-white/10'
+                            disabled={isLoading || currentPlan === plan.id}
+                            className={`w-full py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${currentPlan === plan.id
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default'
+                                : plan.recommended
+                                    ? 'bg-primary text-bg-dark hover:bg-primary-dark shadow-lg shadow-primary/20 active:scale-95'
+                                    : 'bg-white/5 text-white hover:bg-white/10 active:scale-95'
                                 }`}
                         >
-                            {isLoading ? 'Processando...' : 'Escolher Plano'}
+                            {currentPlan === plan.id
+                                ? '✓ Plano Ativo'
+                                : isLoading
+                                    ? 'Processando...'
+                                    : 'Escolher Plano'
+                            }
                         </button>
                     </div>
                 ))}
             </div>
+
+            <p className="text-center text-[10px] text-slate-600 mt-8 uppercase tracking-widest">
+                Pagamento seguro via Asaas • Todos os planos são anuais • Cancele quando quiser
+            </p>
         </div>
     );
 };

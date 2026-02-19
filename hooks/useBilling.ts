@@ -29,8 +29,9 @@ export function useBilling() {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await asaasService.createSubscription(planId, cycle, method);
-            // Recarregar status (polling ou esperar webhook)
+            const result = await asaasService.createSubscription(planId, method);
+            // Recarregar status após criação
+            await loadStatus();
             return result;
         } catch (err: any) {
             setError(err.message);
