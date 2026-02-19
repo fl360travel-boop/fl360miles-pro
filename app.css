@@ -29,3 +29,61 @@
     --color-bg-card: #1C2229;
     --color-gold: #E2BE6A;
 }
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 10px rgba(226, 190, 106, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 25px rgba(226, 190, 106, 0.6);
+    }
+}
+
+@keyframes scan {
+    0% {
+        top: 0%;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 3s infinite;
+}
+
+.animate-scan {
+    animation: scan 4s linear infinite;
+}
