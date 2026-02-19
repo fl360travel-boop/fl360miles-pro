@@ -16,6 +16,7 @@ import RedemptionForm from './pages/RedemptionForm';
 import Concierge from './pages/Concierge';
 import Team from './pages/Settings/Team'; // Add import
 
+import Landing from './pages/Landing';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -116,18 +117,6 @@ const AuthenticatedApp: React.FC = () => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Rotas públicas que não precisam de autenticação
-  const publicRoutes = ['/signup'];
-  const isPublicRoute = publicRoutes.includes(location.pathname);
-
-  if (isPublicRoute) {
-    return (
-      <Routes>
-        <Route path="/signup" element={<Signup />} />
-      </Routes>
-    );
-  }
-
   if (loading) {
     return (
       <div className="fixed inset-0 bg-bg-dark flex items-center justify-center">
@@ -139,10 +128,19 @@ const AuthenticatedApp: React.FC = () => {
     );
   }
 
+  // Se não estiver logado, mostra rotas públicas
   if (!user) {
-    return <Login onLogin={() => { }} />;
+    return (
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login onLogin={() => { }} />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
   }
 
+  // Se estiver logado, mostra rotas protegidas
   return (
     <SearchProvider>
       <Routes>
