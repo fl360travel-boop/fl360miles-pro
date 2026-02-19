@@ -5,9 +5,12 @@ import { BrandLogo } from '../components/BrandAssets';
 import { useSEO } from '../hooks/useSEO';
 import { RevealOnScroll } from '../components/RevealOnScroll';
 
+import { useAuth } from '../contexts/AuthContext';
+
 const Landing: React.FC = () => {
     useSEO('Gestão de Milhas para Agências', 'O Sistema Operacional que transforma milhas em margem de lucro real.');
     const navigate = useNavigate();
+    const { session } = useAuth();
     const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     // Tension Calculator State
@@ -46,10 +49,10 @@ const Landing: React.FC = () => {
                     </div>
 
                     <button
-                        onClick={() => navigate('/signup')}
+                        onClick={() => session ? navigate('/dashboard') : navigate('/login')}
                         className="bg-primary/10 text-primary border border-primary/20 text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-lg hover:bg-primary hover:text-bg-dark transition-all"
                     >
-                        Login
+                        {session ? 'Dashboard' : 'Login'}
                     </button>
                 </div>
             </nav>
