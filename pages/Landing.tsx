@@ -196,6 +196,51 @@ const Landing: React.FC = () => {
                 </div>
             </section>
 
+            {/* Integrations & AI */}
+            <section className="py-24 px-6 relative bg-white/[0.02]">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl md:text-5xl font-black text-white mb-4">Potencializado por IA</h2>
+                        <p className="text-slate-400">Integração nativa com as melhores ferramentas do mercado mundial.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="p-6 rounded-2xl bg-bg-card border border-white/5 hover:border-primary/50 transition-all group">
+                            <div className="flex items-center gap-4 mb-4">
+                                <span className="material-symbols-outlined text-4xl text-blue-400 group-hover:scale-110 transition-transform">travel_explore</span>
+                                <h3 className="text-lg font-bold text-white">Seats.aero</h3>
+                            </div>
+                            <p className="text-slate-400 text-sm">Encontre disponibilidade de assentos award em tempo recorde com nossa integração direta.</p>
+                        </div>
+
+                        <div className="p-6 rounded-2xl bg-bg-card border border-white/5 hover:border-primary/50 transition-all group">
+                            <div className="flex items-center gap-4 mb-4">
+                                <span className="material-symbols-outlined text-4xl text-red-400 group-hover:scale-110 transition-transform">travel</span>
+                                <h3 className="text-lg font-bold text-white">Google Flights</h3>
+                            </div>
+                            <p className="text-slate-400 text-sm">Monitore preços em dinheiro vs. milhas para calcular o CPM exato de cada oportunidade.</p>
+                        </div>
+
+                        <div className="p-6 rounded-2xl bg-bg-card border border-white/5 hover:border-primary/50 transition-all group">
+                            <div className="flex items-center gap-4 mb-4">
+                                <span className="material-symbols-outlined text-4xl text-emerald-400 group-hover:scale-110 transition-transform">hub</span>
+                                <h3 className="text-lg font-bold text-white">Flight Connections</h3>
+                            </div>
+                            <p className="text-slate-400 text-sm">Visualize rotas globais e conexões estratégicas para montar itinerários complexos.</p>
+                        </div>
+
+                        <div className="p-6 rounded-2xl bg-bg-card border border-primary/20 hover:border-primary transition-all group relative overflow-hidden">
+                            <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors"></div>
+                            <div className="flex items-center gap-4 mb-4 relative z-10">
+                                <span className="material-symbols-outlined text-4xl text-primary group-hover:scale-110 transition-transform">smart_toy</span>
+                                <h3 className="text-lg font-bold text-white">AI Concierge</h3>
+                            </div>
+                            <p className="text-slate-400 text-sm relative z-10">Nossa inteligência artificial analisa seu acervo e sugere o melhor momento de venda e emissão.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* Pricing */}
             <section id="plans" className="py-24 px-6 bg-white/[0.02] border-y border-white/5 relative">
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>

@@ -166,6 +166,19 @@ const Concierge: React.FC = () => {
                       <span className="material-symbols-outlined text-slate-400 group-hover:text-blue-400 text-xs transition-colors">travel_explore</span>
                       <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Seats.aero</span>
                     </button>
+                    <button
+                      onClick={() => {
+                        const codes = route.match(/([a-zA-Z]{3})/g);
+                        const url = codes && codes.length >= 2
+                          ? `https://www.google.com/travel/flights?q=Flights%20to%20${codes[1].toUpperCase()}%20from%20${codes[0].toUpperCase()}`
+                          : 'https://www.google.com/travel/flights';
+                        window.open(url, '_blank', 'noopener');
+                      }}
+                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-slate-400 group-hover:text-red-400 text-xs transition-colors">travel</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Google Flights</span>
+                    </button>
                   </div>
                 </div>
                 <div className="space-y-2">
