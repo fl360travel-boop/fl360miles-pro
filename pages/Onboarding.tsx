@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ManagementLevel, PaymentMethod, BillingCycle, Client, MileageProgram, CreditCard } from '../types';
 import { createClient, getClient, updateClient } from '../services/api';
+import { useSubscription } from '../hooks/useSubscription';
 
 const Onboarding: React.FC = () => {
   const [step, setStep] = useState(1);
@@ -11,6 +12,34 @@ const Onboarding: React.FC = () => {
   const editClientId = searchParams.get('edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { canAddClient, clientLimit, currentClients, planId } = useSubscription();
+
+  // Bloquear criação se atingiu limite (apenas para novos clientes, não edição)
+  if (!editClientId && !canAddClient) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 text-center animate-in fade-in duration-500">
+        <div className="bg-bg-surface border border-amber-500/20 rounded-[40px] p-12 shadow-2xl">
+          <div className="size-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-amber-500/20">
+            <span className="material-symbols-outlined text-amber-400 text-4xl">lock</span>
+          </div>
+          <h2 className="display-font text-2xl font-bold text-white italic uppercase tracking-tighter mb-3">Limite de Clientes Atingido</h2>
+          <p className="text-slate-400 text-sm mb-2">
+            Seu plano <span className="text-primary font-bold uppercase">{planId}</span> permite até <b>{clientLimit}</b> clientes.
+          </p>
+          <p className="text-slate-500 text-sm mb-8">
+            Você já possui <b>{currentClients}</b> clientes cadastrados.
+          </p>
+          <Link
+            to="/plans"
+            className="inline-flex items-center gap-3 bg-primary hover:bg-primary-dark text-bg-dark font-black px-10 py-4 rounded-2xl transition-all shadow-xl shadow-primary/20 text-[11px] tracking-[0.2em] uppercase"
+          >
+            <span className="material-symbols-outlined">upgrade</span>
+            Fazer Upgrade
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // Perfil & Dados Pessoais
   const [name, setName] = useState('');

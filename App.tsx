@@ -25,6 +25,7 @@ import { SearchProvider } from './contexts/SearchContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { usePermissions } from './hooks/usePermissions';
 import SubscriptionBanner from './components/SubscriptionBanner';
+import SubscriptionGuard from './components/SubscriptionGuard';
 
 // Componente que protege rotas exclusivas do Owner
 const OwnerRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -145,18 +146,18 @@ const AuthenticatedApp: React.FC = () => {
   return (
     <SearchProvider>
       <Routes>
-        <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-        <Route path="/operations" element={<AppLayout><Operations /></AppLayout>} />
-        <Route path="/clients" element={<AppLayout><Clients /></AppLayout>} />
-        <Route path="/summary" element={<AppLayout><StrategicSummary /></AppLayout>} />
-        <Route path="/alerts" element={<AppLayout><Alerts /></AppLayout>} />
-        <Route path="/transfer" element={<AppLayout><ReadOnlyGuard><TransferForm /></ReadOnlyGuard></AppLayout>} />
-        <Route path="/sale" element={<AppLayout><ReadOnlyGuard><SaleForm /></ReadOnlyGuard></AppLayout>} />
-        <Route path="/redemption" element={<AppLayout><ReadOnlyGuard><RedemptionForm /></ReadOnlyGuard></AppLayout>} />
-        <Route path="/concierge" element={<AppLayout><Concierge /></AppLayout>} />
+        <Route path="/" element={<SubscriptionGuard><AppLayout><Dashboard /></AppLayout></SubscriptionGuard>} />
+        <Route path="/operations" element={<SubscriptionGuard><AppLayout><Operations /></AppLayout></SubscriptionGuard>} />
+        <Route path="/clients" element={<SubscriptionGuard><AppLayout><Clients /></AppLayout></SubscriptionGuard>} />
+        <Route path="/summary" element={<SubscriptionGuard><AppLayout><StrategicSummary /></AppLayout></SubscriptionGuard>} />
+        <Route path="/alerts" element={<SubscriptionGuard><AppLayout><Alerts /></AppLayout></SubscriptionGuard>} />
+        <Route path="/transfer" element={<SubscriptionGuard><AppLayout><ReadOnlyGuard><TransferForm /></ReadOnlyGuard></AppLayout></SubscriptionGuard>} />
+        <Route path="/sale" element={<SubscriptionGuard><AppLayout><ReadOnlyGuard><SaleForm /></ReadOnlyGuard></AppLayout></SubscriptionGuard>} />
+        <Route path="/redemption" element={<SubscriptionGuard><AppLayout><ReadOnlyGuard><RedemptionForm /></ReadOnlyGuard></AppLayout></SubscriptionGuard>} />
+        <Route path="/concierge" element={<SubscriptionGuard><AppLayout><Concierge /></AppLayout></SubscriptionGuard>} />
         <Route path="/settings" element={<AppLayout><OwnerRoute><Settings /></OwnerRoute></AppLayout>} />
         <Route path="/settings/team" element={<AppLayout><OwnerRoute><Team /></OwnerRoute></AppLayout>} />
-        <Route path="/onboarding/*" element={<AppLayout><ReadOnlyGuard><Onboarding /></ReadOnlyGuard></AppLayout>} />
+        <Route path="/onboarding/*" element={<SubscriptionGuard><AppLayout><ReadOnlyGuard><Onboarding /></ReadOnlyGuard></AppLayout></SubscriptionGuard>} />
         <Route path="/plans" element={<AppLayout><SubscriptionPlans /></AppLayout>} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/print-report" element={<PrintReport />} />
