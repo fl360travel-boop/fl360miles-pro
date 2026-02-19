@@ -113,6 +113,19 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const AuthenticatedApp: React.FC = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
+  // Rotas públicas que não precisam de autenticação
+  const publicRoutes = ['/signup'];
+  const isPublicRoute = publicRoutes.includes(location.pathname);
+
+  if (isPublicRoute) {
+    return (
+      <Routes>
+        <Route path="/signup" element={<Signup />} />
+      </Routes>
+    );
+  }
 
   if (loading) {
     return (
