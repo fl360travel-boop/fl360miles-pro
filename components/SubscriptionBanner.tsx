@@ -1,9 +1,15 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const SubscriptionBanner: React.FC = () => {
     const { subscription } = useAuth();
+    const location = useLocation();
+
+    // 0. Auto-hide logic: Se o usuário já está na página de checkout de planos, escondemos os banners para não bloquearem a tela
+    if (location.pathname === '/plans') {
+        return null;
+    }
 
     // Fallback: If there is no subscription row (e.g. old accounts before the Asaas integration), treat it as expired.
     const effectiveSub = subscription || {
