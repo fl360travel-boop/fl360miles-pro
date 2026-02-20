@@ -18,29 +18,26 @@ const SubscriptionBanner: React.FC = () => {
     };
 
     // 1. BLOCKED STATE (Red)
-    // - Canceled
-    // - Trial Expired
-    // - Past Due > 48 Hours
     const referenceDate = subscription.currentPeriodEnd || subscription.updatedAt;
     const isGracePeriodOver = subscription.status === 'past_due' && hoursSince(referenceDate) > 48;
     const isTrialExpired = subscription.status === 'trial' && isPast(subscription.trialEndsAt);
 
     if (subscription.status === 'canceled' || isTrialExpired || isGracePeriodOver) {
         return (
-            <div className="bg-red-600 text-white px-4 py-3 shadow-lg z-50 relative animate-in slide-in-from-top duration-300">
-                <div className="container mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-2xl">block</span>
-                        <div>
-                            <p className="font-bold">Acesso Bloqueado</p>
-                            <p className="text-sm opacity-90">
-                                {subscription.status === 'trial' ? 'Seu período de teste expirou.' : 'Sua assinatura está vencida há mais de 48h.'}
-                                {' '}Atualize seu plano para continuar.
-                            </p>
-                        </div>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-bg-dark/80 backdrop-blur-sm p-6">
+                <div className="bg-bg-surface border border-red-500/20 max-w-md w-full rounded-3xl p-8 shadow-2xl shadow-red-500/10 text-center animate-in zoom-in-95 duration-500">
+                    <div className="size-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mx-auto mb-6">
+                        <span className="material-symbols-outlined text-3xl">block</span>
                     </div>
-                    <Link to="/plans" className="bg-white text-red-600 px-4 py-2 rounded font-bold hover:bg-red-50 transition-colors">
-                        Regularizar Agora
+                    <h3 className="text-xl font-bold text-white mb-2">Acesso Interrompido</h3>
+                    <p className="text-slate-400 text-sm mb-8">
+                        {subscription.status === 'trial'
+                            ? 'O seu período de degustação gratuita chegou ao fim.'
+                            : 'Identificamos uma pendência no pagamento da sua assinatura.'}
+                        {' '}Para retomar o uso de todas as ferramentas, por favor, regularize seu plano.
+                    </p>
+                    <Link to="/settings/plans" className="block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-red-600/20 uppercase tracking-widest text-xs">
+                        Regularizar Acesso
                     </Link>
                 </div>
             </div>
@@ -48,45 +45,50 @@ const SubscriptionBanner: React.FC = () => {
     }
 
     // 2. GRACE PERIOD WARNING (Orange)
-    // - Past Due but < 48 Hours
     if (subscription.status === 'past_due') {
         const hoursLeft = 48 - Math.floor(hoursSince(referenceDate));
         return (
-            <div className="bg-orange-500 text-white px-4 py-3 shadow-lg z-50 relative animate-in slide-in-from-top duration-300">
-                <div className="container mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-2xl">warning</span>
-                        <div>
-                            <p className="font-bold">Pagamento Pendente</p>
-                            <p className="text-sm opacity-90">
-                                Seu acesso será bloqueado em <b>{hoursLeft > 0 ? hoursLeft : 0} horas</b>. Regularize para evitar interrupções.
+            <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom flex flex-col items-end pointer-events-none">
+                <div className="bg-gradient-to-r from-orange-500/90 to-red-500/90 backdrop-blur-md border border-white/20 text-white p-4 rounded-2xl shadow-2xl shadow-orange-500/20 flex flex-col gap-3 pointer-events-auto max-w-sm">
+                    <div className="flex items-start gap-3">
+                        <span className="material-symbols-outlined text-2xl animate-pulse">warning</span>
+                        <div className="flex-1">
+                            <p className="font-bold text-sm">Fatura Pendente</p>
+                            <p className="text-xs opacity-90 leading-relaxed mt-1">
+                                Para evitar a interrupção de acesso em <b>{hoursLeft > 0 ? hoursLeft : 0}h</b>, por favor regularize sua assinatura.
                             </p>
                         </div>
                     </div>
-                    <Link to="/plans" className="bg-white text-orange-600 px-4 py-2 rounded font-bold hover:bg-orange-50 transition-colors">
-                        Pagar Agora
+                    <Link to="/settings/plans" className="bg-white/20 hover:bg-white text-white hover:text-orange-600 px-4 py-2 rounded-xl font-bold transition-all text-xs text-center uppercase tracking-widest border border-white/20">
+                        Regularizar Agora
                     </Link>
                 </div>
             </div>
         );
     }
 
-    // 3. TRIAL COUNTDOWN (Blue/Indigo)
+    // 3. TRIAL COUNTDOWN (Elegant Floating Pill)
     if (subscription.status === 'trial' && subscription.trialEndsAt) {
         const daysLeft = Math.ceil((new Date(subscription.trialEndsAt).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
 
         if (daysLeft > 0) {
             return (
-                <div className="bg-indigo-600 text-white px-4 py-2 shadow-sm z-40 relative">
-                    <div className="container mx-auto flex items-center justify-between text-sm">
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 duration-700 fade-in pointer-events-none w-auto max-w-full px-4">
+                    <div className="bg-bg-surface/80 backdrop-blur-xl border border-primary/20 p-1.5 pl-4 rounded-full shadow-2xl shadow-primary/10 flex items-center gap-4 pointer-events-auto">
                         <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-lg">timer</span>
-                            <span>
-                                <b>Modo de Teste:</b> Você tem <b>{daysLeft} dias</b> restantes no seu período gratuito.
+                            <div className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                            </div>
+                            <span className="text-[11px] text-white">
+                                <span className="text-slate-400">Modo Trial:</span> <b>{daysLeft} dias restantes</b>
                             </span>
                         </div>
-                        <Link to="/plans" className="underline hover:text-indigo-200">
-                            Assinar Agora
+                        <Link
+                            to="/settings/plans"
+                            className="bg-gradient-to-r from-primary/20 to-primary/10 hover:from-primary hover:to-primary-dark text-primary hover:text-bg-dark border border-primary/20 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap"
+                        >
+                            Fazer Upgrade
                         </Link>
                     </div>
                 </div>

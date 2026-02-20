@@ -2,6 +2,7 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useSearch } from '../contexts/SearchContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface TopBarProps {
   onLogout?: () => void;
@@ -11,6 +12,7 @@ interface TopBarProps {
 const TopBar: React.FC<TopBarProps> = ({ onLogout, onMenuClick }) => {
   const location = useLocation();
   const { searchQuery, setSearchQuery } = useSearch();
+  const { userProfile, userRole } = useAuth();
   const pathParts = location.pathname.split('/').filter(Boolean);
   const pageTitle = pathParts[0] ? pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(1) : 'Dashboard';
 
@@ -50,19 +52,29 @@ const TopBar: React.FC<TopBarProps> = ({ onLogout, onMenuClick }) => {
         <div className="h-8 w-px bg-white/10 hidden sm:block"></div>
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-bold text-white leading-none italic uppercase tracking-tighter">Adriano Moraes</p>
-            <p className="text-[10px] text-primary uppercase mt-1 tracking-widest font-bold">Wealth Advisor</p>
+            <p className="text-sm font-bold text-white leading-none italic uppercase tracking-tighter">
+              {userProfile?.display_name || 'Usuário'}
+            </p>
+            <p className="text-[10px] text-primary uppercase mt-1 tracking-widest font-bold">
+              {userProfile?.role === 'owner' ? 'Dono/Gestor' : userProfile?.role === 'developer' ? 'Operador' : 'Wealth Advisor'}
+            </p>
           </div>
           <button
             onClick={onLogout}
             className="size-10 rounded-full bg-card-dark border border-white/10 flex items-center justify-center overflow-hidden hover:border-primary transition-all group relative shadow-2xl"
           >
-            <img
-              src="https://picsum.photos/seed/executive/100/100"
-              alt="Profile"
-              className="w-full h-full object-cover group-hover:opacity-30 transition-opacity"
-            />
-            <span className="material-symbols-outlined absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-primary text-xl transition-opacity">logout</span>
+            {userProfile?.avatar ? (
+              <img
+                src={userProfile.avatar}
+                alt="Profile"
+                className="w-full h-full object-cover group-hover:opacity-30 transition-opacity"
+              />
+            ) : (
+              <span className="text-xs font-bold text-primary">
+                {(userProfile?.display_name || 'U').charAt(0).toUpperCase()}
+              </span>
+            )}
+            <span className="material-symbols-outlined absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-primary text-xl transition-opacity bg-bg-dark/80">logout</span>
           </button>
         </div>
       </div>

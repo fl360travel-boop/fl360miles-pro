@@ -7,11 +7,18 @@ import { Subscription } from '../types';
 
 export type UserRole = 'owner' | 'developer' | 'demo' | null;
 
+export interface UserProfile {
+    role: UserRole;
+    display_name: string;
+    avatar?: string;
+}
+
 interface AuthContextType {
     user: User | null;
     session: Session | null;
     loading: boolean;
     userRole: UserRole;
+    userProfile: UserProfile | null;
     subscription: Subscription | null;
     isOwner: boolean;
     isDeveloper: boolean;
@@ -44,24 +51,29 @@ function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T
     ]);
 }
 
-// Busca o role do usuário no banco de dados
-async function fetchUserRole(userId: string): Promise<UserRole> {
+// Busca o perfil do usuário no banco de dados
+async function fetchUserProfile(userId: string): Promise<UserProfile> {
+    const defaultProfile: UserProfile = { role: 'developer', display_name: 'Usuário', avatar: undefined };
     try {
         const { data, error } = await supabase
             .from('user_profiles')
-            .select('role')
+            .select('role, display_name, avatar')
             .eq('user_id', userId)
             .single();
 
         if (error || !data) {
-            console.warn('Perfil não encontrado. Usando role padrão.');
-            return 'developer'; // fallback seguro
+            console.warn('Perfil não encontrado. Usando perfil padrão.');
+            return defaultProfile; // fallback seguro
         }
 
-        return data.role as UserRole;
+        return {
+            role: data.role as UserRole,
+            display_name: data.display_name || 'Usuário',
+            avatar: data.avatar || undefined
+        };
     } catch {
-        console.warn('Erro ao buscar perfil. Usando role padrão.');
-        return 'developer';
+        console.warn('Erro ao buscar perfil. Usando perfil padrão.');
+        return defaultProfile;
     }
 }
 
@@ -81,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState<UserRole>(null);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [subscription, setSubscription] = useState<Subscription | null>(null);
 
     useEffect(() => {
@@ -93,11 +106,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (session?.user) {
                 currentUserId = session.user.id;
-                const [role, sub] = await Promise.all([
-                    withTimeout(fetchUserRole(session.user.id), 5000, 'developer' as UserRole),
+                const [profile, sub] = await Promise.all([
+                    withTimeout(fetchUserProfile(session.user.id), 5000, { role: 'developer', display_name: 'Usuário' } as UserProfile),
                     withTimeout(fetchSubscriptionSafe(), 5000, null)
                 ]);
-                setUserRole(role);
+                setUserRole(profile.role);
+                setUserProfile(profile);
                 setSubscription(sub);
             }
 
@@ -117,15 +131,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         return;
                     }
                     currentUserId = session.user.id;
-                    const [role, sub] = await Promise.all([
-                        withTimeout(fetchUserRole(session.user.id), 5000, 'developer' as UserRole),
+                    const [profile, sub] = await Promise.all([
+                        withTimeout(fetchUserProfile(session.user.id), 5000, { role: 'developer', display_name: 'Usuário' } as UserProfile),
                         withTimeout(fetchSubscriptionSafe(), 5000, null)
                     ]);
-                    setUserRole(role);
+                    setUserRole(profile.role);
+                    setUserProfile(profile);
                     setSubscription(sub);
                 } else {
                     currentUserId = null;
                     setUserRole(null);
+                    setUserProfile(null);
                     setSubscription(null);
                 }
 
@@ -178,6 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         loading,
         userRole,
+        userProfile,
         subscription,
         isOwner: userRole === 'owner',
         isDeveloper: userRole === 'developer',

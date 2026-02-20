@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const navItems = [
   { label: 'Início', path: '/', icon: 'dashboard' },
@@ -15,6 +16,7 @@ const navItems = [
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const { userProfile, userRole } = useAuth();
 
   return (
     <aside className="w-64 bg-bg-dark border-r border-white/5 flex flex-col h-full shrink-0">
@@ -36,8 +38,8 @@ const Sidebar: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${isActive
-                    ? 'bg-primary/10 text-primary border-r-2 border-primary shadow-lg shadow-primary/5'
-                    : 'text-slate-500 hover:text-white hover:bg-white/5'
+                  ? 'bg-primary/10 text-primary border-r-2 border-primary shadow-lg shadow-primary/5'
+                  : 'text-slate-500 hover:text-white hover:bg-white/5'
                   }`}
               >
                 <span className="material-symbols-outlined text-lg">{item.icon}</span>
@@ -45,17 +47,40 @@ const Sidebar: React.FC = () => {
               </Link>
             );
           })}
+
+          {userRole === 'owner' && (
+            <div className="pt-4 mt-2 border-t border-white/5">
+              <Link
+                to="/settings/plans"
+                className={`flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${location.pathname === '/settings/plans'
+                  ? 'bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-2 border-primary'
+                  : 'text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10'
+                  }`}
+              >
+                <span className="material-symbols-outlined text-lg">workspace_premium</span>
+                Meu Plano
+              </Link>
+            </div>
+          )}
         </nav>
       </div>
 
       <div className="mt-auto p-8 border-t border-white/5">
         <div className="bg-bg-surface/50 p-4 rounded-2xl border border-white/5 flex items-center gap-3">
-          <div className="size-10 rounded-full bg-primary flex items-center justify-center text-bg-dark font-black text-xs">
-            AM
-          </div>
+          {userProfile?.avatar ? (
+            <img src={userProfile.avatar} alt="Profile" className="size-10 rounded-full object-cover border border-white/10" />
+          ) : (
+            <div className="size-10 rounded-full bg-primary flex items-center justify-center text-bg-dark font-black text-xs">
+              {(userProfile?.display_name || 'U').charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="min-w-0">
-            <p className="text-[10px] font-black text-white uppercase italic tracking-tighter truncate">Adriano Moraes</p>
-            <p className="text-[8px] text-primary uppercase font-bold tracking-widest mt-0.5">Wealth Advisor</p>
+            <p className="text-[10px] font-black text-white uppercase italic tracking-tighter truncate">
+              {userProfile?.display_name || 'Usuário'}
+            </p>
+            <p className="text-[8px] text-primary uppercase font-bold tracking-widest mt-0.5">
+              {userProfile?.role === 'owner' ? 'Dono/Gestor' : userProfile?.role === 'developer' ? 'Operador' : 'Wealth Advisor'}
+            </p>
           </div>
         </div>
       </div>
