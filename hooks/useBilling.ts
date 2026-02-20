@@ -25,11 +25,17 @@ export function useBilling() {
         }
     };
 
-    const subscribe = async (planId: string, cycle: 'MONTHLY' | 'YEARLY', method: 'PIX' | 'BOLETO' | 'CREDIT_CARD') => {
+    const subscribe = async (
+        planId: string,
+        cycle: 'MONTHLY' | 'YEARLY',
+        method: 'PIX' | 'BOLETO' | 'CREDIT_CARD',
+        cpfCnpj: string,
+        mobilePhone: string
+    ) => {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await asaasService.createSubscription(planId, method);
+            const result = await asaasService.createSubscription(planId, method, cpfCnpj, mobilePhone);
             // Recarregar status após criação
             await loadStatus();
             return result;

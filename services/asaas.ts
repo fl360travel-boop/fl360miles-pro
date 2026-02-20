@@ -11,7 +11,12 @@ export const asaasService = {
      * @param planId 'starter' | 'pro' | 'enterprise'
      * @param billingType 'PIX' | 'BOLETO' | 'CREDIT_CARD'
      */
-    async createSubscription(planId: string, billingType: 'PIX' | 'BOLETO' | 'CREDIT_CARD' = 'PIX'): Promise<SubscriptionResponse> {
+    async createSubscription(
+        planId: string,
+        billingType: 'PIX' | 'BOLETO' | 'CREDIT_CARD' = 'PIX',
+        cpfCnpj: string,
+        mobilePhone: string
+    ): Promise<SubscriptionResponse> {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Usuário não autenticado');
 
@@ -42,6 +47,8 @@ export const asaasService = {
                 billingType,
                 userEmail: session.user.email,
                 userName: profile?.display_name || session.user.email,
+                cpfCnpj,
+                mobilePhone,
                 organizationId: membership.organization_id,
                 userId: session.user.id,
             }),

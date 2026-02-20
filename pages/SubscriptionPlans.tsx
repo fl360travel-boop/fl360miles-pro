@@ -40,12 +40,25 @@ const SubscriptionPlans: React.FC = () => {
     const { subscribe, isLoading, error } = useBilling();
     const { isBlocked, isTrialing, daysLeft, planId: currentPlan } = useSubscription();
     const [selectedMethod, setSelectedMethod] = useState<'PIX' | 'BOLETO' | 'CREDIT_CARD'>('PIX');
+    const [cpfCnpj, setCpfCnpj] = useState('');
+    const [mobilePhone, setMobilePhone] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [validationError, setValidationError] = useState('');
 
     const handleSubscribe = async (planId: string) => {
+        if (!cpfCnpj || cpfCnpj.replace(/\D/g, '').length < 11) {
+            setValidationError('Por favor, informe um CPF ou CNPJ válido.');
+            return;
+        }
+        if (!mobilePhone || mobilePhone.replace(/\D/g, '').length < 10) {
+            setValidationError('Por favor, informe um número de celular válido com DDD.');
+            return;
+        }
+
         try {
+            setValidationError('');
             setSuccessMessage('');
-            const result = await subscribe(planId, 'YEARLY', selectedMethod);
+            const result = await subscribe(planId, 'YEARLY', selectedMethod, cpfCnpj, mobilePhone);
             if (result.paymentLink) {
                 setSuccessMessage('Redirecionando para pagamento...');
                 setTimeout(() => {
@@ -80,10 +93,10 @@ const SubscriptionPlans: React.FC = () => {
             </div>
 
             {/* Errors */}
-            {error && (
+            {(error || validationError) && (
                 <div className="bg-red-500/10 text-red-400 p-4 rounded-xl mb-8 border border-red-500/20 flex items-center gap-3">
                     <span className="material-symbols-outlined">error</span>
-                    {error}
+                    {validationError || error}
                 </div>
             )}
 
@@ -94,6 +107,35 @@ const SubscriptionPlans: React.FC = () => {
                     {successMessage}
                 </div>
             )}
+
+            {/* Dados do Cliente para o Asaas */}
+            <div className="mb-10 max-w-md mx-auto bg-bg-surface/50 p-6 rounded-2xl border border-white/5 shadow-xl">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 text-center">Dados Obrigatórios para Faturamento</p>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-xs text-slate-400 font-medium mb-1.5 uppercase tracking-wider">CPF / CNPJ <span className="text-red-500">*</span></label>
+                        <input
+                            type="text"
+                            value={cpfCnpj}
+                            onChange={(e) => setCpfCnpj(e.target.value)}
+                            placeholder="000.000.000-00"
+                            className="w-full bg-bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                            maxLength={18}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs text-slate-400 font-medium mb-1.5 uppercase tracking-wider">Celular / WhatsApp <span className="text-red-500">*</span></label>
+                        <input
+                            type="tel"
+                            value={mobilePhone}
+                            onChange={(e) => setMobilePhone(e.target.value)}
+                            placeholder="(11) 99999-9999"
+                            className="w-full bg-bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                            maxLength={15}
+                        />
+                    </div>
+                </div>
+            </div>
 
             {/* Payment Method Selector */}
             <div className="mb-10">

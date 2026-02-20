@@ -51,7 +51,7 @@ export default async (request: Request) => {
 
     try {
         const body = await request.json();
-        const { planId, billingType, userEmail, userName, organizationId, userId } = body;
+        const { planId, billingType, userEmail, userName, cpfCnpj, mobilePhone, organizationId, userId } = body;
 
         if (!planId || !PLAN_PRICES[planId]) {
             return new Response(JSON.stringify({ error: 'Plano inválido' }), { status: 400, headers });
@@ -85,6 +85,8 @@ export default async (request: Request) => {
                 body: JSON.stringify({
                     name: userName || userEmail,
                     email: userEmail,
+                    cpfCnpj: cpfCnpj?.replace(/\D/g, ''),
+                    mobilePhone: mobilePhone?.replace(/\D/g, ''),
                     externalReference: organizationId,
                 }),
             });
