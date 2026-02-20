@@ -50,8 +50,8 @@ const Sidebar: React.FC = () => {
 
           <div className="pt-4 mt-2 border-t border-white/5">
             <Link
-              to="/settings/plans"
-              className={`flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${location.pathname === '/settings/plans'
+              to="/plans"
+              className={`flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${location.pathname === '/plans'
                 ? 'bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-2 border-primary'
                 : 'text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10'
                 }`}

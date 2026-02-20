@@ -42,7 +42,7 @@ const SubscriptionBanner: React.FC = () => {
                             : 'Identificamos uma pendência no pagamento da sua assinatura.'}
                         {' '}Para retomar o uso de todas as ferramentas, por favor, regularize seu plano.
                     </p>
-                    <Link to="/settings/plans" className="block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-red-600/20 uppercase tracking-widest text-xs">
+                    <Link to="/plans" className="block w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-red-600/20 uppercase tracking-widest text-xs">
                         Regularizar Acesso
                     </Link>
                 </div>
@@ -65,7 +65,7 @@ const SubscriptionBanner: React.FC = () => {
                             </p>
                         </div>
                     </div>
-                    <Link to="/settings/plans" className="bg-white/20 hover:bg-white text-white hover:text-orange-600 px-4 py-2 rounded-xl font-bold transition-all text-xs text-center uppercase tracking-widest border border-white/20">
+                    <Link to="/plans" className="bg-white/20 hover:bg-white text-white hover:text-orange-600 px-4 py-2 rounded-xl font-bold transition-all text-xs text-center uppercase tracking-widest border border-white/20">
                         Regularizar Agora
                     </Link>
                 </div>
@@ -91,7 +91,7 @@ const SubscriptionBanner: React.FC = () => {
                             </span>
                         </div>
                         <Link
-                            to="/settings/plans"
+                            to="/plans"
                             className="bg-gradient-to-r from-primary/20 to-primary/10 hover:from-primary hover:to-primary-dark text-primary hover:text-bg-dark border border-primary/20 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap"
                         >
                             Fazer Upgrade
