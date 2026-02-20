@@ -194,7 +194,7 @@ const Concierge: React.FC = () => {
                   </div>
 
                   {/* Smart Flight Tools */}
-                  <div className="flex gap-3 pt-2">
+                  <div className="flex gap-2 pt-2">
                     <button
                       onClick={() => {
                         const codes = route.match(/([a-zA-Z]{3})/g);
@@ -203,10 +203,10 @@ const Concierge: React.FC = () => {
                           : 'https://www.flightconnections.com/pt';
                         window.open(url, '_blank', 'noopener');
                       }}
-                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all cursor-pointer"
+                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-2 flex items-center justify-center gap-1.5 group transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-slate-400 group-hover:text-emerald-400 text-xs transition-colors">hub</span>
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Connections</span>
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Connections</span>
                     </button>
                     <button
                       onClick={() => {
@@ -216,10 +216,10 @@ const Concierge: React.FC = () => {
                           : 'https://seats.aero/search';
                         window.open(url, '_blank', 'noopener');
                       }}
-                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all cursor-pointer"
+                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-2 flex items-center justify-center gap-1.5 group transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-slate-400 group-hover:text-blue-400 text-xs transition-colors">travel_explore</span>
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Seats.aero</span>
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Seats.aero</span>
                     </button>
                     <button
                       onClick={() => {
@@ -229,11 +229,39 @@ const Concierge: React.FC = () => {
                           : 'https://www.google.com/travel/flights';
                         window.open(url, '_blank', 'noopener');
                       }}
-                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-3 flex items-center justify-center gap-2 group transition-all cursor-pointer"
+                      className="flex-1 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-lg py-2 px-2 flex items-center justify-center gap-1.5 group transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-slate-400 group-hover:text-red-400 text-xs transition-colors">travel</span>
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Google</span>
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">Google</span>
                     </button>
+                  </div>
+
+                  {/* Loyalty Program Direct Links */}
+                  <div className="pt-4 border-t border-white/5 mt-4">
+                    <label className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] px-1 mb-3 block">Emissão Direta (Companhias)</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      <button onClick={() => window.open('https://www.smiles.com.br/home', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-orange-500 uppercase tracking-widest">Smiles</span>
+                      </button>
+                      <button onClick={() => window.open('https://www.latamairlines.com/br/pt', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-red-600 uppercase tracking-widest">Latam</span>
+                      </button>
+                      <button onClick={() => window.open('https://azulpelomundo.voeazul.com.br', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-blue-500 uppercase tracking-widest">Azul</span>
+                      </button>
+                      <button onClick={() => window.open('https://www.iberia.com/br/', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-red-500 uppercase tracking-widest">Iberia</span>
+                      </button>
+                      <button onClick={() => window.open('https://www.aa.com.br/homePage.do?locale=pt_BR', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-blue-600 uppercase tracking-widest">AA</span>
+                      </button>
+                      <button onClick={() => window.open('https://www.livelo.com.br', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-pink-500 uppercase tracking-widest">Livelo</span>
+                      </button>
+                      <button onClick={() => window.open('https://www.esfera.com.vc', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-red-400 uppercase tracking-widest">Esfera</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-2">
