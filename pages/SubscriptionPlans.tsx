@@ -39,6 +39,7 @@ const paymentMethods = [
 const SubscriptionPlans: React.FC = () => {
     const { subscribe, isLoading, error } = useBilling();
     const { isBlocked, isTrialing, daysLeft, planId: currentPlan } = useSubscription();
+    const [billingCycle, setBillingCycle] = useState<'MONTHLY' | 'YEARLY'>('YEARLY');
     const [selectedMethod, setSelectedMethod] = useState<'PIX' | 'BOLETO' | 'CREDIT_CARD'>('PIX');
     const [cpfCnpj, setCpfCnpj] = useState('');
     const [mobilePhone, setMobilePhone] = useState('');
@@ -58,7 +59,7 @@ const SubscriptionPlans: React.FC = () => {
         try {
             setValidationError('');
             setSuccessMessage('');
-            const result = await subscribe(planId, 'MONTHLY', selectedMethod, cpfCnpj, mobilePhone);
+            const result = await subscribe(planId, billingCycle, selectedMethod, cpfCnpj, mobilePhone);
             if (result.paymentLink) {
                 setSuccessMessage('Redirecionando para pagamento...');
                 setTimeout(() => {
@@ -76,6 +77,21 @@ const SubscriptionPlans: React.FC = () => {
             <div className="text-center mb-10">
                 <h1 className="display-font text-3xl font-bold text-white italic uppercase tracking-tighter mb-3">Planos e Preços</h1>
                 <p className="text-slate-400 text-sm">Escolha o plano ideal para escalar sua operação de milhas.</p>
+
+                {/* Billing Toggle */}
+                <div className="mt-8 flex items-center justify-center gap-4">
+                    <span className={`text-sm font-bold transition-colors ${billingCycle === 'MONTHLY' ? 'text-white' : 'text-slate-500'}`}>Mensal</span>
+                    <button
+                        onClick={() => setBillingCycle(c => c === 'MONTHLY' ? 'YEARLY' : 'MONTHLY')}
+                        className={`relative w-14 h-8 rounded-full border transition-all duration-300 outline-none ${billingCycle === 'YEARLY' ? 'bg-primary/20 border-primary' : 'bg-bg-surface/50 border-white/10 hover:border-primary/50'}`}
+                    >
+                        <div className={`absolute top-1 w-6 h-6 rounded-full bg-primary transition-all duration-300 ${billingCycle === 'YEARLY' ? 'left-7' : 'left-1'}`} />
+                    </button>
+                    <span className={`text-sm font-bold transition-colors ${billingCycle === 'YEARLY' ? 'text-white' : 'text-slate-500'} flex items-center gap-2`}>
+                        Anual
+                        <span className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg shadow-emerald-500/10">-10% OFF</span>
+                    </span>
+                </div>
 
                 {isBlocked && (
                     <div className="mt-4 bg-red-500/10 text-red-400 px-6 py-3 rounded-2xl border border-red-500/20 inline-flex items-center gap-3">
@@ -177,10 +193,19 @@ const SubscriptionPlans: React.FC = () => {
                         )}
 
                         <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                        <div className="flex items-baseline gap-1 mb-6">
-                            <span className="text-sm text-slate-400">R$</span>
-                            <span className="text-4xl font-black text-white">{plan.price.toLocaleString('pt-BR')}</span>
-                            <span className="text-sm text-slate-400">/{plan.cycle}</span>
+                        <div className="flex flex-col mb-6 h-16 justify-center">
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-sm text-slate-400">R$</span>
+                                <span className="text-4xl font-black text-white">
+                                    {(billingCycle === 'YEARLY' ? plan.price * 0.9 : plan.price).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                </span>
+                                <span className="text-sm text-slate-400">/mês</span>
+                            </div>
+                            {billingCycle === 'YEARLY' && (
+                                <div className="text-xs text-emerald-400 mt-1 font-bold">
+                                    Cobrado R$ {(plan.price * 12 * 0.9).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} /ano
+                                </div>
+                            )}
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-1">
@@ -214,7 +239,7 @@ const SubscriptionPlans: React.FC = () => {
             </div>
 
             <p className="text-center text-[10px] text-slate-600 mt-8 uppercase tracking-widest">
-                Pagamento seguro via Asaas • Todos os planos são mensais • Cancele quando quiser
+                Pagamento seguro via Asaas • Cancele quando quiser
             </p>
         </div>
     );

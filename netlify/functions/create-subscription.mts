@@ -51,14 +51,18 @@ export default async (request: Request) => {
 
     try {
         const body = await request.json();
-        const { planId, billingType, userEmail, userName, cpfCnpj, mobilePhone, organizationId, userId } = body;
+        const { planId, billingType, userEmail, userName, cpfCnpj, mobilePhone, organizationId, userId, cycle } = body;
 
         if (!planId || !PLAN_PRICES[planId]) {
             return new Response(JSON.stringify({ error: 'Plano inválido' }), { status: 400, headers });
         }
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-        const value = PLAN_PRICES[planId];
+        let value = PLAN_PRICES[planId];
+        if (cycle === 'YEARLY') {
+            value = value * 12 * 0.9; // 10% discount for annual plans
+        }
+
         const planName = PLAN_NAMES[planId];
 
         // 1. Verificar se já existe customer no Asaas
@@ -117,8 +121,8 @@ export default async (request: Request) => {
                 billingType: 'UNDEFINED',
                 value: value,
                 nextDueDate: nextDueDate,
-                cycle: 'MONTHLY',
-                description: `FL360 Miles - Plano ${planName} (Mensal)`,
+                cycle: cycle === 'YEARLY' ? 'YEARLY' : 'MONTHLY',
+                description: `FL360 Miles - Plano ${planName} (${cycle === 'YEARLY' ? 'Anual' : 'Mensal'})`,
                 externalReference: organizationId,
             }),
         });
