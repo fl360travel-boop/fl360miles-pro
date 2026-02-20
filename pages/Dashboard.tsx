@@ -41,10 +41,13 @@ const Dashboard: React.FC = () => {
   const recentOps = stats?.recentOps || [];
   const chartData = stats?.chartData || []; // Now comes from SQL
 
-  // Placeholder para o gráfico se não tiver dados ainda
-  const displayChartData = chartData.length > 0 ? chartData : [
-    { n: 'Jan', v: 0, year: 2024 }, { n: 'Fev', v: 0, year: 2024 }, { n: 'Mar', v: 0, year: 2024 }
-  ];
+  // Retention Intelligence State
+  const [retentionStats, setRetentionStats] = useState({
+    churnRisk: 0,
+    activeCount: 0,
+    topLtvClient: { name: '', value: 0 },
+    avgEngagement: 0
+  });
 
   /* 
    * NOTE: Audit Modal logic was removed from this optimized view because filtering 
@@ -52,9 +55,67 @@ const Dashboard: React.FC = () => {
    * A separate 'Audit Page' or server-side filtered endpoint is recommended for the Audit feature.
    */
 
+  // Fetch Clients for Retention Analysis (Lightweight)
+  useEffect(() => {
+    const analyzeRetention = async () => {
+      try {
+        // We need client list for this specific widget. 
+        // Ideally backend would provide this, but for now we calc on frontend 
+        // (assuming manageable client count for "High-Ticket" agency)
+        const { getClients } = await import('../services/api');
+        const clients = await getClients();
+
+        const now = new Date().getTime();
+        let riskCount = 0;
+        let active = 0;
+        let maxLtv = 0;
+        let topClientName = '—';
+        let totalDays = 0;
+
+        clients.forEach(c => {
+          // Engagement / Churn
+          const lastActivity = c.history.length > 0
+            ? Math.max(...c.history.map(h => new Date(h.date).getTime()))
+            : new Date(c.startDate).getTime();
+          const daysInactive = Math.floor((now - lastActivity) / (1000 * 60 * 60 * 24));
+
+          if (daysInactive > 60) riskCount++;
+          else active++;
+
+          totalDays += daysInactive;
+
+          // LTV (Estimated as Total Value + ROI)
+          const totalPoints = c.programs.reduce((acc, p) => acc + p.balance, 0);
+          const roi = c.history.filter(h => h.type === 'Venda').reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
+          const ltv = (totalPoints * 0.0185) + roi;
+
+          if (ltv > maxLtv) {
+            maxLtv = ltv;
+            topClientName = c.name;
+          }
+        });
+
+        setRetentionStats({
+          churnRisk: riskCount,
+          activeCount: active,
+          topLtvClient: { name: topClientName, value: maxLtv },
+          avgEngagement: clients.length ? Math.floor(totalDays / clients.length) : 0
+        });
+
+      } catch (e) {
+        console.error("Retention Analysis Failed", e);
+      }
+    };
+    analyzeRetention();
+  }, []);
+
   const formatMiles = (value: number) => {
     return value.toLocaleString('pt-BR');
   };
+
+  const displayChartData = chartData.length > 0 ? chartData : [
+    { n: 'Jan', v: 0, year: 2024 }, { n: 'Fev', v: 0, year: 2024 }, { n: 'Mar', v: 0, year: 2024 }
+  ];
 
   if (isLoading) {
     return (
@@ -106,6 +167,55 @@ const Dashboard: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* RETENTION INTELLIGENCE WIDGET */}
+      {!isLoading && stats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-bottom duration-700 delay-200">
+          {/* CHURN ALERT */}
+          <div className={`p-8 rounded-[32px] border ${retentionStats.churnRisk > 0 ? 'border-red-500/50 bg-red-500/5' : 'border-emerald-500/20 bg-emerald-500/5'} flex items-center justify-between`}>
+            <div>
+              <p className={`text-[9px] font-black uppercase tracking-[0.3em] mb-2 ${retentionStats.churnRisk > 0 ? 'text-red-400' : 'text-emerald-500'}`}>
+                {retentionStats.churnRisk > 0 ? 'Risco de Churn' : 'Retenção Intacta'}
+              </p>
+              <p className="text-2xl font-black text-white italic tracking-tighter">
+                {retentionStats.churnRisk} <span className="text-xs font-bold text-slate-500 not-italic normal-case">clientes inativos (+60d)</span>
+              </p>
+            </div>
+            <div className={`size-12 rounded-full flex items-center justify-center ${retentionStats.churnRisk > 0 ? 'bg-red-500/20 text-red-500' : 'bg-emerald-500/20 text-emerald-500'}`}>
+              <span className="material-symbols-outlined">{retentionStats.churnRisk > 0 ? 'warning' : 'thumb_up'}</span>
+            </div>
+          </div>
+
+          {/* ENGAGEMENT METRIC */}
+          <div className="p-8 rounded-[32px] border border-blue-500/20 bg-blue-500/5 flex items-center justify-between">
+            <div>
+              <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.3em] mb-2">Engajamento Médio</p>
+              <p className="text-2xl font-black text-white italic tracking-tighter">
+                {retentionStats.avgEngagement} <span className="text-xs font-bold text-slate-500 not-italic normal-case">dias entre ações</span>
+              </p>
+            </div>
+            <div className="size-12 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center">
+              <span className="material-symbols-outlined">history</span>
+            </div>
+          </div>
+
+          {/* TOP LTV PLAYER */}
+          <div className="p-8 rounded-[32px] border border-[#E2BE6A]/30 bg-[#E2BE6A]/5 flex items-center justify-between relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <span className="material-symbols-outlined text-6xl text-[#E2BE6A]">trophy</span>
+            </div>
+            <div>
+              <p className="text-[9px] font-black text-[#E2BE6A] uppercase tracking-[0.3em] mb-2">Cliente Top LTV</p>
+              <p className="text-xl font-black text-white italic tracking-tighter truncate max-w-[200px]">
+                {retentionStats.topLtvClient.name}
+              </p>
+              <p className="text-[10px] font-bold text-slate-400 mt-1">
+                LTV: R$ {retentionStats.topLtvClient.value.toLocaleString('pt-BR', { notation: 'compact' })}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* BREAKDOWN POR PROGRAMA */}
       {programMetrics.length > 0 && (

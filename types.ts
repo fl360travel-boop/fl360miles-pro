@@ -41,6 +41,7 @@ export interface MileageMovement {
   amount: number;
   description: string;
   observation?: string;
+  expirationDate?: string;
   clientName?: string;
   negotiatedValue?: number;
   ticketValue?: number;

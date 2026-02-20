@@ -89,7 +89,8 @@ const Clients: React.FC = () => {
     ticketVal: '',
     cpm: '15.00',
     yieldCpm: '',
-    bonusPercent: ''
+    bonusPercent: '',
+    expirationDate: ''
   });
   const [customProgram, setCustomProgram] = useState('');
 
@@ -306,7 +307,8 @@ const Clients: React.FC = () => {
         ticketValue: newMove.type === 'Resgate' ? Number(newMove.ticketVal) : undefined,
         cpm: ['Resgate', 'Venda'].includes(newMove.type) ? Number(newMove.cpm) : undefined,
         profit: newMove.type === 'Venda' ? (Number(newMove.val) - (Number(newMove.amount) / 1000 * Number(newMove.cpm))) : undefined,
-        bonusPercent: newMove.type === 'Transferência' ? Number(newMove.bonusPercent) : undefined
+        bonusPercent: newMove.type === 'Transferência' ? Number(newMove.bonusPercent) : undefined,
+        expirationDate: newMove.expirationDate || undefined
       };
 
       // Update balances
@@ -326,7 +328,7 @@ const Clients: React.FC = () => {
       // We'll call updateCurrent with the modified freshClient.
       await updateCurrent({ ...freshClient, history: [m, ...freshClient.history], programs: updatedProgs });
 
-      setNewMove({ type: 'Inclusão', program: '', amount: '', desc: '', val: '', obs: '', bonusPercent: '' });
+      setNewMove({ type: 'Inclusão', program: '', amount: '', desc: '', val: '', obs: '', bonusPercent: '', expirationDate: '', passengers: '1', flightClass: 'Econômica', ticketVal: '', cpm: '15.00', yieldCpm: '' });
       setCustomProgram('');
     } catch (error) {
       console.error('Failed to add movement safely:', error);
@@ -688,12 +690,26 @@ const Clients: React.FC = () => {
             <div
               key={client.id}
               onClick={() => { setSelectedClient(client); setActiveTab('info'); }}
-              className="group bg-bg-surface border border-white/5 p-8 rounded-[40px] flex flex-col hover:border-primary/50 transition-all cursor-pointer shadow-2xl relative overflow-hidden"
+              className={`group bg-bg-surface border p-8 rounded-[40px] flex flex-col transition-all cursor-pointer shadow-2xl relative overflow-hidden ${
+                // Dynamic Border based on Engagement/Risk
+                (() => {
+                  const lastActivity = client.history.length > 0
+                    ? new Date(Math.max(...client.history.map(h => new Date(h.date).getTime())))
+                    : new Date(client.startDate);
+                  const daysInactive = Math.floor((new Date().getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+
+                  if (daysInactive > 60) return 'border-red-500/50 hover:border-red-500'; // High Churn Risk
+                  if (daysInactive > 30) return 'border-amber-500/50 hover:border-amber-500'; // Warning
+                  return 'border-emerald-500/20 hover:border-emerald-500'; // Healthy
+                })()
+                }`}
             >
+              {/* STATUS BADGE */}
               <div className={`absolute top-0 right-0 p-6 font-black italic uppercase text-[9px] tracking-[0.4em] transition-colors ${client.managementLevel === 'Elite' ? 'text-white group-hover:text-[#E2BE6A]' : 'text-slate-600'}`}>
                 {client.managementLevel}
               </div>
 
+              {/* ACTIONS */}
               <div className="absolute bottom-8 right-8 flex gap-3 z-20 transition-all">
                 <Link
                   to={`/onboarding?edit=${client.id}`}
@@ -712,50 +728,92 @@ const Clients: React.FC = () => {
                 </button>
               </div>
 
+              {/* CLIENT INFO */}
               <div className="flex items-center gap-6 mb-6">
                 <div className="size-16 rounded-full bg-gradient-to-br from-card-dark to-black border-2 border-[#E2BE6A]/20 flex items-center justify-center text-[#E2BE6A] text-xl font-black display-font shadow-[0_0_30px_-10px_rgba(226,190,106,0.3)]">
                   {getInitials(client.name)}
                 </div>
                 <div>
                   <p className="text-white font-black text-lg group-hover:text-[#E2BE6A] transition-colors italic uppercase tracking-tighter leading-none">{client.name}</p>
+
+                  {/* RETENTION SIGNAL */}
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[#E2BE6A] font-black text-xs tracking-tight">{totalPoints.toLocaleString('pt-BR')}</span>
-                    <span className="text-[8px] text-slate-500 uppercase tracking-widest font-black italic">Capital Ativo</span>
+                    {(() => {
+                      const lastActivity = client.history.length > 0
+                        ? new Date(Math.max(...client.history.map(h => new Date(h.date).getTime())))
+                        : new Date(client.startDate);
+                      const daysInactive = Math.floor((new Date().getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+
+                      let signalColor = 'bg-emerald-500';
+                      let signalText = 'Engajado';
+
+                      if (daysInactive > 60) { signalColor = 'bg-red-500'; signalText = 'Risco de Churn'; }
+                      else if (daysInactive > 30) { signalColor = 'bg-amber-500'; signalText = 'Atenção'; }
+
+                      return (
+                        <>
+                          <span className={`size-1.5 rounded-full ${signalColor} animate-pulse`}></span>
+                          <span className={`text-[8px] uppercase tracking-widest font-black italic ${daysInactive > 60 ? 'text-red-400' : 'text-slate-500'}`}>
+                            {signalText} ({daysInactive}d)
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
 
-              {/* NEW METRICS ROW */}
+              {/* LTV & ROI METRICS */}
               <div className="grid grid-cols-3 gap-2 border-t border-white/5 pt-4 mb-4">
                 <div>
-                  <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1">Evolução</p>
-                  <p className={`text-sm font-black italic tracking-tighter ${evolutionPercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {evolutionPercent > 0 ? '+' : ''}{evolutionPercent.toFixed(1)}%
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1">Economia</p>
+                  <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1">LTV (Lifetime)</p>
                   <p className="text-sm font-black text-white italic tracking-tighter">
                     <span className="text-emerald-500 text-[10px] mr-1">R$</span>
-                    {totalEconomy.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {/* LTV = Total Invested (Revenue for Agency somewhat) + fee? 
+                        Actually LTV for Agency = Fees + Commissions. 
+                        But here we show CLIENT'S LTV (Total Value Generated for them? Or their Asset Value?)
+                        Let's show Total Asset Value (Wealth) as key metric + Evolution.
+                        BUT 'LTV' usually means Value to Business. 
+                        Let's stick to 'Patrimônio' (Wealth) but label it 'Wealth LTV' style?
+                        No, let's show 'Evolução' as before, but maybe 'Lucro Real' (ROI Cash)?
+                    */}
+                    {(totalValue + roi).toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: 1 })}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1 text-right">Liquidez</p>
-                  <p className="text-sm font-black text-white italic tracking-tighter text-right">
-                    <span className="text-emerald-500 text-[10px] mr-1">R$</span>
-                    {roi.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1">Lucro Real</p>
+                  <p className={`text-sm font-black italic tracking-tighter ${roi >= 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                    R$ {roi.toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: 1 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[7px] text-slate-500 uppercase font-black tracking-widest mb-1 text-right">Rentab.</p>
+                  <p className={`text-sm font-black italic tracking-tighter text-right ${evolutionPercent >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                    {evolutionPercent > 0 ? '+' : ''}{evolutionPercent.toFixed(0)}%
                   </p>
                 </div>
               </div>
 
               <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center">
-                <div className="flex flex-col">
-                  <span className="text-[8px] text-slate-600 uppercase font-black tracking-widest italic">Compliance Status</span>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className="size-1.5 bg-emerald-custom rounded-full"></span>
-                    <span className="text-[9px] text-white font-bold uppercase tracking-widest">Auditado</span>
-                  </div>
+                {/* Last Action Snippet */}
+                <div className="flex flex-col max-w-[70%]">
+                  {(() => {
+                    const lastAction = client.history[0];
+                    if (lastAction) {
+                      return (
+                        <>
+                          <span className="text-[7px] text-slate-600 uppercase font-black tracking-widest italic truncate">
+                            Última: {lastAction.type}
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-bold truncate">
+                            {lastAction.description || lastAction.program}
+                          </span>
+                        </>
+                      )
+                    } else {
+                      return <span className="text-[8px] text-slate-600 uppercase font-black tracking-widest italic">Sem atividade</span>
+                    }
+                  })()}
                 </div>
                 <span className="material-symbols-outlined text-slate-700 group-hover:text-primary group-hover:translate-x-1 transition-all">north_east</span>
               </div>
@@ -1092,6 +1150,12 @@ const Clients: React.FC = () => {
                         </div>
                       )}
 
+                      {['Inclusão', 'Compra', 'Transferência'].includes(newMove.type) && (
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Validade (Opcional)</label>
+                          <input type="date" className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none h-[64px]" value={newMove.expirationDate || ''} onChange={e => setNewMove({ ...newMove, expirationDate: e.target.value })} />
+                        </div>
+                      )}
                       {newMove.type !== 'Resgate' && newMove.type !== 'Transferência' && (
                         <div className="space-y-3">
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Valor Financeiro (R$)</label>

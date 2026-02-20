@@ -177,12 +177,61 @@ const Alerts: React.FC = () => {
       }];
     });
 
-    const allItems = [...alerts, ...birthdayAlerts];
+    // Generate Churn Alerts dynamically
+    const churnAlerts: ExpirationAlert[] = clients.flatMap(client => {
+      const lastActivity = client.history.length > 0
+        ? new Date(Math.max(...client.history.map(h => new Date(h.date).getTime())))
+        : new Date(client.startDate);
+
+      const daysInactive = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (daysInactive > 60) {
+        return [{
+          id: `churn-${client.id}`,
+          clientName: client.name,
+          program: 'Risco de Churn',
+          amount: daysInactive,
+          expirationDate: now.toISOString().split('T')[0],
+          observation: `Cliente sem registro de novas estratégias há ${daysInactive} dias. Ação recomendada: Contato de recalibragem de portfólio.`,
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        }];
+      }
+      return [];
+    });
+
+    // Generate Mile Expiration Alerts dynamically
+    const expirationAlerts: ExpirationAlert[] = clients.flatMap(client => {
+      return client.history
+        .filter(h => h.expirationDate && new Date(h.expirationDate).getTime() > now.getTime())
+        .map(h => {
+          const expDate = new Date(h.expirationDate!);
+          const diffDays = Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+          // Only show if expiring in the next 90 days
+          if (diffDays > 90) return null;
+
+          return {
+            id: `exp-${h.id}`,
+            clientName: client.name,
+            program: h.program,
+            amount: h.amount,
+            expirationDate: h.expirationDate!,
+            observation: h.observation ? `Lote de milhas a vencer: ${h.observation}` : `Lote de ${h.amount} milhas do programa ${h.program} a vencer em breve.`,
+            status: 'pending' as const,
+            createdAt: h.date
+          };
+        })
+        .filter((a): a is ExpirationAlert => a !== null);
+    });
+
+    const allItems = [...alerts, ...birthdayAlerts, ...churnAlerts, ...expirationAlerts];
 
     return allItems.filter(a => {
       if (filterType === 'all') return true;
       if (filterType === 'birthday') return a.program === 'Aniversário';
-      if (filterType === 'pending') return a.status === 'pending' && a.program !== 'Aniversário';
+      if (filterType === 'churn') return a.program === 'Risco de Churn';
+      if (filterType === 'pending') return a.status === 'pending' && a.program !== 'Aniversário' && a.program !== 'Risco de Churn';
       if (filterType === 'resolved') return a.status === 'resolved';
       if (filterType === 'new') {
         if (!a.createdAt) return false;
@@ -207,13 +256,13 @@ const Alerts: React.FC = () => {
         </div>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center bg-bg-surface border border-white/5 rounded-2xl p-1 shadow-2xl overflow-x-auto custom-scrollbar">
-            {(['all', 'birthday', 'new', 'pending', 'critical', 'resolved'] as const).map((t) => (
+            {(['all', 'birthday', 'churn', 'new', 'pending', 'critical', 'resolved'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilterType(t)}
                 className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filterType === t ? 'bg-primary text-bg-dark shadow-lg shadow-primary/10' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
               >
-                {t === 'all' ? 'Ver Todos' : t === 'birthday' ? 'Aniversariantes' : t === 'pending' ? 'Pendentes' : t === 'critical' ? 'Críticos' : t === 'new' ? 'Novos' : 'Encerrados'}
+                {t === 'all' ? 'Ver Todos' : t === 'birthday' ? 'Aniversariantes' : t === 'churn' ? 'Risco Churn' : t === 'pending' ? 'Pendentes' : t === 'critical' ? 'Críticos' : t === 'new' ? 'Novos' : 'Encerrados'}
               </button>
             ))}
           </div>
@@ -260,6 +309,11 @@ const Alerts: React.FC = () => {
                   <span className="material-symbols-outlined text-4xl text-primary animate-bounce">cake</span>
                   <p className="display-font text-5xl font-black text-white italic tracking-tighter leading-none group-hover:text-primary transition-colors">{alert.amount} <span className="text-[12px] opacity-40 uppercase ml-1">Anos</span></p>
                 </div>
+              ) : alert.program === 'Risco de Churn' ? (
+                <div className="flex items-end gap-3">
+                  <span className="material-symbols-outlined text-4xl text-red-500 animate-pulse">warning</span>
+                  <p className="display-font text-5xl font-black text-red-400 italic tracking-tighter leading-none">{alert.amount} <span className="text-[12px] opacity-40 uppercase ml-1 text-white">Dias Inativo</span></p>
+                </div>
               ) : (
                 <p className="display-font text-5xl font-black text-white italic tracking-tighter leading-none group-hover:text-primary transition-colors">{alert.amount.toLocaleString('pt-BR')} <span className="text-[12px] opacity-40 uppercase ml-1">mi</span></p>
               )}
@@ -267,21 +321,21 @@ const Alerts: React.FC = () => {
               {/* Cronograma de Vencimento Clicável */}
               <button
                 onClick={() => editAlert(alert)}
-                className={`mt-6 flex items-center gap-3 p-4 rounded-2xl border border-white/5 w-full text-left transition-all hover:bg-white/5 hover:border-white/10 ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' && alert.program !== 'Aniversário' ? 'bg-red-500/5 border-red-500/20' : 'bg-bg-card'}`}
+                className={`mt-6 flex items-center gap-3 p-4 rounded-2xl border border-white/5 w-full text-left transition-all hover:bg-white/5 hover:border-white/10 ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' && alert.program !== 'Aniversário' && alert.program !== 'Risco de Churn' ? 'bg-red-500/5 border-red-500/20' : 'bg-bg-card'}`}
               >
-                <div className={`size-10 rounded-xl flex items-center justify-center ${alert.program === 'Aniversário' ? 'bg-primary/20 text-primary' :
+                <div className={`size-10 rounded-xl flex items-center justify-center ${alert.program === 'Aniversário' ? 'bg-primary/20 text-primary' : alert.program === 'Risco de Churn' ? 'bg-red-500/20 text-red-500' :
                   new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' ? 'bg-red-500/20 text-red-400' : 'bg-primary/10 text-primary'
                   }`}>
                   <span className="material-symbols-outlined text-base">
-                    {alert.program === 'Aniversário' ? 'celebration' : 'calendar_month'}
+                    {alert.program === 'Aniversário' ? 'celebration' : alert.program === 'Risco de Churn' ? 'history' : 'calendar_month'}
                   </span>
                 </div>
                 <div>
                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">
-                    {alert.program === 'Aniversário' ? 'Data do Aniversário' : 'Cronograma de Vencimento'}
+                    {alert.program === 'Aniversário' ? 'Data do Aniversário' : alert.program === 'Risco de Churn' ? 'Último Contato / Ação' : 'Cronograma de Vencimento'}
                   </p>
-                  <p className={`text-sm font-black italic tracking-tighter ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' && alert.program !== 'Aniversário' ? 'text-red-400' : 'text-white'}`}>
-                    {new Date(alert.expirationDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  <p className={`text-sm font-black italic tracking-tighter ${new Date(alert.expirationDate).getTime() - Date.now() < 15 * 24 * 60 * 60 * 1000 && alert.status === 'pending' && alert.program !== 'Aniversário' && alert.program !== 'Risco de Churn' ? 'text-red-400' : 'text-white'}`}>
+                    {alert.program === 'Risco de Churn' ? 'Há mais de 60 dias' : new Date(alert.expirationDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
                 <span className="material-symbols-outlined text-slate-700 ml-auto group-hover:text-primary transition-colors">arrow_right_alt</span>
@@ -310,7 +364,7 @@ const Alerts: React.FC = () => {
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-sm font-black">verified_user</span>
-                    {alert.program === 'Aniversário' ? 'MARCAR COMO PARABENIZADO' : 'ENCERRAR PROTOCOLO ELITE'}
+                    {alert.program === 'Aniversário' ? 'MARCAR COMO PARABENIZADO' : alert.program === 'Risco de Churn' ? 'AÇÃO DE RETENÇÃO REALIZADA' : 'ENCERRAR PROTOCOLO ELITE'}
                   </>
                 )}
               </button>
