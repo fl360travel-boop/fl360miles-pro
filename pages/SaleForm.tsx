@@ -145,6 +145,13 @@ const SaleForm: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
+                  <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">Custo Médio (R$ por Milheiro)</label>
+                  <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-6 px-8 text-4xl font-black text-white italic focus:ring-0 placeholder:text-slate-800 outline-none" placeholder="15.00" type="number" step="0.01" value={costBasis} onChange={e => setCostBasis(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-8">
+                <div className="space-y-3">
                   <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">Valor Negociado (Total)</label>
                   <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-6 px-8 text-4xl font-black text-primary italic focus:ring-0 placeholder:text-slate-800 outline-none" placeholder="0,00" type="number" value={negotiatedValue} onChange={e => setNegotiatedValue(e.target.value)} />
                 </div>
