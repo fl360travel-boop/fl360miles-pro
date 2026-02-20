@@ -112,7 +112,7 @@ export default async (request: Request) => {
             },
             body: JSON.stringify({
                 customer: asaasCustomerId,
-                billingType: billingType || 'PIX',
+                billingType: 'UNDEFINED',
                 value: value,
                 nextDueDate: nextDueDate,
                 cycle: 'YEARLY',
