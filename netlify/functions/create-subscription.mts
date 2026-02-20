@@ -117,8 +117,8 @@ export default async (request: Request) => {
                 billingType: 'UNDEFINED',
                 value: value,
                 nextDueDate: nextDueDate,
-                cycle: 'YEARLY',
-                description: `FL360 Miles - Plano ${planName} (Anual)`,
+                cycle: 'MONTHLY',
+                description: `FL360 Miles - Plano ${planName} (Mensal)`,
                 externalReference: organizationId,
             }),
         });

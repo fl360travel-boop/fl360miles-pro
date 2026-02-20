@@ -8,7 +8,7 @@ const plans = [
         id: 'starter',
         name: 'Starter',
         price: 799,
-        cycle: 'ano',
+        cycle: 'mês',
         features: ['Até 20 clientes', 'Gestão completa de milhas', 'Dashboard inteligente', 'Suporte por email'],
         recommended: false
     },
@@ -16,7 +16,7 @@ const plans = [
         id: 'pro',
         name: 'Profissional',
         price: 1299,
-        cycle: 'ano',
+        cycle: 'mês',
         features: ['Até 100 clientes', 'Tudo do Starter', 'AI Concierge (Altitude AI)', 'Relatórios PDF personalizados', 'Suporte prioritário'],
         recommended: true
     },
@@ -24,7 +24,7 @@ const plans = [
         id: 'enterprise',
         name: 'White Label',
         price: 2399,
-        cycle: 'ano',
+        cycle: 'mês',
         features: ['Clientes ilimitados', 'Tudo do Profissional', 'Plataforma personalizada', 'Sua marca, seu domínio', 'Gerente de conta dedicado'],
         recommended: false
     }
@@ -58,7 +58,7 @@ const SubscriptionPlans: React.FC = () => {
         try {
             setValidationError('');
             setSuccessMessage('');
-            const result = await subscribe(planId, 'YEARLY', selectedMethod, cpfCnpj, mobilePhone);
+            const result = await subscribe(planId, 'MONTHLY', selectedMethod, cpfCnpj, mobilePhone);
             if (result.paymentLink) {
                 setSuccessMessage('Redirecionando para pagamento...');
                 setTimeout(() => {
@@ -214,7 +214,7 @@ const SubscriptionPlans: React.FC = () => {
             </div>
 
             <p className="text-center text-[10px] text-slate-600 mt-8 uppercase tracking-widest">
-                Pagamento seguro via Asaas • Todos os planos são anuais • Cancele quando quiser
+                Pagamento seguro via Asaas • Todos os planos são mensais • Cancele quando quiser
             </p>
         </div>
     );
