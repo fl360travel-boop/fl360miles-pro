@@ -3,9 +3,15 @@ import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 
 const SubscriptionBanner: React.FC = () => {
-    const { subscription, isOwner } = useAuth();
+    const { subscription } = useAuth();
 
-    if (!isOwner || !subscription) return null;
+    // Fallback: If there is no subscription row (e.g. old accounts before the Asaas integration), treat it as expired.
+    const effectiveSub = subscription || {
+        status: 'canceled',
+        trialEndsAt: null,
+        currentPeriodEnd: null,
+        updatedAt: null
+    };
 
     // Helper: Check if date is in the past
     const isPast = (dateStr: string | null) => dateStr && new Date(dateStr) < new Date();
@@ -18,11 +24,11 @@ const SubscriptionBanner: React.FC = () => {
     };
 
     // 1. BLOCKED STATE (Red)
-    const referenceDate = subscription.currentPeriodEnd || subscription.updatedAt;
-    const isGracePeriodOver = subscription.status === 'past_due' && hoursSince(referenceDate) > 48;
-    const isTrialExpired = subscription.status === 'trial' && isPast(subscription.trialEndsAt);
+    const referenceDate = effectiveSub.currentPeriodEnd || effectiveSub.updatedAt;
+    const isGracePeriodOver = effectiveSub.status === 'past_due' && hoursSince(referenceDate) > 48;
+    const isTrialExpired = effectiveSub.status === 'trial' && isPast(effectiveSub.trialEndsAt);
 
-    if (subscription.status === 'canceled' || isTrialExpired || isGracePeriodOver) {
+    if (effectiveSub.status === 'canceled' || isTrialExpired || isGracePeriodOver) {
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-bg-dark/80 backdrop-blur-sm p-6">
                 <div className="bg-bg-surface border border-red-500/20 max-w-md w-full rounded-3xl p-8 shadow-2xl shadow-red-500/10 text-center animate-in zoom-in-95 duration-500">
@@ -31,7 +37,7 @@ const SubscriptionBanner: React.FC = () => {
                     </div>
                     <h3 className="text-xl font-bold text-white mb-2">Acesso Interrompido</h3>
                     <p className="text-slate-400 text-sm mb-8">
-                        {subscription.status === 'trial'
+                        {effectiveSub.status === 'trial'
                             ? 'O seu período de degustação gratuita chegou ao fim.'
                             : 'Identificamos uma pendência no pagamento da sua assinatura.'}
                         {' '}Para retomar o uso de todas as ferramentas, por favor, regularize seu plano.
@@ -45,7 +51,7 @@ const SubscriptionBanner: React.FC = () => {
     }
 
     // 2. GRACE PERIOD WARNING (Orange)
-    if (subscription.status === 'past_due') {
+    if (effectiveSub.status === 'past_due') {
         const hoursLeft = 48 - Math.floor(hoursSince(referenceDate));
         return (
             <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom flex flex-col items-end pointer-events-none">
@@ -68,8 +74,8 @@ const SubscriptionBanner: React.FC = () => {
     }
 
     // 3. TRIAL COUNTDOWN (Elegant Floating Pill)
-    if (subscription.status === 'trial' && subscription.trialEndsAt) {
-        const daysLeft = Math.ceil((new Date(subscription.trialEndsAt).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+    if (effectiveSub.status === 'trial' && effectiveSub.trialEndsAt) {
+        const daysLeft = Math.ceil((new Date(effectiveSub.trialEndsAt).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
 
         if (daysLeft > 0) {
             return (
