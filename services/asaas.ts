@@ -13,6 +13,7 @@ export const asaasService = {
      */
     async createSubscription(
         planId: string,
+        cycle: 'MONTHLY' | 'YEARLY',
         billingType: 'PIX' | 'BOLETO' | 'CREDIT_CARD' = 'PIX',
         cpfCnpj: string,
         mobilePhone: string
@@ -44,6 +45,7 @@ export const asaasService = {
             },
             body: JSON.stringify({
                 planId,
+                cycle,
                 billingType,
                 userEmail: session.user.email,
                 userName: profile?.display_name || session.user.email,

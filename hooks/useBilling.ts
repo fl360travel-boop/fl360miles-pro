@@ -35,7 +35,7 @@ export function useBilling() {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await asaasService.createSubscription(planId, method, cpfCnpj, mobilePhone);
+            const result = await asaasService.createSubscription(planId, cycle, method, cpfCnpj, mobilePhone);
             // Recarregar status após criação
             await loadStatus();
             return result;
