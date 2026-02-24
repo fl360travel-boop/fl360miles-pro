@@ -66,6 +66,8 @@ const Clients: React.FC = () => {
   const [showWa, setShowWa] = useState(false);
   const [managerAnalysis, setManagerAnalysis] = useState('');
   const [activeTab, setActiveTab] = useState<'info' | 'programs' | 'cards' | 'history'>('info');
+  const [clientNotes, setClientNotes] = useState('');
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [reportCycle, setReportCycle] = useState<'Mensal' | 'Trimestral' | 'Semestral' | 'Anual' | 'Personalizado'>('Mensal');
   const [reportMonth, setReportMonth] = useState(new Date().getMonth().toString());
   const [reportYear, setReportYear] = useState(new Date().getFullYear().toString());
@@ -214,6 +216,25 @@ const Clients: React.FC = () => {
     };
   }, [searchParams]);
 
+  // Sync internal notes state when selectedClient changes
+  useEffect(() => {
+    if (selectedClient) {
+      setClientNotes(selectedClient.notes || '');
+    }
+  }, [selectedClient?.id]);
+
+  const saveNotes = async () => {
+    if (!selectedClient) return;
+    setIsSavingNotes(true);
+    try {
+      await updateCurrent({ ...selectedClient, notes: clientNotes });
+    } catch (error) {
+      console.error('Failed to save notes:', error);
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
+
   const saveClient = async (updatedClient: Client) => {
     try {
       const saved = await updateClientAPI(updatedClient.id, updatedClient);
@@ -309,7 +330,7 @@ const Clients: React.FC = () => {
         profit: newMove.type === 'Venda' ? (Number(newMove.val) - (Number(newMove.amount) / 1000 * Number(newMove.cpm))) : undefined,
         bonusPercent: newMove.type === 'Transferência' ? Number(newMove.bonusPercent) : undefined,
         expirationDate: newMove.expirationDate || undefined
-      };
+      } as MileageMovement;
 
       // Update balances
       updatedProgs = updatedProgs.map(p => {
@@ -371,7 +392,7 @@ const Clients: React.FC = () => {
         amount: Math.abs(diff),
         description: 'Ajuste Manual de Saldo',
         observation: `Saldo anterior: ${freshProgram.balance.toLocaleString('pt-BR')} | Novo saldo: ${newBalance.toLocaleString('pt-BR')}`
-      };
+      } as MileageMovement;
 
       const updatedProgs = freshClient.programs.map(p => p.id === freshProgram.id ? { ...p, balance: newBalance } : p);
       await updateCurrent({ ...freshClient, programs: updatedProgs, history: [m, ...freshClient.history] });
@@ -486,7 +507,7 @@ const Clients: React.FC = () => {
           const estimatedCpm = Number(h.cpm || 15.00);
           profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
         }
-        if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc + profit;
+        if (h.type === 'Inclusão') return acc + profit;
         return acc + Number(h.economyGenerated || 0) + profit;
       }, 0);
     }
@@ -669,7 +690,7 @@ const Clients: React.FC = () => {
               const estimatedCpm = h.cpm || 15.00; // Legacy Fallback
               profit = h.negotiatedValue - ((h.amount / 1000) * estimatedCpm);
             }
-            if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc + profit;
+            if (h.type === 'Inclusão') return acc + profit;
             return acc + (h.economyGenerated || 0) + profit;
           }, 0);
 
@@ -894,6 +915,46 @@ const Clients: React.FC = () => {
                       <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Honorários: <span className="text-white ml-2 italic font-black">R$ {selectedClient.managementFee.toLocaleString('pt-BR')}</span></p>
                       <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Faturamento: <span className="text-white ml-2 italic font-black">{selectedClient.billingCycle}</span></p>
                       <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Liquidação: <span className="text-primary ml-2 italic font-black uppercase">{selectedClient.paymentMethod}</span></p>
+                    </div>
+                  </div>
+
+                  {/* Dossiê / Observações Text Area */}
+                  <div className="md:col-span-2 bg-bg-card/40 p-10 rounded-[32px] border border-white/5 space-y-8">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-5">
+                      <h4 className="display-font text-[10px] text-[#E2BE6A] font-black uppercase tracking-[0.4em] italic flex items-center gap-3">
+                        <span className="material-symbols-outlined text-sm">description</span>
+                        Dossiê & Notas Estratégicas
+                      </h4>
+                      <button
+                        onClick={saveNotes}
+                        disabled={isSavingNotes || clientNotes === (selectedClient.notes || '')}
+                        className={`flex items-center gap-2 px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${isSavingNotes || clientNotes === (selectedClient.notes || '')
+                          ? 'bg-white/5 text-slate-600'
+                          : 'bg-primary/20 text-primary hover:bg-primary hover:text-bg-dark active:scale-95'
+                          }`}
+                      >
+                        <span className="material-symbols-outlined text-xs">{isSavingNotes ? 'sync' : 'save'}</span>
+                        {isSavingNotes ? 'Salvando...' : 'Atualizar Dossiê'}
+                      </button>
+                    </div>
+                    <div className="relative group">
+                      <textarea
+                        value={clientNotes}
+                        onChange={(e) => setClientNotes(e.target.value)}
+                        placeholder="Espaço livre para observações, documentos, senhas ou anotações estratégicas do cliente..."
+                        className="w-full h-80 bg-bg-dark/40 border border-white/5 rounded-2xl p-6 text-sm text-slate-300 placeholder:text-slate-700 outline-none focus:ring-1 focus:ring-[#E2BE6A]/30 focus:border-[#E2BE6A]/20 transition-all font-light leading-relaxed resize-none custom-scrollbar"
+                      />
+                      <div className="absolute top-4 right-4 text-[8px] font-black text-slate-700 uppercase tracking-widest pointer-events-none group-focus-within:text-[#E2BE6A]/50 transition-colors">
+                        Modo Escrita Ativado
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1 p-4 rounded-2xl bg-white/5 border border-white/5">
+                        <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest mb-1 italic">Dica de Segurança</p>
+                        <p className="text-[10px] text-slate-500 leading-relaxed font-light">
+                          Utilize este campo para centralizar dados sensíveis com segurança. As informações aqui são isoladas por cliente.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -290,6 +290,15 @@ const Onboarding: React.FC = () => {
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Região / Cidade</label>
                     <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={region} onChange={e => setRegion(e.target.value)} placeholder="Ex: São Paulo, SP" />
                   </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Dossiê / Notas Iniciais</label>
+                    <textarea
+                      className="w-full bg-bg-card border border-white/5 rounded-xl py-4 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none h-40 resize-none font-light leading-relaxed placeholder:text-slate-700"
+                      value={observations}
+                      onChange={e => setObservations(e.target.value)}
+                      placeholder="Observações importantes, documentos, senhas do cliente..."
+                    />
+                  </div>
                 </div>
               </div>
 
