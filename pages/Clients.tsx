@@ -918,7 +918,7 @@ const Clients: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Dossiê / Observações Text Area */}
+                  {/* Dossiê / Observações Text Area - Espaço para Notas Estratégicas */}
                   <div className="md:col-span-2 bg-bg-card/40 p-10 rounded-[32px] border border-white/5 space-y-8">
                     <div className="flex items-center justify-between border-b border-white/5 pb-5">
                       <h4 className="display-font text-[10px] text-[#E2BE6A] font-black uppercase tracking-[0.4em] italic flex items-center gap-3">
