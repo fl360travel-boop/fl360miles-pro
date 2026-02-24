@@ -47,87 +47,102 @@ export default async (request: Request) => {
         const event = body.event as AsaasEvent;
         const payment = body.payment;
 
-        console.log(`[Webhook Asaas] Evento: ${event}`, JSON.stringify(body, null, 2));
+        console.log(`[Webhook Asaas] Evento: ${event}`);
 
         // Verificar se é um evento que tratamos
         const newStatus = EVENT_STATUS_MAP[event];
         if (!newStatus) {
-            // Evento não mapeado — aceitar mas não processar
             return new Response(JSON.stringify({ received: true, action: 'ignored' }), { status: 200, headers });
         }
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-        // Buscar subscription pelo asaas_subscription_id
-        // O payment.subscription contém o ID da assinatura no Asaas
+        // Identificadores
         const asaasSubscriptionId = payment?.subscription || body.subscription?.id;
+        const externalRef = payment?.externalReference || body.subscription?.externalReference;
 
-        if (!asaasSubscriptionId) {
-            // Tentar pelo externalReference (organization_id)
-            const externalRef = payment?.externalReference || body.subscription?.externalReference;
-
-            if (externalRef) {
-                const updateData: Record<string, any> = {
-                    status: newStatus,
-                    updated_at: new Date().toISOString(),
-                };
-
-                // Se pagamento confirmado, calcular nova data de fim
-                if (newStatus === 'active' && payment?.dueDate) {
-                    const periodEnd = new Date(payment.dueDate);
-                    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-                    updateData.current_period_end = periodEnd.toISOString();
-                    updateData.trial_ends_at = null; // Limpar trial quando paga
-                }
-
-                const { error } = await supabase
-                    .from('subscriptions')
-                    .update(updateData)
-                    .eq('organization_id', externalRef);
-
-                if (error) {
-                    console.error('[Webhook] Erro ao atualizar por externalRef:', error);
-                }
-
-                return new Response(JSON.stringify({ received: true, action: 'updated_by_ref' }), { status: 200, headers });
-            }
-
+        if (!asaasSubscriptionId && !externalRef) {
             console.warn('[Webhook] Nenhum identificador encontrado no payload');
             return new Response(JSON.stringify({ received: true, action: 'no_identifier' }), { status: 200, headers });
         }
 
-        // Atualizar subscription por asaas_subscription_id
-        const updateData: Record<string, any> = {
+        // Preparar payload de atualização
+        const payload: Record<string, any> = {
             status: newStatus,
             updated_at: new Date().toISOString(),
         };
 
-        // Se pagamento confirmado, calcular nova data de fim do período
+        // Se pagamento confirmado, calcular nova data de fim
         if (newStatus === 'active' && payment?.dueDate) {
             const periodEnd = new Date(payment.dueDate);
             periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-            updateData.current_period_end = periodEnd.toISOString();
-            updateData.trial_ends_at = null; // Limpar trial
+            payload.current_period_end = periodEnd.toISOString();
+            payload.trial_ends_at = null; // Limpar trial quando pagar
         }
 
-        const { error } = await supabase
-            .from('subscriptions')
-            .update(updateData)
-            .eq('asaas_subscription_id', asaasSubscriptionId);
-
-        if (error) {
-            console.error('[Webhook] Erro ao atualizar subscription:', error);
-            return new Response(JSON.stringify({ error: 'Erro ao processar webhook' }), { status: 500, headers });
+        let updateQuery;
+        if (asaasSubscriptionId) {
+            updateQuery = supabase.from('subscriptions').update(payload).eq('asaas_subscription_id', asaasSubscriptionId);
+        } else {
+            updateQuery = supabase.from('subscriptions').update(payload).eq('organization_id', externalRef);
         }
 
-        console.log(`[Webhook] Subscription ${asaasSubscriptionId} → status: ${newStatus}`);
+        const { data, error: updateError } = await updateQuery.select('organization_id').single();
+
+        if (updateError) {
+            console.error('[Webhook] Erro ao atualizar subscription:', updateError);
+            return new Response(JSON.stringify({ error: 'Erro ao atualizar banco de dados' }), { status: 500, headers });
+        }
+
+        const orgId = data?.organization_id || externalRef;
+
+        // Se pagamento foi confirmado, disparar email
+        if (newStatus === 'active' && orgId && (event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_RECEIVED')) {
+            try {
+                // 1. Achar o user_id do owner dessa organização
+                const { data: member } = await supabase
+                    .from('organization_members')
+                    .select('user_id')
+                    .eq('organization_id', orgId)
+                    .eq('role', 'owner')
+                    .limit(1)
+                    .single();
+
+                if (member?.user_id) {
+                    const { data: profile } = await supabase
+                        .from('user_profiles')
+                        .select('email, display_name')
+                        .eq('user_id', member.user_id)
+                        .single();
+
+                    if (profile?.email) {
+                        const origin = new URL(request.url).origin;
+                        fetch(`${origin}/api/send-email`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                to: profile.email,
+                                subject: 'Pagamento Confirmado! Bem-vindo ao Flight 360 Miles',
+                                template: 'payment_success',
+                                props: {
+                                    userName: profile.display_name?.split(' ')[0] || 'Cliente',
+                                    planName: 'Premium'
+                                }
+                            })
+                        }).catch(e => console.error('[Webhook] Falha ao disparar fetch de email:', e));
+                    }
+                }
+            } catch (err) {
+                console.error('[Webhook] Erro no bloco de envio de email:', err);
+            }
+        }
 
         return new Response(
-            JSON.stringify({ received: true, action: 'updated', newStatus }),
+            JSON.stringify({ received: true, action: 'updated', newStatus, orgId }),
             { status: 200, headers }
         );
     } catch (error: any) {
-        console.error('[Webhook] Erro:', error);
+        console.error('[Webhook] Erro fatal:', error);
         return new Response(
             JSON.stringify({ error: error.message || 'Erro interno' }),
             { status: 500, headers }

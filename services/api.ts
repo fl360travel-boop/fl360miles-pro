@@ -648,3 +648,100 @@ export async function getDashboardStats(): Promise<import('../types').DashboardS
 
     return data as import('../types').DashboardStats;
 }
+// ============================================
+// ALERTS (Vencimentos)
+// ============================================
+
+export interface Alert {
+    id: string;
+    organization_id?: string;
+    client_id?: string;
+    clientName: string;
+    program: string;
+    amount: number;
+    expirationDate: string;
+    observation: string;
+    status: 'pending' | 'resolved';
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+// Convert database format to frontend format
+function dbToAlert(db: any): Alert {
+    return {
+        id: db.id,
+        organization_id: db.organization_id,
+        client_id: db.client_id,
+        clientName: db.client_name,
+        program: db.program,
+        amount: Number(db.amount || 0),
+        expirationDate: db.expiration_date,
+        observation: db.observation || '',
+        status: db.status,
+        createdAt: db.created_at,
+        updatedAt: db.updated_at
+    };
+}
+
+// GET all alerts
+export async function getAlerts(): Promise<Alert[]> {
+    const { data, error } = await supabase
+        .from('alerts')
+        .select('*')
+        .order('expiration_date', { ascending: true });
+
+    if (error) throw new Error(`Failed to fetch alerts: ${error.message}`);
+    return (data || []).map(dbToAlert);
+}
+
+// POST create alert
+export async function createAlert(alertData: Omit<Alert, 'id'>): Promise<Alert> {
+    const { data, error } = await supabase
+        .from('alerts')
+        .insert({
+            client_id: alertData.client_id,
+            client_name: alertData.clientName,
+            program: alertData.program,
+            amount: Math.round(Number(alertData.amount) || 0),
+            expiration_date: alertData.expirationDate,
+            observation: alertData.observation,
+            status: alertData.status
+        })
+        .select()
+        .single();
+
+    if (error) throw new Error(`Failed to create alert: ${error.message}`);
+    return dbToAlert(data);
+}
+
+// PUT update alert
+export async function updateAlert(id: string, alertData: Partial<Alert>): Promise<Alert> {
+    const updateData: any = {};
+    if (alertData.clientName !== undefined) updateData.client_name = alertData.clientName;
+    if (alertData.program !== undefined) updateData.program = alertData.program;
+    if (alertData.amount !== undefined) updateData.amount = Math.round(Number(alertData.amount) || 0);
+    if (alertData.expirationDate !== undefined) updateData.expiration_date = alertData.expirationDate;
+    if (alertData.observation !== undefined) updateData.observation = alertData.observation;
+    if (alertData.status !== undefined) updateData.status = alertData.status;
+    if (alertData.client_id !== undefined) updateData.client_id = alertData.client_id;
+
+    const { data, error } = await supabase
+        .from('alerts')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) throw new Error(`Failed to update alert: ${error.message}`);
+    return dbToAlert(data);
+}
+
+// DELETE alert
+export async function deleteAlert(id: string): Promise<void> {
+    const { error } = await supabase
+        .from('alerts')
+        .delete()
+        .eq('id', id);
+
+    if (error) throw new Error(`Failed to delete alert: ${error.message}`);
+}

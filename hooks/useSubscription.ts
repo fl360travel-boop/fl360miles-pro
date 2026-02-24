@@ -14,7 +14,7 @@ const PLAN_LIMITS: Record<string, number> = {
 };
 
 export function useSubscription() {
-    const { subscription, userRole } = useAuth();
+    const { user, subscription, userRole } = useAuth();
     const [currentClients, setCurrentClients] = useState(0);
 
     // Buscar contagem de clientes
@@ -48,31 +48,35 @@ export function useSubscription() {
         return (Date.now() - new Date(dateStr).getTime()) / (1000 * 3600);
     };
 
+    // --- BYPASS PARA O DONO DO SAAS ---
+    const isOwnerBypass = user?.email === 'fl360travel@gmail.com';
+
     // Status computados
-    const isTrialing = subscription?.status === 'trial' && !isPast(subscription.trialEndsAt);
-    const isTrialExpired = subscription?.status === 'trial' && isPast(subscription.trialEndsAt);
-    const isActive = subscription?.status === 'active' || subscription?.status === 'lifetime' || subscription?.status === 'legacy';
+    // O dono nunca deve ser marcado como 'trial' ou 'expirado'
+    const isTrialing = (subscription?.status === 'trial' && !isPast(subscription.trialEndsAt)) && !isOwnerBypass;
+    const isTrialExpired = (subscription?.status === 'trial' && isPast(subscription.trialEndsAt)) && !isOwnerBypass;
+    const isActive = subscription?.status === 'active' || subscription?.status === 'lifetime' || subscription?.status === 'legacy' || isOwnerBypass;
 
     const referenceDate = subscription?.currentPeriodEnd || subscription?.updatedAt || null;
-    const isGracePeriodOver = subscription?.status === 'past_due' && hoursSince(referenceDate) > 48;
-    const isCanceled = subscription?.status === 'canceled';
+    const isGracePeriodOver = subscription?.status === 'past_due' && hoursSince(referenceDate) > 48 && !isOwnerBypass;
+    const isCanceled = subscription?.status === 'canceled' && !isOwnerBypass;
 
     // BLOQUEADO = trial expirou OU cancelado OU past_due > 48h
-    const isBlocked = isTrialExpired || isCanceled || isGracePeriodOver;
+    const isBlocked = (isTrialExpired || isCanceled || isGracePeriodOver) && !isOwnerBypass;
 
     // Demo e owner sem subscription não são bloqueados
     const shouldBlock = isBlocked && userRole !== 'demo';
 
-    // Dias restantes do trial
+    // Dias restantes do trial (Dono não vê timer)
     const daysLeft = isTrialing && subscription?.trialEndsAt
         ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / (1000 * 3600 * 24)))
         : 0;
 
     // Limites de clientes
-    const planId = subscription?.planId || 'starter';
+    const planId = isOwnerBypass ? 'enterprise' : (subscription?.planId || 'starter');
     const clientLimit = PLAN_LIMITS[planId] ?? 50;
-    const canAddClient = currentClients < clientLimit;
-    const clientsRemaining = Math.max(0, clientLimit === Infinity ? Infinity : clientLimit - currentClients);
+    const canAddClient = isOwnerBypass || (currentClients < clientLimit);
+    const clientsRemaining = isOwnerBypass ? Infinity : Math.max(0, clientLimit === Infinity ? Infinity : clientLimit - currentClients);
 
     return {
         // Status

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { ExpirationAlert, Client } from '../types';
-import { getClients } from '../services/api';
+import { getClients, getAlerts, createAlert, updateAlert, deleteAlert } from '../services/api';
 
 const Alerts: React.FC = () => {
   const [alerts, setAlerts] = useState<ExpirationAlert[]>([]);
@@ -23,76 +23,66 @@ const Alerts: React.FC = () => {
   });
 
   useEffect(() => {
-    const loadClients = async () => {
+    const loadData = async () => {
       try {
-        const data = await getClients();
-        setClients(data);
+        const [clientsData, alertsData] = await Promise.all([
+          getClients(),
+          getAlerts()
+        ]);
+        setClients(clientsData);
+        setAlerts(alertsData);
       } catch (error) {
-        console.error('Failed to load clients:', error);
+        console.error('Failed to load data:', error);
       }
     };
-    loadClients();
-
-    const storedAlerts = localStorage.getItem('executive_miles_alerts');
-    if (storedAlerts) {
-      setAlerts(JSON.parse(storedAlerts));
-    } else {
-      const initialAlerts: ExpirationAlert[] = [
-        {
-          id: '1',
-          clientName: 'Ricardo Oliveira',
-          program: 'Azul Fidelidade',
-          amount: 45000,
-          expirationDate: '2025-05-12',
-          observation: 'Vencimento de bônus de transferência estratégica realizado via Esfera.',
-          status: 'pending',
-          createdAt: new Date().toISOString()
-        }
-      ];
-      setAlerts(initialAlerts);
-      localStorage.setItem('executive_miles_alerts', JSON.stringify(initialAlerts));
-    }
+    loadData();
   }, []);
 
-  const saveAlerts = (list: ExpirationAlert[]) => {
-    setAlerts(list);
-    localStorage.setItem('executive_miles_alerts', JSON.stringify(list));
+  const refreshAlerts = async () => {
+    try {
+      const data = await getAlerts();
+      setAlerts(data);
+    } catch (error) {
+      console.error('Failed to refresh alerts:', error);
+    }
   };
 
-  const handleAddAlert = () => {
+  const handleAddAlert = async () => {
     const client = clients.find(c => c.id === newAlert.clientId);
     if (!client || !newAlert.program || !newAlert.amount) {
       alert("Preencha todos os campos fundamentais do protocolo.");
       return;
     }
 
-    if (editingAlert) {
-      const updated = alerts.map(a => a.id === editingAlert.id ? {
-        ...a,
-        clientName: client.name,
-        program: newAlert.program,
-        amount: Number(newAlert.amount),
-        expirationDate: newAlert.date,
-        observation: newAlert.obs
-      } : a);
-      saveAlerts(updated);
-    } else {
-      const alert: ExpirationAlert = {
-        id: Date.now().toString(),
-        clientName: client.name,
-        program: newAlert.program,
-        amount: Number(newAlert.amount),
-        expirationDate: newAlert.date,
-        observation: newAlert.obs,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
-      saveAlerts([alert, ...alerts]);
+    try {
+      if (editingAlert) {
+        await updateAlert(editingAlert.id, {
+          client_id: client.id,
+          clientName: client.name,
+          program: newAlert.program,
+          amount: Number(newAlert.amount),
+          expirationDate: newAlert.date,
+          observation: newAlert.obs
+        });
+      } else {
+        await createAlert({
+          client_id: client.id,
+          clientName: client.name,
+          program: newAlert.program,
+          amount: Number(newAlert.amount),
+          expirationDate: newAlert.date,
+          observation: newAlert.obs,
+          status: 'pending'
+        });
+      }
+      await refreshAlerts();
+      setShowNewAlert(false);
+      setEditingAlert(null);
+      setNewAlert({ clientId: '', program: '', amount: '', date: '', obs: '' });
+    } catch (error) {
+      console.error('Failed to save alert:', error);
+      alert('Erro ao salvar alerta. Tente novamente.');
     }
-
-    setShowNewAlert(false);
-    setEditingAlert(null);
-    setNewAlert({ clientId: '', program: '', amount: '', date: '', obs: '' });
   };
 
   const requestDelete = (id: string) => {
@@ -100,11 +90,17 @@ const Alerts: React.FC = () => {
     setShowConfirmDelete(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (alertToDelete) {
-      saveAlerts(alerts.filter(a => a.id !== alertToDelete));
-      setShowConfirmDelete(false);
-      setAlertToDelete(null);
+      try {
+        await deleteAlert(alertToDelete);
+        await refreshAlerts();
+        setShowConfirmDelete(false);
+        setAlertToDelete(null);
+      } catch (error) {
+        console.error('Failed to delete alert:', error);
+        alert('Erro ao excluir alerta.');
+      }
     }
   };
 
@@ -121,12 +117,16 @@ const Alerts: React.FC = () => {
     setShowNewAlert(true);
   };
 
-  const resolveAlert = (id: string) => {
+  const resolveAlert = async (id: string) => {
     setResolvingId(id);
-    setTimeout(() => {
-      saveAlerts(alerts.map(a => a.id === id ? { ...a, status: 'resolved' as const } : a));
+    try {
+      await updateAlert(id, { status: 'resolved' });
+      await refreshAlerts();
+    } catch (error) {
+      console.error('Failed to resolve alert:', error);
+    } finally {
       setResolvingId(null);
-    }, 600);
+    }
   };
 
   const filteredAlerts = useMemo(() => {

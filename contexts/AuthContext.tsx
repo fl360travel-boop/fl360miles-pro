@@ -57,7 +57,7 @@ async function fetchUserProfile(userId: string): Promise<UserProfile> {
     try {
         const { data, error } = await supabase
             .from('user_profiles')
-            .select('role, display_name, avatar')
+            .select('role, display_name, avatar, email')
             .eq('user_id', userId)
             .single();
 
@@ -66,12 +66,33 @@ async function fetchUserProfile(userId: string): Promise<UserProfile> {
             return defaultProfile; // fallback seguro
         }
 
+        // HARDCODED BYPASS FOR SAAS OWNER
+        // Ensures the owner ALWAYS has the 'owner' role even if DB state is mismatched
+        const { data: userAuth } = await supabase.auth.admin.getUserById(userId).catch(() => ({ data: { user: null } }));
+        const userEmail = (data as any).email || userAuth?.user?.email;
+
+        if (data.role !== 'owner' && userEmail === 'fl360travel@gmail.com') {
+            return {
+                role: 'owner',
+                display_name: data.display_name || 'Adriano (Dono)',
+                avatar: data.avatar || undefined
+            };
+        }
+
         return {
             role: data.role as UserRole,
             display_name: data.display_name || 'Usuário',
             avatar: data.avatar || undefined
         };
     } catch {
+        // Fallback for the owner even on total failure
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user?.email === 'fl360travel@gmail.com') {
+                return { role: 'owner', display_name: 'Adriano (Dono)' } as UserProfile;
+            }
+        } catch { }
+
         console.warn('Erro ao buscar perfil. Usando perfil padrão.');
         return defaultProfile;
     }
