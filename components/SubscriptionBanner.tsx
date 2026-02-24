@@ -3,18 +3,21 @@ import { useAuth } from '../contexts/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 
 const SubscriptionBanner: React.FC = () => {
-    const { subscription } = useAuth();
+    const { subscription, isOwner, isDeveloper, isDemo } = useAuth();
     const location = useLocation();
 
-    // 0. Auto-hide logic: Se o usuário já está na página de checkout de planos, escondemos os banners para não bloquearem a tela
-    if (location.pathname === '/plans') {
+    // 0. BYPASS TOTAL: Dono, Dev e Demo não veem banners de bloqueio ou trial
+    const isBypassed = isOwner || isDeveloper || isDemo;
+
+    // Se o usuário está na página de planos ou é um usuário bypassado, não mostramos nada
+    if (location.pathname === '/plans' || isBypassed) {
         return null;
     }
 
-    // Fallback: If there is no subscription row (e.g. old accounts before the Asaas integration), treat it as expired.
+    // Fallback: If there is no subscription row, treat it as trial
     const effectiveSub = subscription || {
-        status: 'canceled',
-        trialEndsAt: null,
+        status: 'trial',
+        trialEndsAt: new Date(Date.now() + 999 * 24 * 60 * 60 * 1000).toISOString(),
         currentPeriodEnd: null,
         updatedAt: null
     };

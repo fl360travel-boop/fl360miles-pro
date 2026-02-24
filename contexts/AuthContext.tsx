@@ -57,7 +57,7 @@ async function fetchUserProfile(userId: string): Promise<UserProfile> {
     try {
         const { data, error } = await supabase
             .from('user_profiles')
-            .select('role, display_name, avatar, email')
+            .select('role, display_name, avatar')
             .eq('user_id', userId)
             .single();
 
@@ -66,33 +66,12 @@ async function fetchUserProfile(userId: string): Promise<UserProfile> {
             return defaultProfile; // fallback seguro
         }
 
-        // HARDCODED BYPASS FOR SAAS OWNER
-        // Ensures the owner ALWAYS has the 'owner' role even if DB state is mismatched
-        const { data: userAuth } = await supabase.auth.admin.getUserById(userId).catch(() => ({ data: { user: null } }));
-        const userEmail = (data as any).email || userAuth?.user?.email;
-
-        if (data.role !== 'owner' && userEmail === 'fl360travel@gmail.com') {
-            return {
-                role: 'owner',
-                display_name: data.display_name || 'Adriano (Dono)',
-                avatar: data.avatar || undefined
-            };
-        }
-
         return {
             role: data.role as UserRole,
             display_name: data.display_name || 'Usuário',
             avatar: data.avatar || undefined
         };
     } catch {
-        // Fallback for the owner even on total failure
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user?.email === 'fl360travel@gmail.com') {
-                return { role: 'owner', display_name: 'Adriano (Dono)' } as UserProfile;
-            }
-        } catch { }
-
         console.warn('Erro ao buscar perfil. Usando perfil padrão.');
         return defaultProfile;
     }
@@ -131,6 +110,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     withTimeout(fetchUserProfile(session.user.id), 5000, { role: 'developer', display_name: 'Usuário' } as UserProfile),
                     withTimeout(fetchSubscriptionSafe(), 5000, null)
                 ]);
+
+                // FORÇAR ROLE OWNER SE FOR O EMAIL DO DONO
+                if (session.user.email === 'fl360travel@gmail.com') {
+                    profile.role = 'owner';
+                    if (!profile.display_name || profile.display_name === 'Usuário') {
+                        profile.display_name = 'Adriano (Dono)';
+                    }
+                }
+
                 setUserRole(profile.role);
                 setUserProfile(profile);
                 setSubscription(sub);
@@ -156,6 +144,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         withTimeout(fetchUserProfile(session.user.id), 5000, { role: 'developer', display_name: 'Usuário' } as UserProfile),
                         withTimeout(fetchSubscriptionSafe(), 5000, null)
                     ]);
+
+                    // FORÇAR ROLE OWNER SE FOR O EMAIL DO DONO
+                    if (session.user.email === 'fl360travel@gmail.com') {
+                        profile.role = 'owner';
+                        if (!profile.display_name || profile.display_name === 'Usuário') {
+                            profile.display_name = 'Adriano (Dono)';
+                        }
+                    }
+
                     setUserRole(profile.role);
                     setUserProfile(profile);
                     setSubscription(sub);
