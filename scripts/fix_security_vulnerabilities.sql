@@ -279,6 +279,7 @@ $function$;
 
 
 -- 6. handle_new_signup(text, text)
+DROP FUNCTION IF EXISTS public.handle_new_signup(text, text);
 CREATE OR REPLACE FUNCTION public.handle_new_signup(p_org_name text, p_display_name text)
  RETURNS void
  LANGUAGE plpgsql
