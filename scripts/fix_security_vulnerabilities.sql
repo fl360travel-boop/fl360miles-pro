@@ -86,23 +86,6 @@ CREATE POLICY "Service role full access on audit_events"
     USING (auth.role() = 'service_role');
 
 
--- 2.3 team_members
-ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "team_members_base_access" ON public.team_members;
-CREATE POLICY "team_members_base_access"
-    ON public.team_members
-    FOR SELECT
-    USING (
-        organization_id IN (
-            SELECT organization_id FROM public.organization_members WHERE user_id = auth.uid()
-        )
-    );
-DROP POLICY IF EXISTS "Service role has full access to team_members" ON public.team_members;
-CREATE POLICY "Service role has full access to team_members"
-    ON public.team_members
-    FOR ALL
-    USING (auth.role() = 'service_role');
-
 
 -- 2.4 user_profiles
 ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
