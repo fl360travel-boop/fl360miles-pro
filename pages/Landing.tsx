@@ -393,7 +393,7 @@ const Landing: React.FC = () => {
                                 <p className="text-slate-400 text-sm mb-6 h-10">Para agências que querem abrir a vertical de milhas com organização.</p>
                                 <div className="flex items-baseline gap-1 mb-6">
                                     <span className="text-sm text-slate-400">R$</span>
-                                    <span className="text-4xl font-black text-white">799</span>
+                                    <span className="text-4xl font-black text-white">799,99</span>
                                     <span className="text-sm text-slate-400">/mês</span>
                                 </div>
                                 <ul className="space-y-3 mb-8 flex-1">
@@ -414,7 +414,7 @@ const Landing: React.FC = () => {
                                 <p className="text-slate-300 text-sm mb-6 h-10">Para agências que já vendem milhas e querem previsibilidade.</p>
                                 <div className="flex items-baseline gap-1 mb-2">
                                     <span className="text-sm text-slate-400">R$</span>
-                                    <span className="text-4xl font-black text-white">1.299</span>
+                                    <span className="text-4xl font-black text-white">1.299,00</span>
                                     <span className="text-sm text-slate-400">/mês</span>
                                 </div>
                                 <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wide mb-6">
@@ -437,7 +437,7 @@ const Landing: React.FC = () => {
                                 <p className="text-slate-400 text-sm mb-6 h-10">Para agências que querem posicionamento e autoridade (White Label).</p>
                                 <div className="flex items-baseline gap-1 mb-6">
                                     <span className="text-sm text-slate-400">R$</span>
-                                    <span className="text-4xl font-black text-white">2.399</span>
+                                    <span className="text-4xl font-black text-white">2.399,00</span>
                                     <span className="text-sm text-slate-400">/mês</span>
                                 </div>
                                 <ul className="space-y-3 mb-8 flex-1">

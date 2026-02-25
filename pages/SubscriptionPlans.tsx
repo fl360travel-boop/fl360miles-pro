@@ -7,7 +7,7 @@ const plans = [
     {
         id: 'starter',
         name: 'Starter',
-        price: 799,
+        price: 799.99,
         cycle: 'mês',
         features: ['Até 20 clientes', 'Gestão completa de milhas', 'Dashboard inteligente', 'Suporte por email'],
         recommended: false

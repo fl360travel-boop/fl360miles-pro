@@ -5,7 +5,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 const PLAN_PRICES: Record<string, number> = {
-    starter: 799,
+    starter: 799.99,
     pro: 1299,
     enterprise: 2399,
 };

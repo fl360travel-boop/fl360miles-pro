@@ -6,6 +6,7 @@ import { Client, MileageProgram, CreditCard, MileageMovement } from '../types';
 import { useSearch } from '../contexts/SearchContext';
 import { getClients, updateClient as updateClientAPI, deleteClient as deleteClientAPI, deleteMovement as deleteMovementAPI, subscribeToClients, subscribeToPrograms, subscribeToAllMovements, getClient } from '../services/api';
 import { BrandLogo, CardSkin } from '../components/BrandAssets';
+import { useSubscription } from '../hooks/useSubscription';
 
 
 const getInitials = (name: string) => {
@@ -14,6 +15,7 @@ const getInitials = (name: string) => {
 
 const Clients: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const { canAddClient, planId } = useSubscription();
   const [clients, setClients] = useState<Client[]>([]);
   const handleDeleteMovement = async (movementId: string) => {
     if (!selectedClient) return;
@@ -665,9 +667,15 @@ const Clients: React.FC = () => {
           <span className="material-symbols-outlined text-lg">sort_by_alpha</span>
           {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
         </button>
-        <Link to="/onboarding" className="shrink-0 bg-[#E2BE6A] hover:bg-[#B8952E] text-[#0A0D11] px-8 py-3 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all shadow-xl shadow-[#E2BE6A]/20 flex items-center gap-3 active:scale-95 whitespace-nowrap">
-          <span className="material-symbols-outlined text-sm">person_add</span> NOVO CLIENTE
-        </Link>
+        {canAddClient ? (
+          <Link to="/onboarding" className="shrink-0 bg-[#E2BE6A] hover:bg-[#B8952E] text-[#0A0D11] px-8 py-3 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all shadow-xl shadow-[#E2BE6A]/20 flex items-center gap-3 active:scale-95 whitespace-nowrap">
+            <span className="material-symbols-outlined text-sm">person_add</span> NOVO CLIENTE
+          </Link>
+        ) : (
+          <button onClick={() => alert('Limite de clientes atingido. Acesse "Meu Plano" no menu para fazer upgrade do seu plano e cadastrar mais clientes.')} className="shrink-0 bg-red-500/20 text-red-400 border border-red-500/30 px-8 py-3 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-3 active:scale-95 whitespace-nowrap">
+            <span className="material-symbols-outlined text-sm">lock</span> LIMITE ATINGIDO
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:hidden">
@@ -878,7 +886,13 @@ const Clients: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <button onClick={() => setShowReport(true)} className="size-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-bg-dark transition-all shadow-xl group" title="Relatório PDF">
+                  <button onClick={() => {
+                    if (planId === 'starter') {
+                      alert('Recurso exclusivo dos planos Profissional e White Label. Acesse "Meu Plano" no menu para fazer o upgrade e gerar relatórios em PDF!');
+                    } else {
+                      setShowReport(true);
+                    }
+                  }} className="size-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-bg-dark transition-all shadow-xl group" title="Relatório PDF">
                     <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">analytics</span>
                   </button>
                   <button onClick={() => setShowWa(true)} className="size-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all shadow-xl group" title="Gerar Resumo WhatsApp">

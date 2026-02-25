@@ -6,6 +6,7 @@ interface RevealProps {
     width?: "fit-content" | "100%";
     delay?: number; // ms
     direction?: "up" | "down" | "left" | "right";
+    key?: string | number;
 }
 
 export const RevealOnScroll = ({ children, width = "fit-content", delay = 0, direction = "up" }: RevealProps) => {
