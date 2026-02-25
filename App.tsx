@@ -29,6 +29,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { usePermissions } from './hooks/usePermissions';
 import SubscriptionBanner from './components/SubscriptionBanner';
 import SubscriptionGuard from './components/SubscriptionGuard';
+import BillingPopupModal from './components/BillingPopupModal';
+import BillingBlockedScreen from './components/BillingBlockedScreen';
 
 // Componente que protege rotas exclusivas do Owner
 const OwnerRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -90,6 +92,12 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Banner de Demo/Dev */}
       <RoleBanner />
+
+      {/* Billing: Popup de cobrança (DUE_SOON, DUE_TODAY, OVERDUE_WARNING) */}
+      <BillingPopupModal />
+
+      {/* Billing: Tela de bloqueio total (BLOCKED) */}
+      <BillingBlockedScreen />
 
       {!isOnboarding && (
         <>

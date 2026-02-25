@@ -96,6 +96,49 @@ export default async (request: Request) => {
 
         const orgId = data?.organization_id || externalRef;
 
+        // ========================================
+        // BILLING STATUS: Atualizar billing_status quando pagamento confirmado
+        // ========================================
+        if (newStatus === 'active' && orgId && (event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_RECEIVED')) {
+            try {
+                // Achar o user_id do owner dessa organização
+                const { data: ownerMember } = await supabase
+                    .from('organization_members')
+                    .select('user_id')
+                    .eq('organization_id', orgId)
+                    .eq('role', 'owner')
+                    .limit(1)
+                    .single();
+
+                if (ownerMember?.user_id) {
+                    const now = new Date();
+                    const newDueDate = new Date(now);
+                    newDueDate.setDate(newDueDate.getDate() + 30);
+
+                    const { error: billingError } = await supabase
+                        .from('billing_status')
+                        .upsert({
+                            user_id: ownerMember.user_id,
+                            last_paid_at: now.toISOString(),
+                            due_date: newDueDate.toISOString().split('T')[0],
+                            status: 'ACTIVE',
+                            blocked_at: null,
+                            popup_snoozed_until: null,
+                            popup_last_shown_at: null,
+                        }, { onConflict: 'user_id' });
+
+                    if (billingError) {
+                        console.error('[Webhook] Erro ao atualizar billing_status:', billingError);
+                    } else {
+                        console.log(`[Webhook] billing_status atualizado para user ${ownerMember.user_id}`);
+                        console.log('[Analytics] payment_completed', { user_id: ownerMember.user_id });
+                    }
+                }
+            } catch (err) {
+                console.error('[Webhook] Erro no bloco de billing_status:', err);
+            }
+        }
+
         // Se pagamento foi confirmado, disparar email
         if (newStatus === 'active' && orgId && (event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_RECEIVED')) {
             try {
