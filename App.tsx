@@ -23,6 +23,7 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import SubscriptionPlans from './pages/SubscriptionPlans';
+import ChangePassword from './pages/ChangePassword';
 import PrintReport from './pages/PrintReport';
 import { SearchProvider } from './contexts/SearchContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -152,6 +153,18 @@ const AuthenticatedApp: React.FC = () => {
     );
   }
 
+  // Se estiver logado mas precisa trocar senha, forçar redirect
+  const { mustChangePassword } = useAuth();
+
+  if (user && mustChangePassword && location.pathname !== '/change-password') {
+    return (
+      <Routes>
+        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="*" element={<Navigate to="/change-password" replace />} />
+      </Routes>
+    );
+  }
+
   // Se estiver logado, mostra rotas protegidas
   return (
     <SearchProvider>
@@ -169,6 +182,7 @@ const AuthenticatedApp: React.FC = () => {
         <Route path="/settings/team" element={<AppLayout><OwnerRoute><Team /></OwnerRoute></AppLayout>} />
         <Route path="/onboarding/*" element={<SubscriptionGuard><AppLayout><ReadOnlyGuard><Onboarding /></ReadOnlyGuard></AppLayout></SubscriptionGuard>} />
         <Route path="/plans" element={<AppLayout><SubscriptionPlans /></AppLayout>} />
+        <Route path="/change-password" element={<ChangePassword />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/print-report" element={<PrintReport />} />
         <Route path="*" element={<Navigate to="/" replace />} />
