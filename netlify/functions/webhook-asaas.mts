@@ -90,6 +90,46 @@ export default async (request: Request) => {
         const { data, error: updateError } = await updateQuery.select('organization_id').single();
 
         if (updateError) {
+            // ========================================
+            // AUTO-PROVISIONING: Se não encontrou subscription,
+            // pode ser um cliente novo que pagou direto pelo Asaas.
+            // Tentar auto-criar conta via provision-user.
+            // ========================================
+            if (newStatus === 'active' && (event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_RECEIVED')) {
+                const customerEmail = payment?.customer?.email || payment?.email;
+                const customerName = payment?.customer?.name || payment?.name || customerEmail;
+                const paymentId = payment?.id || body.id || `asaas-${Date.now()}`;
+
+                if (customerEmail) {
+                    console.log(`[Webhook] Subscription não encontrada. Tentando auto-provisioning para: ${customerEmail}`);
+
+                    try {
+                        const origin = new URL(request.url).origin;
+                        const provisionRes = await fetch(`${origin}/api/provision-user`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: customerEmail,
+                                full_name: customerName,
+                                plan: 'starter',
+                                external_payment_id: paymentId,
+                            }),
+                        });
+
+                        const provisionResult = await provisionRes.json();
+                        console.log('[Webhook] Auto-provisioning result:', provisionResult);
+
+                        return new Response(JSON.stringify({
+                            received: true,
+                            action: 'auto_provisioned',
+                            result: provisionResult,
+                        }), { status: 200, headers });
+                    } catch (provErr) {
+                        console.error('[Webhook] Erro no auto-provisioning:', provErr);
+                    }
+                }
+            }
+
             console.error('[Webhook] Erro ao atualizar subscription:', updateError);
             return new Response(JSON.stringify({ error: 'Erro ao atualizar banco de dados' }), { status: 500, headers });
         }
