@@ -51,7 +51,7 @@ export default async (request: Request) => {
 
     try {
         const body = await request.json();
-        const { planId, billingType, userEmail, userName, cpfCnpj, mobilePhone, organizationId, userId, cycle, trialDays } = body;
+        const { planId, billingType, userEmail, userName, cpfCnpj, mobilePhone, organizationId, userId, cycle, trialDays, creditCard, creditCardHolderInfo } = body;
 
         if (!planId || !PLAN_PRICES[planId]) {
             return new Response(JSON.stringify({ error: 'Plano inválido' }), { status: 400, headers });
@@ -111,21 +111,29 @@ export default async (request: Request) => {
         const trialOffset = trialDays ? Number(trialDays) : 1;
         const nextDueDate = new Date(Date.now() + trialOffset * 86400000).toISOString().split('T')[0];
 
+        const subscriptionPayload: Record<string, any> = {
+            customer: asaasCustomerId,
+            billingType: creditCard ? 'CREDIT_CARD' : (billingType || 'UNDEFINED'),
+            value: value,
+            nextDueDate: nextDueDate,
+            cycle: cycle === 'YEARLY' ? 'YEARLY' : 'MONTHLY',
+            description: `FL360 Miles - Plano ${planName} (${cycle === 'YEARLY' ? 'Anual' : 'Mensal'})`,
+            externalReference: organizationId,
+        };
+
+        // Se dados do cartão de crédito foram enviados, incluir na requisição
+        if (creditCard) {
+            subscriptionPayload.creditCard = creditCard;
+            subscriptionPayload.creditCardHolderInfo = creditCardHolderInfo;
+        }
+
         const subscriptionRes = await fetch(`${ASAAS_API_URL}/subscriptions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'access_token': ASAAS_API_KEY,
             },
-            body: JSON.stringify({
-                customer: asaasCustomerId,
-                billingType: billingType || 'UNDEFINED',
-                value: value,
-                nextDueDate: nextDueDate,
-                cycle: cycle === 'YEARLY' ? 'YEARLY' : 'MONTHLY',
-                description: `FL360 Miles - Plano ${planName} (${cycle === 'YEARLY' ? 'Anual' : 'Mensal'})`,
-                externalReference: organizationId,
-            }),
+            body: JSON.stringify(subscriptionPayload),
         });
 
         const subData = await subscriptionRes.json();

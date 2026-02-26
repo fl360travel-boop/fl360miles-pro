@@ -17,7 +17,9 @@ export const asaasService = {
         billingType: 'PIX' | 'BOLETO' | 'CREDIT_CARD' = 'PIX',
         cpfCnpj: string,
         mobilePhone: string,
-        trialDays?: number
+        trialDays?: number,
+        creditCard?: { holderName: string; number: string; expiryMonth: string; expiryYear: string; ccv: string },
+        creditCardHolderInfo?: { name: string; email: string; cpfCnpj: string; postalCode: string; addressNumber: string; phone: string; mobilePhone: string }
     ): Promise<SubscriptionResponse> {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Usuário não autenticado');
@@ -55,6 +57,8 @@ export const asaasService = {
                 organizationId: membership.organization_id,
                 userId: session.user.id,
                 ...(trialDays ? { trialDays } : {}),
+                ...(creditCard ? { creditCard } : {}),
+                ...(creditCardHolderInfo ? { creditCardHolderInfo } : {}),
             }),
         });
 
