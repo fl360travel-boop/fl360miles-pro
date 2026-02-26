@@ -51,7 +51,7 @@ export default async (request: Request) => {
 
     try {
         const body = await request.json();
-        const { planId, billingType, userEmail, userName, cpfCnpj, mobilePhone, organizationId, userId, cycle } = body;
+        const { planId, billingType, userEmail, userName, cpfCnpj, mobilePhone, organizationId, userId, cycle, trialDays } = body;
 
         if (!planId || !PLAN_PRICES[planId]) {
             return new Response(JSON.stringify({ error: 'Plano inválido' }), { status: 400, headers });
@@ -107,8 +107,9 @@ export default async (request: Request) => {
             asaasCustomerId = customerData.id;
         }
 
-        // 2. Criar assinatura anual no Asaas
-        const nextDueDate = new Date(Date.now() + 86400000).toISOString().split('T')[0]; // Amanhã
+        // 2. Criar assinatura no Asaas
+        const trialOffset = trialDays ? Number(trialDays) : 1;
+        const nextDueDate = new Date(Date.now() + trialOffset * 86400000).toISOString().split('T')[0];
 
         const subscriptionRes = await fetch(`${ASAAS_API_URL}/subscriptions`, {
             method: 'POST',
@@ -118,7 +119,7 @@ export default async (request: Request) => {
             },
             body: JSON.stringify({
                 customer: asaasCustomerId,
-                billingType: 'UNDEFINED',
+                billingType: billingType || 'UNDEFINED',
                 value: value,
                 nextDueDate: nextDueDate,
                 cycle: cycle === 'YEARLY' ? 'YEARLY' : 'MONTHLY',

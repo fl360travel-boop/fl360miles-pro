@@ -16,7 +16,8 @@ export const asaasService = {
         cycle: 'MONTHLY' | 'YEARLY',
         billingType: 'PIX' | 'BOLETO' | 'CREDIT_CARD' = 'PIX',
         cpfCnpj: string,
-        mobilePhone: string
+        mobilePhone: string,
+        trialDays?: number
     ): Promise<SubscriptionResponse> {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Usuário não autenticado');
@@ -53,6 +54,7 @@ export const asaasService = {
                 mobilePhone,
                 organizationId: membership.organization_id,
                 userId: session.user.id,
+                ...(trialDays ? { trialDays } : {}),
             }),
         });
 
