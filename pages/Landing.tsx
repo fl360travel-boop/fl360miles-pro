@@ -112,22 +112,19 @@ const Landing: React.FC = () => {
             </section>
 
             {/* Mockup do Sistema (Plataforma Tátil) */}
-            <section className="relative z-20 -mt-20 md:-mt-32 pb-32 px-6">
+            <section className="relative z-20 pt-12 pb-32 px-6">
                 <div className="max-w-6xl mx-auto">
                     <RevealOnScroll delay={300}>
                         <div className="rounded-2xl border border-white/10 bg-bg-card/90 backdrop-blur-xl p-2 md:p-4 shadow-2xl shadow-primary/5 relative group overflow-hidden">
-                            {/* Reflexo */}
-                            <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-xl"></div>
-                            <div className="w-full aspect-video bg-[#0B0F19] rounded-xl border border-white/5 relative overflow-hidden flex items-center justify-center">
-                                {/* Imagem Real do Sistema - Insira dashboard-preview.png na pasta public */}
+                            {/* Reflexo na borda superior */}
+                            <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-xl z-20"></div>
+                            
+                            <div className="w-full bg-[#0B0F19] rounded-xl border border-white/5 relative overflow-hidden flex items-center justify-center">
+                                {/* Imagem Real do Sistema */}
                                 <img 
                                     src="/Imagem 4.png" 
                                     alt="Painel de Controle FL360 MOCKUP" 
-                                    className="w-full object-cover min-h-[300px] md:min-h-[500px]"
-                                    onError={(e) => {
-                                        // Fallback se a imagem não for encontrada
-                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop';
-                                    }}
+                                    className="w-full h-auto object-contain relative z-10"
                                 />
                             </div>
                         </div>
