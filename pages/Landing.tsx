@@ -582,7 +582,7 @@ const Landing: React.FC = () => {
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Scanner Award</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Relatórios Padrão</li>
                                 </ul>
-                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl border border-white/10 text-white font-bold uppercase text-xs hover:bg-white hover:text-bg-dark transition-all">Iniciar Validação</button>
+                                <button disabled className="w-full py-4 rounded-xl border border-white/5 bg-white/5 text-slate-500 font-bold uppercase text-xs cursor-not-allowed">Esgotado</button>
                             </div>
                         </RevealOnScroll>
 
@@ -626,7 +626,7 @@ const Landing: React.FC = () => {
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>White Label Total</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>API Dedicada</li>
                                 </ul>
-                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl border border-white/10 text-white font-bold uppercase text-xs hover:bg-white hover:text-bg-dark transition-all">Falar com Consultor</button>
+                                <button disabled className="w-full py-4 rounded-xl border border-white/5 bg-white/5 text-slate-500 font-bold uppercase text-xs cursor-not-allowed">Entrar na Lista de Espera</button>
                             </div>
                         </RevealOnScroll>
                     </div>
