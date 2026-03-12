@@ -119,17 +119,16 @@ const Landing: React.FC = () => {
                             {/* Reflexo */}
                             <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-xl"></div>
                             <div className="w-full aspect-video bg-[#0B0F19] rounded-xl border border-white/5 relative overflow-hidden flex items-center justify-center">
-                                {/* Placeholder do UI do Dashboard FL360 */}
-                                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/30 via-transparent to-transparent"></div>
-                                <div className="text-center z-10">
-                                    <span className="material-symbols-outlined text-6xl text-primary/40 mb-4 animate-pulse">space_dashboard</span>
-                                    <div className="text-xl font-bold text-white mb-2">Painel de Controle FL360</div>
-                                    <div className="text-sm text-slate-400">Ambiente de Demonstração Interativa</div>
-                                </div>
-                                
-                                {/* UI Falsa para dar ar de sistema */}
-                                <div className="absolute top-0 left-0 bottom-0 w-16 md:w-64 bg-white/[0.02] border-r border-white/5 hidden sm:block"></div>
-                                <div className="absolute top-0 left-0 right-0 h-12 bg-white/[0.02] border-b border-white/5"></div>
+                                {/* Imagem Real do Sistema - Insira dashboard-preview.png na pasta public */}
+                                <img 
+                                    src="/Imagem 4.png" 
+                                    alt="Painel de Controle FL360 MOCKUP" 
+                                    className="w-full object-cover min-h-[300px] md:min-h-[500px]"
+                                    onError={(e) => {
+                                        // Fallback se a imagem não for encontrada
+                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop';
+                                    }}
+                                />
                             </div>
                         </div>
                     </RevealOnScroll>
@@ -404,12 +403,30 @@ const Landing: React.FC = () => {
                     </div>
 
                     <RevealOnScroll delay={300}>
-                        <div className="mt-16 mx-auto max-w-2xl w-full p-8 border border-white/5 bg-white/[0.02] rounded-2xl">
-                            <p className="text-slate-300 text-lg italic leading-relaxed mb-6">
-                                "A diferença entre minha agência antes e depois do FL360 não é só o lucro. É a paz de espírito de ter controle total sobre uma operação que antes era caos."
-                            </p>
-                            <div className="text-sm font-bold text-white">Ricardo D., CEO TravelCorp</div>
-                            <div className="text-xs text-slate-500 uppercase tracking-widest mt-1">Membro Elite FL360</div>
+                        <div className="mt-16 mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-left">
+                                <p className="text-slate-300 text-base italic leading-relaxed mb-6">
+                                    "A diferença entre minha agência antes e depois do FL360 não é só o lucro. É a paz de espírito de ter controle total sobre uma operação que antes era caos."
+                                </p>
+                                <div className="text-sm font-bold text-white">Ricardo D.</div>
+                                <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">CEO TravelCorp</div>
+                            </div>
+                            
+                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-left">
+                                <p className="text-slate-300 text-base italic leading-relaxed mb-6">
+                                    "Tínhamos milhares de reais expirando na conta dos clientes sem saber. O sistema mapeou as datas e transformou essa 'perda' em emissões e margem real."
+                                </p>
+                                <div className="text-sm font-bold text-white">Marcela C.</div>
+                                <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Founders Viagens</div>
+                            </div>
+
+                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-left">
+                                <p className="text-slate-300 text-base italic leading-relaxed mb-6">
+                                    "Finalmente abandonei as dezenas de planilhas de clientes. Tudo agora é visual e automático. O fechamento do mês ficou ridículo de tão fácil."
+                                </p>
+                                <div className="text-sm font-bold text-white">André L.</div>
+                                <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Diretor VoeMais</div>
+                            </div>
                         </div>
                     </RevealOnScroll>
                 </div>
@@ -431,7 +448,7 @@ const Landing: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
                         {[
                             { value: "+100 mi", label: "de CPFs cadastrados em programas de fidelidade no Brasil", icon: "monitoring", color: "text-emerald-400", border: "border-emerald-500/20", bg: "bg-emerald-500/5" },
-                            { value: "~1/3", label: "dos pontos e milhas emitidos expira sem ser resgatado — dinheiro que some sem gerar valor", icon: "block", color: "text-red-400", border: "border-red-500/20", bg: "bg-red-500/5" },
+                            { value: "33%", label: "dos pontos emitidos expiram sem ser resgatados — dinheiro que some sem gerar valor", icon: "trending_down", color: "text-red-400", border: "border-red-500/20", bg: "bg-red-500/5" },
                             { value: "R$ 300-600", label: "de margem adicional por cliente ativo/mês que agências estruturadas capturam — e que a maioria ignora", icon: "savings", color: "text-primary", border: "border-primary/20", bg: "bg-primary/5" },
                         ].map((stat, i) => (
                             <RevealOnScroll key={i} delay={i * 150}>
@@ -496,10 +513,6 @@ const Landing: React.FC = () => {
                             {
                                 q: "Por que eu preciso de um sistema se uso planilhas do Excel gratuitamente?",
                                 a: "Planilhas dependem de alimentação manual constância. E se você esquecer de atualizar? E se o cliente te ligar no fim de semana perguntando o saldo? Com o FL360, você substitui o amadorismo da planilha por um painel elegante, profissional e sempre atualizado. Você economiza horas de trabalho braçal e eleva a percepção de valor do seu cliente."
-                            },
-                            {
-                                q: "Meus clientes vão ter acesso a isso?",
-                                a: "Sim. No nível Pro e Marca Própria, seu cliente recebe um acesso White Label (com sua marca) para consultar o próprio saldo de pontos e histórico de resgates na hora que ele quiser, 24 horas por dia. O trabalho de suporte despenca e sua autoridade como agência dispara."
                             },
                             {
                                 q: "Como o sistema ajuda a não perder milhas expiradas?",
