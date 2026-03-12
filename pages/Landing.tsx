@@ -120,9 +120,9 @@ const Landing: React.FC = () => {
                             <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-xl z-20"></div>
                             
                             <div className="w-full bg-[#0B0F19] rounded-xl border border-white/5 relative overflow-hidden flex items-center justify-center">
-                                {/* Imagem Real do Sistema */}
+                                {/* Imagem Real do Sistema (Dashboard) */}
                                 <img 
-                                    src="/Imagem 4.png" 
+                                    src="/dashboard-real.png" 
                                     alt="Painel de Controle FL360 MOCKUP" 
                                     className="w-full h-auto object-contain relative z-10"
                                 />
