@@ -79,7 +79,7 @@ const Landing: React.FC = () => {
                     <RevealOnScroll delay={800}>
                         <div className="flex flex-col md:flex-row items-center justify-center gap-6">
                             <button
-                                onClick={() => scrollToSection('levels')}
+                                onClick={() => scrollToSection('pricing')}
                                 className="group relative inline-flex items-center gap-4 px-8 py-4 bg-primary text-bg-dark rounded-full text-xs font-bold uppercase tracking-[0.2em] hover:bg-white transition-all duration-300 shadow-[0_0_30px_rgba(226,190,106,0.3)] hover:shadow-[0_0_40px_rgba(255,255,255,0.4)]"
                             >
                                 <span className="relative z-10">Ver Planos e Preços</span>
@@ -555,7 +555,7 @@ const Landing: React.FC = () => {
             </section>
 
             {/* 6. INVESTIMENTO (Ancoragem) */}
-            <section className="py-32 px-6 bg-bg-dark border-t border-white/5 relative">
+            <section id="pricing" className="py-32 px-6 bg-bg-dark border-t border-white/5 relative">
                 <div className="max-w-7xl mx-auto">
                     <RevealOnScroll>
                         <div className="text-center mb-20">
