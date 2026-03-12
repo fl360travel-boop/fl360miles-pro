@@ -215,15 +215,15 @@ const Landing: React.FC = () => {
                 <div className="max-w-6xl mx-auto">
                     <RevealOnScroll>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
-                            <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                            <div className="flex flex-col items-center text-center">
                                 <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
                                     Quanto custa <span className="text-red-500">não estruturar</span> sua gestão de milhas?
                                 </h2>
-                                <p className="text-slate-400 text-lg mb-10 leading-relaxed">
+                                <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-xl">
                                     Não estamos falando do custo do sistema. Estamos falando do dinheiro que você deixa na mesa todos os meses por não ter a infraestrutura para capturar essa margem.
                                 </p>
-                                <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20 inline-block mx-auto md:mx-0">
-                                    <div className="flex items-center justify-center md:justify-start gap-3 text-red-400 font-bold uppercase tracking-widest text-xs mb-2">
+                                <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20 inline-block mx-auto">
+                                    <div className="flex items-center justify-center gap-3 text-red-400 font-bold uppercase tracking-widest text-xs mb-2">
                                         <span className="material-symbols-outlined text-lg">money_off</span>
                                         Dinheiro Perdido / Mês
                                     </div>
@@ -281,38 +281,38 @@ const Landing: React.FC = () => {
                     </RevealOnScroll>
 
                     <RevealOnScroll delay={200}>
-                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 md:p-12 text-left mb-12">
+                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 md:p-12 text-center mb-12">
                             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 border-b border-white/5 pb-4">Diagnóstico Estratégico</h3>
 
                             <div className="space-y-6">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0 mt-1">
+                                <div className="flex flex-col items-center justify-center gap-4">
+                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
                                         <span className="text-[10px] text-slate-400">1</span>
                                     </div>
                                     <div>
-                                        <p className="text-lg text-white font-medium">Sua agência tem receita recorrente previsível?</p>
+                                        <p className="text-lg text-white font-medium text-center">Sua agência tem receita recorrente previsível?</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0 mt-1">
+                                <div className="flex flex-col items-center justify-center gap-4">
+                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
                                         <span className="text-[10px] text-slate-400">2</span>
                                     </div>
                                     <div>
-                                        <p className="text-lg text-white font-medium">Você controla sua margem ou depende de comissão?</p>
+                                        <p className="text-lg text-white font-medium text-center">Você controla sua margem ou depende de comissão?</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0 mt-1">
+                                <div className="flex flex-col items-center justify-center gap-4">
+                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
                                         <span className="text-[10px] text-slate-400">3</span>
                                     </div>
                                     <div>
-                                        <p className="text-lg text-white font-medium">Sua operação de milhas é automatizada ou manual?</p>
+                                        <p className="text-lg text-white font-medium text-center">Sua operação de milhas é automatizada ou manual?</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mt-8 pt-8 border-t border-white/5">
-                                <p className="text-slate-400 text-sm italic">
+                                <p className="text-slate-400 text-sm italic text-center">
                                     <span className="text-red-400 font-bold not-italic">⚠️ Alerta:</span> Se respondeu <strong className="text-white">"não"</strong> para 2 ou mais, você está operando no <strong className="text-white">Modelo Antigo</strong>.
                                 </p>
                             </div>
@@ -401,7 +401,7 @@ const Landing: React.FC = () => {
 
                     <RevealOnScroll delay={300}>
                         <div className="mt-16 mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-left">
+                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-center">
                                 <p className="text-slate-300 text-base italic leading-relaxed mb-6">
                                     "A diferença entre minha agência antes e depois do FL360 não é só o lucro. É a paz de espírito de ter controle total sobre uma operação que antes era caos."
                                 </p>
@@ -409,7 +409,7 @@ const Landing: React.FC = () => {
                                 <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">CEO TravelCorp</div>
                             </div>
                             
-                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-left">
+                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-center">
                                 <p className="text-slate-300 text-base italic leading-relaxed mb-6">
                                     "Tínhamos milhares de reais expirando na conta dos clientes sem saber. O sistema mapeou as datas e transformou essa 'perda' em emissões e margem real."
                                 </p>
@@ -417,7 +417,7 @@ const Landing: React.FC = () => {
                                 <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Founders Viagens</div>
                             </div>
 
-                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-left">
+                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-center">
                                 <p className="text-slate-300 text-base italic leading-relaxed mb-6">
                                     "Finalmente abandonei as dezenas de planilhas de clientes. Tudo agora é visual e automático. O fechamento do mês ficou ridículo de tão fácil."
                                 </p>
@@ -471,15 +471,16 @@ const Landing: React.FC = () => {
                                     { pain: "Você não tem como escalar sem contratar mais gente", arrow: true },
                                     { pain: "Milhas expiram na carteira dos seus clientes sem você saber", arrow: true },
                                 ].map((item, i) => (
-                                    <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-red-500/5 border border-red-500/10 hover:border-red-500/30 transition-all group">
-                                        <div className="shrink-0 mt-0.5">
-                                            <span className="material-symbols-outlined text-red-400 text-lg group-hover:animate-bounce">arrow_right</span>
+                                    <div key={i} className="flex flex-col items-center justify-center text-center gap-3 p-4 rounded-xl bg-red-500/5 border border-red-500/10 hover:border-red-500/30 transition-all group">
+                                        <div className="shrink-0">
+                                            <span className="material-symbols-outlined text-red-400 text-lg group-hover:animate-bounce transform rotate-90 md:rotate-0 md:hidden">arrow_drop_down</span>
+                                            <span className="material-symbols-outlined text-red-400 text-lg group-hover:animate-bounce hidden md:block">arrow_downward</span>
                                         </div>
                                         <p className="text-slate-300 text-sm leading-relaxed">{item.pain}</p>
                                     </div>
                                 ))}
                             </div>
-                            <div className="mt-10 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="mt-10 pt-8 border-t border-white/5 flex flex-col items-center justify-center gap-6 text-center">
                                 <p className="text-white font-bold text-lg">Se você marcou 2 ou mais — <span className="text-primary">é exatamente para isso que o FL360 existe.</span></p>
                                 <button
                                     onClick={() => document.getElementById('levels')?.scrollIntoView({ behavior: 'smooth' })}
@@ -530,9 +531,9 @@ const Landing: React.FC = () => {
                                 >
                                     <button 
                                         onClick={() => toggleFaq(i)}
-                                        className="w-full flex items-center justify-between p-6 md:p-8 text-left focus:outline-none focus:ring-none"
+                                        className="w-full flex flex-col md:flex-row items-center justify-center gap-4 p-6 md:p-8 text-center focus:outline-none focus:ring-none"
                                     >
-                                        <h3 className={`text-lg md:text-xl font-bold pr-8 transition-colors ${openFaq === i ? 'text-primary' : 'text-slate-300'}`}>
+                                        <h3 className={`text-lg md:text-xl font-bold transition-colors ${openFaq === i ? 'text-primary' : 'text-slate-300'}`}>
                                             {faq.q}
                                         </h3>
                                         <span className={`material-symbols-outlined shrink-0 text-2xl transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-primary' : 'text-slate-500'}`}>
@@ -543,7 +544,7 @@ const Landing: React.FC = () => {
                                     <div 
                                         className={`overflow-hidden transition-all duration-500 ease-in-out ${openFaq === i ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
                                     >
-                                        <div className="p-6 md:p-8 pt-0 text-slate-400 leading-relaxed border-t border-white/5">
+                                        <div className="p-6 md:p-8 pt-0 text-slate-400 leading-relaxed border-t border-white/5 text-center">
                                             {faq.a}
                                         </div>
                                     </div>
