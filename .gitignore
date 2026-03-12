@@ -25,3 +25,12 @@ dist-ssr
 
 # Local Netlify folder
 .netlify
+
+# Local Testing Scripts with secrets
+test_*.mjs
+test_*.js
+get_*.mjs
+fix_rls.js
+verify_branding.js
+test_rls3.sql
+fix_rls.sql

@@ -38,7 +38,7 @@ export const PaymentSuccessEmail = ({
                     </Text>
 
                     <Section style={btnContainer}>
-                        <Link style={button} href={`https://fl360miles.netlify.app`}>
+                        <Link style={button} href={`https://fl360miles.com.br`}>
                             Acessar Painel Premium
                         </Link>
                     </Section>

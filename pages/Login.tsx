@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { useBranding } from '../contexts/BrandingContext';
 
 interface LoginProps {
   onLogin: () => void;
@@ -9,6 +10,7 @@ interface LoginProps {
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const { signIn, signInAsDemo, resetPassword } = useAuth();
+  const { branding } = useBranding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +20,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const savedEmail = localStorage.getItem('fl360_saved_email');
     if (savedEmail) {
       setEmail(savedEmail);
@@ -101,7 +103,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       <div className="relative w-full max-w-md animate-in fade-in zoom-in duration-1000">
         <div className="text-center mb-12">
-          <img src="/login-logo.png" alt="FL360 Miles Logo" className="w-48 mx-auto mb-6 object-contain drop-shadow-2xl" />
+          {branding.logoUrl ? (
+            <img src={branding.logoUrl} alt="Organization Logo" className="h-12 mx-auto mb-6 object-contain drop-shadow-2xl" />
+          ) : (
+            <img src="/login-logo.png" alt="FL360 Miles Logo" className="w-48 mx-auto mb-6 object-contain drop-shadow-2xl" />
+          )}
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.6em] mt-4">Terminal de Gestão Confidencial</p>
         </div>
 

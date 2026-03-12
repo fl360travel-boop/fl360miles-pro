@@ -152,8 +152,25 @@ const SaleForm: React.FC = () => {
 
               <div className="grid grid-cols-1 gap-8">
                 <div className="space-y-3">
-                  <label className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] px-1">Valor Negociado (Total)</label>
-                  <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-6 px-8 text-4xl font-black text-primary italic focus:ring-0 placeholder:text-slate-800 outline-none" placeholder="0,00" type="number" value={negotiatedValue} onChange={e => setNegotiatedValue(e.target.value)} />
+                  <div className="flex items-center justify-between px-1">
+                    <label className="text-primary text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm animate-pulse">arrow_downward</span>
+                      Valor Negociado (Total) — Preencha para calcular o lucro
+                    </label>
+                    <span className="text-[9px] text-red-400 font-bold uppercase tracking-widest">Obrigatório</span>
+                  </div>
+                  <input
+                    className={`w-full bg-bg-card rounded-2xl py-6 px-8 text-4xl font-black text-primary italic focus:ring-2 focus:ring-primary outline-none transition-all ${
+                      negotiatedValue ? 'border-2 border-primary/50' : 'border-2 border-primary/30 ring-2 ring-primary/20'
+                    }`}
+                    placeholder="Digite o valor de venda..."
+                    type="number"
+                    value={negotiatedValue}
+                    onChange={e => setNegotiatedValue(e.target.value)}
+                  />
+                  <p className="text-[10px] text-slate-500 px-1 italic">
+                    💡 Ex: para vender 100.000 milhas a R$35/milheiro → digite <strong className="text-slate-300">3500</strong>
+                  </p>
                 </div>
               </div>
             </div>
@@ -175,9 +192,23 @@ const SaleForm: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-left">
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Lucro Estimado</p>
-                  <p className={`text-2xl font-black italic ${profit >= 0 ? 'text-emerald-custom' : 'text-red-500'}`}>
-                    R$ {profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </p>
+                  {!negotiatedValue ? (
+                    <p className="text-sm text-slate-600 italic">Aguardando valor de venda...</p>
+                  ) : (
+                    <p className={`text-2xl font-black italic ${profit >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
+                      {profit >= 0 ? '▲' : '▼'} R$ {Math.abs(profit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  )}
+                </div>
+                <div className="text-left">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">CPM de Venda</p>
+                  {!negotiatedValue ? (
+                    <p className="text-sm text-slate-600 italic">—</p>
+                  ) : (
+                    <p className="text-2xl font-black italic text-white">
+                      R$ {cpmVenda.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  )}
                 </div>
               </div>
 

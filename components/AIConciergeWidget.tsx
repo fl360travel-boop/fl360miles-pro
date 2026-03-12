@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AIAdvisorService, Opportunity, ChatMessage } from '../services/ai_advisor';
 import { getClients } from '../services/api';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const AIConciergeWidget: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -97,16 +99,7 @@ const AIConciergeWidget: React.FC = () => {
         }
     };
 
-    // Format text with basic markdown (bold)
-    const formatText = (text: string) => {
-        const parts = text.split(/(\*\*.*?\*\*)/g);
-        return parts.map((part, i) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={i} className="text-emerald-300 font-bold">{part.slice(2, -2)}</strong>;
-            }
-            return <span key={i}>{part}</span>;
-        });
-    };
+    // Markdown format is handled directly in rendering via ReactMarkdown
 
     return (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
@@ -139,7 +132,21 @@ const AIConciergeWidget: React.FC = () => {
                                     ? 'bg-emerald-600 text-white rounded-tr-none'
                                     : 'bg-white/5 text-slate-200 rounded-tl-none border border-white/5'
                                     }`}>
-                                    <p className="whitespace-pre-line leading-relaxed">{formatText(msg.text)}</p>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            table: ({ node, ...props }) => <div className="overflow-x-auto my-3"><table className="w-full text-left border-collapse" {...props} /></div>,
+                                            th: ({ node, ...props }) => <th className="border-b border-white/20 p-2 font-bold text-emerald-400 text-xs uppercase tracking-wider" {...props} />,
+                                            td: ({ node, ...props }) => <td className="border-b border-white/10 p-2 text-xs" {...props} />,
+                                            strong: ({ node, ...props }) => <strong className="text-emerald-300 font-bold" {...props} />,
+                                            a: ({ node, ...props }) => <a className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2" target="_blank" {...props} />,
+                                            ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-1 my-2" {...props} />,
+                                            ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-1 my-2" {...props} />,
+                                            p: ({ node, ...props }) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />
+                                        }}
+                                    >
+                                        {msg.text}
+                                    </ReactMarkdown>
 
                                     {msg.type === 'opportunity' && msg.data && (
                                         <div className="mt-3 bg-black/20 rounded-xl p-3 border-l-2 border-emerald-500">

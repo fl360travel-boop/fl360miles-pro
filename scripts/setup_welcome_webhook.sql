@@ -15,7 +15,7 @@
  *    e) Events: "Insert"
  *    f) Type: "HTTP Request"
  *    g) Method: "POST"
- *    h) URL: "https://fl360miles.netlify.app/api/send-email" (ou sua URL do Netlify)
+ *    h) URL: "https://fl360miles.com.br/api/send-email" (ou sua URL do Netlify)
  *    i) Headers: 
  *       - Content-Type: application/json
  *    j) Payload (Custom payload format):
@@ -42,7 +42,7 @@
  -- Se quiser disparar via SQL (requer pg_net habilitado):
  /*
  SELECT net.http_post(
-    url := 'https://fl360miles.netlify.app/api/send-email',
+    url := 'https://fl360miles.com.br/api/send-email',
     body := jsonb_build_object(
         'to', (SELECT email FROM user_profiles UP JOIN organization_members OM ON UP.user_id = OM.user_id WHERE OM.organization_id = NEW.organization_id AND OM.role = 'owner' LIMIT 1),
         'subject', 'Bem-vindo ao Flight 360 Miles!',

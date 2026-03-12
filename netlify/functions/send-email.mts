@@ -8,7 +8,7 @@ const getWelcomeHtml = (userName: string) => `
     <p style="color: #A1A1AA; font-size: 15px; line-height: 24px;">Sua conta corporativa foi criada com sucesso e o seu <strong>Trial de 7 dias</strong> já está valendo.</p>
     <p style="color: #A1A1AA; font-size: 15px; line-height: 24px;">O Flight 360 Miles é o sistema operacional definitivo para agências de turismo e emissores de passagens com milhas.</p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="https://fl360miles.netlify.app" style="background-color: #10B981; color: #0A0A0B; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Meu Painel</a>
+      <a href="https://fl360miles.com.br" style="background-color: #10B981; color: #0A0A0B; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Meu Painel</a>
     </div>
     <p style="color: #52525B; font-size: 13px; margin-top: 32px; padding-top: 32px; border-top: 1px solid #27272A;">— Equipe Flight 360 Miles</p>
   </div>
@@ -21,7 +21,7 @@ const getTrialEndingHtml = (userName: string, daysLeft: number) => `
     <h1 style="color: #FFFFFF; font-size: 24px;">Seu período de testes está acabando!</h1>
     <p style="color: #A1A1AA; font-size: 15px; line-height: 24px;">Olá, ${userName}. Este é um lembrete rápido de que o seu período de testes vai acabar em <strong>${daysLeft} dia(s)</strong>.</p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="https://fl360miles.netlify.app/plans" style="background-color: #F59E0B; color: #0A0A0B; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Ver Planos e Preços</a>
+      <a href="https://fl360miles.com.br/plans" style="background-color: #F59E0B; color: #0A0A0B; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Ver Planos e Preços</a>
     </div>
     <p style="color: #52525B; font-size: 13px; margin-top: 32px; padding-top: 32px; border-top: 1px solid #27272A;">— Equipe Flight 360 Miles</p>
   </div>
@@ -34,7 +34,7 @@ const getPaymentSuccessHtml = (userName: string, planName: string) => `
     <h1 style="color: #FFFFFF; font-size: 24px;">Pagamento Confirmado! 🎉</h1>
     <p style="color: #A1A1AA; font-size: 15px; line-height: 24px;">Olá, ${userName}. A sua assinatura do <strong>Plano ${planName}</strong> foi processada com sucesso!</p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="https://fl360miles.netlify.app" style="background-color: #10B981; color: #0A0A0B; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Painel Premium</a>
+      <a href="https://fl360miles.com.br" style="background-color: #10B981; color: #0A0A0B; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Acessar Painel Premium</a>
     </div>
     <p style="color: #A1A1AA; font-size: 15px; line-height: 24px;">A nota fiscal referente a esta cobrança será enviada em breve pelo Gateway (Asaas).</p>
     <p style="color: #52525B; font-size: 13px; margin-top: 32px; padding-top: 32px; border-top: 1px solid #27272A;">— Equipe Flight 360 Miles</p>
@@ -110,8 +110,9 @@ export default async (request: Request) => {
       return new Response(JSON.stringify({ error: 'Template not found' }), { status: 400, headers });
     }
 
+    const fromEmail = process.env.EMAIL_FROM || 'FL360 Miles <noreply@fl360miles.com.br>';
     const data = await resend.emails.send({
-      from: 'FL360 Miles <onboarding@resend.dev>', // Por hora, usa dominio teste da Resend
+      from: fromEmail,
       to: [to],
       subject: subject,
       html: html,

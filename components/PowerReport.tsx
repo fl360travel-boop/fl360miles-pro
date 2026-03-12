@@ -34,18 +34,25 @@ const PowerReport: React.FC<PowerReportProps> = ({ data }) => {
     // ROI Calculation for Chart
     // Invested vs Return (Value + Liquidated)
     const totalReturn = totalValue + lifetimeRoi; // Current Portfolio Value + Cashout
-    const roiPercent = lifetimeInvested > 0 ? ((totalReturn - lifetimeInvested) / lifetimeInvested) * 100 : 0;
+    const hasInvestment = lifetimeInvested > 0;
+    const roiPercent = hasInvestment ? ((totalReturn - lifetimeInvested) / lifetimeInvested) * 100 : 0;
 
-    const chartData = {
+    const chartData = hasInvestment ? {
         labels: ['Investimento', 'Retorno Total'],
-        datasets: [
-            {
-                label: 'Performance Financeira',
-                data: [lifetimeInvested, totalReturn],
-                backgroundColor: ['#94a3b8', '#E2BE6A'], // Slate-400, Gold
-                borderRadius: 4,
-            },
-        ],
+        datasets: [{
+            label: 'Performance Financeira',
+            data: [lifetimeInvested, totalReturn],
+            backgroundColor: ['#94a3b8', '#E2BE6A'], // Slate-400, Gold
+            borderRadius: 4,
+        }],
+    } : {
+        labels: ['Patrimônio Atual', 'Liquidez (Cash-out)'],
+        datasets: [{
+            label: 'Evolução do Patrimônio',
+            data: [totalValue, lifetimeRoi],
+            backgroundColor: ['#E2BE6A', '#34d399'], // Gold, Emerald
+            borderRadius: 4,
+        }],
     };
 
     const chartOptions = {
@@ -123,11 +130,18 @@ const PowerReport: React.FC<PowerReportProps> = ({ data }) => {
                         <div className="absolute top-0 right-0 p-4 opacity-10">
                             <span className="material-symbols-outlined text-6xl">trending_up</span>
                         </div>
-                        <p className="text-[9px] text-white/60 uppercase tracking-widest font-bold mb-2">ROI Global</p>
-                        <p className="text-3xl font-black text-[#E2BE6A] tracking-tighter">
-                            {roiPercent > 0 ? '+' : ''}{roiPercent.toFixed(1)}%
+                        <p className="text-[9px] text-white/60 uppercase tracking-widest font-bold mb-2">
+                            {hasInvestment ? 'ROI Global' : 'Retorno Gerado'}
                         </p>
-                        <p className="text-[10px] text-white/60 font-bold mt-1">Rentabilidade sobre Investido</p>
+                        <p className="text-3xl font-black text-[#E2BE6A] tracking-tighter">
+                            {hasInvestment
+                                ? `${roiPercent > 0 ? '+' : ''}${roiPercent.toFixed(1)}%`
+                                : `R$ ${totalReturn.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+                            }
+                        </p>
+                        <p className="text-[10px] text-white/60 font-bold mt-1">
+                            {hasInvestment ? 'Rentabilidade sobre Investido' : 'Valor Gerado sem Investimento'}
+                        </p>
                     </div>
                 </div>
 
@@ -175,9 +189,9 @@ const PowerReport: React.FC<PowerReportProps> = ({ data }) => {
                                         </td>
                                         <td className="py-4 px-2">
                                             <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-sm ${h.type === 'Venda' ? 'bg-emerald-100 text-emerald-700' :
-                                                    h.type === 'Resgate' ? 'bg-indigo-100 text-indigo-700' :
-                                                        h.type === 'Compra' ? 'bg-slate-100 text-slate-700' :
-                                                            'bg-amber-100 text-amber-700'
+                                                h.type === 'Resgate' ? 'bg-indigo-100 text-indigo-700' :
+                                                    h.type === 'Compra' ? 'bg-slate-100 text-slate-700' :
+                                                        'bg-amber-100 text-amber-700'
                                                 }`}>
                                                 {h.type}
                                             </span>

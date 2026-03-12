@@ -5,12 +5,13 @@ import { supabase } from '../services/supabase';
 // =============================================
 // TYPES
 // =============================================
-export type BillingStatusType = 'ACTIVE' | 'DUE_SOON' | 'DUE_TODAY' | 'OVERDUE_WARNING' | 'BLOCKED';
+export type BillingStatusType = 'ACTIVE' | 'TRIAL' | 'DUE_SOON' | 'DUE_TODAY' | 'OVERDUE_WARNING' | 'BLOCKED';
 
 export interface BillingStatusData {
     user_id: string;
     last_paid_at: string | null;
     due_date: string | null;
+    trial_ends_at: string | null;
     status: BillingStatusType;
     popup_last_shown_at: string | null;
     popup_snoozed_until: string | null;
@@ -56,8 +57,19 @@ export function calculateDueDate(lastPaidAt: string | null): string | null {
  * Calculates billing status based on today and due_date.
  * Both parameters should be date strings in YYYY-MM-DD format.
  */
-export function calculateStatus(todayStr: string, dueDateStr: string | null): BillingStatusType {
-    if (!dueDateStr) return 'ACTIVE'; // No due date yet = just signed up
+export function calculateStatus(todayStr: string, dueDateStr: string | null, trialEndsAtStr?: string | null): BillingStatusType {
+    // 1. Check trial first
+    if (trialEndsAtStr) {
+        const today = new Date(todayStr + 'T00:00:00');
+        const trialEndsAt = new Date(trialEndsAtStr + 'T00:00:00');
+        if (today <= trialEndsAt) return 'TRIAL';
+
+        // Trial expired. If no due_date (payment) set yet, it's BLOCKED
+        if (!dueDateStr) return 'BLOCKED';
+    }
+
+    // 2. Standard billing cycles
+    if (!dueDateStr) return 'ACTIVE';
 
     const today = new Date(todayStr + 'T00:00:00');
     const dueDate = new Date(dueDateStr + 'T00:00:00');
@@ -117,16 +129,16 @@ export function shouldShowPopup(
  * Generates the popup copy text based on status and remaining days.
  */
 export function getPopupCopy(status: BillingStatusType, days: number, dueDateStr: string | null): string {
-    if (!dueDateStr) return '';
-
-    // Format due date as DD/MM
-    const [year, month, day] = dueDateStr.split('-');
-    const dueDateFormatted = `${day}/${month}`;
-
     switch (status) {
-        case 'DUE_SOON':
+        case 'TRIAL':
+            return 'Aproveite seu período de testes grátis.';
+        case 'DUE_SOON': {
+            if (!dueDateStr) return '';
+            const [year, month, day] = dueDateStr.split('-');
+            const dueDateFormatted = `${day}/${month}`;
             if (days === 1) return `Falta 1 dia para o vencimento em ${dueDateFormatted}.`;
             return `Faltam ${days} dias para o vencimento em ${dueDateFormatted}.`;
+        }
         case 'DUE_TODAY':
             return 'Seu pagamento vence hoje.';
         case 'OVERDUE_WARNING': {
@@ -220,7 +232,9 @@ export function useBillingStatus(): BillingInfo & {
     const nowISO = getNowISO();
 
     const effectiveDueDate = billingData?.due_date || calculateDueDate(billingData?.last_paid_at || null);
-    const status = isBypassed ? 'ACTIVE' as BillingStatusType : calculateStatus(todayStr, effectiveDueDate);
+    const effectiveTrialEndsAt = billingData?.trial_ends_at || null;
+
+    const status = isBypassed ? 'ACTIVE' as BillingStatusType : calculateStatus(todayStr, effectiveDueDate, effectiveTrialEndsAt);
     const days = remainingDays(todayStr, effectiveDueDate);
     const showPopup = isBypassed ? false : shouldShowPopup(
         status,

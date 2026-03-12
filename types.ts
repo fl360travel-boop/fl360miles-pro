@@ -12,7 +12,7 @@ export type BillingCycle = 'Mensal' | 'Anual';
 export type SubscriptionStatus = 'active' | 'trial' | 'past_due' | 'canceled' | 'lifetime' | 'legacy';
 
 export interface Subscription {
-  planId: 'starter' | 'pro' | 'elite' | 'demo' | 'legacy';
+  planId: 'starter' | 'pro' | 'elite' | 'enterprise' | 'demo' | 'legacy';
   status: SubscriptionStatus;
   trialEndsAt: string | null;
   currentPeriodEnd: string | null;
@@ -67,6 +67,7 @@ export interface ExpirationAlert {
 
 export interface Client {
   id: string;
+  public_token?: string;
   name: string;
   email: string;
   cpf?: string;
@@ -89,6 +90,20 @@ export interface Client {
   preferences: string;
   travelNotes: string;
   economyHistory: { month: string; economyPercent: number; mileageGrowth: number }[];
+}
+
+export interface ClientMember {
+  id: string;
+  client_id: string;
+  organization_id: string;
+  name: string;
+  cpf?: string;
+  birthDate?: string;
+  relationship: 'Cônjuge' | 'Filho(a)' | 'Pai/Mãe' | 'Irmão/Irmã' | 'Outro';
+  programs: MileageProgram[];
+  cards: CreditCard[];
+  history: MileageMovement[];
+  notes: string;
 }
 
 export interface Operation {

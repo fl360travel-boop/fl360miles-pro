@@ -6,7 +6,7 @@
 
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-const WEBHOOK_URL = 'https://fl360miles.netlify.app/api/webhook-asaas'; // Ajuste se estiver testando localmente
+const WEBHOOK_URL = 'https://fl360miles.com.br/api/webhook-asaas'; // Ajuste se estiver testando localmente
 const TEST_ORG_ID = 'your-org-id-here'; // Substitua por um ID real para teste
 
 const simulatePaymentConfirmed = async () => {

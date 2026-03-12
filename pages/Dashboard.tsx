@@ -8,6 +8,7 @@ import { BrandLogo } from '../components/BrandAssets';
 import TeamManagement from '../components/TeamManagement';
 import DollarTicker from '../components/DollarTicker';
 import AIConciergeWidget from '../components/AIConciergeWidget';
+import WelcomeOnboarding from '../components/WelcomeOnboarding';
 
 const Dashboard: React.FC = () => {
   const [showTeamManagement, setShowTeamManagement] = useState(false);
@@ -126,7 +127,9 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-10 max-w-7xl mx-auto animate-in fade-in duration-700 pb-20">
+    <div className="space-y-10 max-w-7xl mx-auto animate-in fade-in duration-700 pb-20 relative">
+      <WelcomeOnboarding isOpen={metrics.activeClients === 0 && !isLoading} />
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em] mb-3 italic">Terminal Wealth Management</p>
@@ -148,7 +151,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* MÉTRICAS PRINCIPAIS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="tour-step-dashboard grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { label: 'Milhas sob Gestão', value: formatMiles(metrics.totalMiles), trend: metrics.totalMiles > 0 ? '+' + formatMiles(metrics.totalMiles) : '0', icon: 'diamond' },
           { label: 'Lucro de Liquidação', value: `R$ ${metrics.totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, trend: metrics.totalProfit > 0 ? '+8.4%' : '—', icon: 'payments' },
@@ -249,28 +252,35 @@ const Dashboard: React.FC = () => {
               <p className="text-[10px] text-slate-500 mt-2 font-bold uppercase tracking-widest italic">Crescimento consolidado de ativos (2025)</p>
             </div>
           </div>
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={displayChartData}>
-                <defs>
-                  <linearGradient id="dashGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#E2BE6A" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#E2BE6A" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1C2229" />
-                <XAxis dataKey="n" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 10, fontWeight: 'bold' }} />
-                <YAxis dataKey="v" axisLine={false} tickFormatter={(val) => val.toLocaleString('pt-BR')} tickLine={false} tick={{ fill: '#475569', fontSize: 10, fontWeight: 'bold' }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#16191E', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}
-                  itemStyle={{ color: '#E2BE6A', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }}
-                  labelStyle={{ color: '#64748B', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}
-                  formatter={(value: number) => [`${value.toLocaleString('pt-BR')} mi`, 'Patrimônio']}
-                />
-                <Area type="monotone" dataKey="v" stroke="#E2BE6A" strokeWidth={4} fillOpacity={1} fill="url(#dashGrad)" activeDot={{ r: 6, fill: '#E2BE6A', stroke: '#fff', strokeWidth: 2 }} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          {metrics.activeClients === 0 ? (
+            <div className="h-72 w-full flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl opacity-50">
+              <span className="material-symbols-outlined text-6xl text-slate-600 mb-4">insights</span>
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest text-center max-w-xs">Gráfico patrimonial disponível após o primeiro cadastro</p>
+            </div>
+          ) : (
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={displayChartData}>
+                  <defs>
+                    <linearGradient id="dashGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#E2BE6A" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#E2BE6A" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1C2229" />
+                  <XAxis dataKey="n" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 10, fontWeight: 'bold' }} />
+                  <YAxis dataKey="v" axisLine={false} tickFormatter={(val) => val.toLocaleString('pt-BR')} tickLine={false} tick={{ fill: '#475569', fontSize: 10, fontWeight: 'bold' }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#16191E', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}
+                    itemStyle={{ color: '#E2BE6A', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }}
+                    labelStyle={{ color: '#64748B', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}
+                    formatter={(value: number) => [`${value.toLocaleString('pt-BR')} mi`, 'Patrimônio']}
+                  />
+                  <Area type="monotone" dataKey="v" stroke="#E2BE6A" strokeWidth={4} fillOpacity={1} fill="url(#dashGrad)" activeDot={{ r: 6, fill: '#E2BE6A', stroke: '#fff', strokeWidth: 2 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
         {/* SECTION: Audit Log Removed from Home for Performance */}

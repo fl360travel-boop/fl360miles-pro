@@ -195,6 +195,15 @@ export default async (request: Request) => {
                 current_period_end: periodEnd.toISOString(),
                 trial_ends_at: null,
             }, { onConflict: 'organization_id' });
+
+            // [NEW] Create tenant for branding/white-label
+            await supabase.from('tenants').insert({
+                id: orgData.id,
+                user_id: userId,
+                company_name: displayName + (plan === 'enterprise' ? '' : ' - Empresa'),
+                plan: plan || 'starter',
+                plan_status: 'active'
+            });
         }
 
         // Create billing_status
@@ -225,7 +234,7 @@ export default async (request: Request) => {
                         userName: displayName.split(' ')[0],
                         userEmail: normalizedEmail,
                         tempPassword: tempPassword,
-                        loginUrl: 'https://fl360miles.netlify.app/#/login',
+                        loginUrl: 'https://fl360miles.com.br/#/login',
                     },
                 }),
             });

@@ -2,11 +2,13 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Client, MileageProgram, CreditCard, MileageMovement } from '../types';
+import { Client, MileageProgram, CreditCard, MileageMovement, ClientMember } from '../types';
 import { useSearch } from '../contexts/SearchContext';
 import { getClients, updateClient as updateClientAPI, deleteClient as deleteClientAPI, deleteMovement as deleteMovementAPI, subscribeToClients, subscribeToPrograms, subscribeToAllMovements, getClient } from '../services/api';
+import { getClientMembers, createClientMember, updateClientMember, deleteClientMember } from '../services/clientMembers';
 import { BrandLogo, CardSkin } from '../components/BrandAssets';
 import { useSubscription } from '../hooks/useSubscription';
+import ClientLimitModal from '../components/ClientLimitModal';
 
 
 const getInitials = (name: string) => {
@@ -15,8 +17,9 @@ const getInitials = (name: string) => {
 
 const Clients: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const { canAddClient, planId } = useSubscription();
+  const { canAddClient, planId, clientLimit, currentClients } = useSubscription();
   const [clients, setClients] = useState<Client[]>([]);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const handleDeleteMovement = async (movementId: string) => {
     if (!selectedClient) return;
 
@@ -68,6 +71,17 @@ const Clients: React.FC = () => {
   const [showWa, setShowWa] = useState(false);
   const [managerAnalysis, setManagerAnalysis] = useState('');
   const [activeTab, setActiveTab] = useState<'info' | 'programs' | 'cards' | 'history'>('info');
+
+  // ── Family Members State ──────────────────────────────────
+  const [clientMembers, setClientMembers] = useState<ClientMember[]>([]);
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [newMemberForm, setNewMemberForm] = useState({ name: '', cpf: '', birthDate: '', relationship: 'Cônjuge' as ClientMember['relationship'] });
+  const [isSavingMember, setIsSavingMember] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<ClientMember | null>(null);
+
+  // Derived: the active profile (null = titular, otherwise = a family member)
+  const activeMember = selectedMemberId ? clientMembers.find(m => m.id === selectedMemberId) ?? null : null;
   const [clientNotes, setClientNotes] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [reportCycle, setReportCycle] = useState<'Mensal' | 'Trimestral' | 'Semestral' | 'Anual' | 'Personalizado'>('Mensal');
@@ -218,12 +232,118 @@ const Clients: React.FC = () => {
     };
   }, [searchParams]);
 
-  // Sync internal notes state when selectedClient changes
+  // Load family members when selected client changes
   useEffect(() => {
     if (selectedClient) {
       setClientNotes(selectedClient.notes || '');
+      setSelectedMemberId(null); // reset to titular
+      getClientMembers(selectedClient.id).then(setClientMembers);
+    } else {
+      setClientMembers([]);
+      setSelectedMemberId(null);
     }
   }, [selectedClient?.id]);
+
+  // ── Family Member CRUD Helpers ────────────────────────────
+  const handleAddMember = async () => {
+    if (!selectedClient || !newMemberForm.name.trim()) return;
+    setIsSavingMember(true);
+    try {
+      const created = await createClientMember(selectedClient.id, {
+        name: newMemberForm.name.trim(),
+        cpf: newMemberForm.cpf || undefined,
+        birthDate: newMemberForm.birthDate || undefined,
+        relationship: newMemberForm.relationship,
+      });
+      if (created) {
+        setClientMembers(prev => [...prev, created]);
+        setSelectedMemberId(created.id);
+      }
+      setNewMemberForm({ name: '', cpf: '', birthDate: '', relationship: 'Cônjuge' });
+      setShowAddMember(false);
+    } finally {
+      setIsSavingMember(false);
+    }
+  };
+
+  const handleDeleteMember = async (member: ClientMember) => {
+    const ok = await deleteClientMember(member.id);
+    if (ok) {
+      setClientMembers(prev => prev.filter(m => m.id !== member.id));
+      if (selectedMemberId === member.id) setSelectedMemberId(null);
+    }
+    setMemberToDelete(null);
+  };
+
+  const updateActiveMember = async (updates: Partial<Omit<ClientMember, 'id' | 'client_id' | 'organization_id'>>) => {
+    if (!activeMember) return;
+    const updated = await updateClientMember(activeMember.id, updates);
+    if (updated) setClientMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
+  };
+
+  // Programs for current profile (titular or member)
+  const activePrograms = activeMember ? activeMember.programs : selectedClient?.programs ?? [];
+  const activeCards    = activeMember ? activeMember.cards    : selectedClient?.cards    ?? [];
+  const activeHistory  = activeMember ? activeMember.history  : selectedClient?.history  ?? [];
+
+  // Add program to active profile
+  const addProgramToActive = () => {
+    if (!newProg.name) return;
+    if (activeMember) {
+      const name = newProg.name.trim().toUpperCase();
+      const existing = activeMember.programs.find(p => p.name.trim().toUpperCase() === name);
+      const programs = existing
+        ? activeMember.programs.map(p => p.id === existing.id ? { ...p, balance: p.balance + (Number(newProg.balance) || 0) } : p)
+        : [...activeMember.programs, { id: `P-${Date.now()}`, name, balance: Number(newProg.balance) || 0, icon: 'diamond' }];
+      updateActiveMember({ programs });
+    } else {
+      addProgram();
+    }
+    setNewProg({ name: '', balance: '' });
+  };
+
+  // Add card to active profile
+  const addCardToActive = () => {
+    if (!newCard.bank || !newCard.name) return;
+    if (activeMember) {
+      const card: CreditCard = { id: `C-${Date.now()}`, bank: newCard.bank, name: newCard.name, category: newCard.category };
+      updateActiveMember({ cards: [...activeMember.cards, card] });
+    } else {
+      addCard();
+    }
+    setNewCard({ bank: '', name: '', category: 'Black' });
+  };
+
+  // Add movement to active profile
+  const addMovementToActive = async () => {
+    if (activeMember) {
+      const effectiveProgram = newMove.program === '_NEW_' ? customProgram : newMove.program;
+      if (!effectiveProgram || !newMove.amount) return;
+      const m: MileageMovement = {
+        id: `H-${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        type: newMove.type as MileageMovement['type'],
+        program: effectiveProgram,
+        amount: Number(newMove.amount),
+        description: newMove.desc || `${newMove.type} de milhas`,
+        observation: newMove.obs,
+        negotiatedValue: ['Venda', 'Compra', 'Inclusão'].includes(newMove.type) ? Number(newMove.val) : undefined,
+        economyGenerated: ['Inclusão', 'Resgate', 'Transferência'].includes(newMove.type) ? Number(newMove.val) : undefined,
+        expirationDate: newMove.expirationDate || undefined,
+      } as any;
+      const factor = ['Venda', 'Resgate'].includes(m.type) ? -1 : 1;
+      const updatedPrograms = activeMember.programs.map(p =>
+        p.name.toLowerCase() === effectiveProgram.toLowerCase()
+          ? { ...p, balance: p.balance + (m.amount * factor) }
+          : p
+      );
+      await updateActiveMember({ history: [m, ...activeMember.history], programs: updatedPrograms });
+      setNewMove({ type: 'Inclusão', program: '', amount: '', desc: '', val: '', obs: '', bonusPercent: '', expirationDate: '', passengers: '1', flightClass: 'Econômica', ticketVal: '', cpm: '15.00', yieldCpm: '' });
+      setCustomProgram('');
+    } else {
+      await addMovement();
+    }
+  };
 
   const saveNotes = async () => {
     if (!selectedClient) return;
@@ -313,7 +433,7 @@ const Clients: React.FC = () => {
         });
       }
 
-      const m: MileageMovement = {
+      const m = {
         id: `H-${Date.now()}`,
         date: new Date().toISOString().split('T')[0],
         type: newMove.type as MileageMovement['type'],
@@ -332,7 +452,7 @@ const Clients: React.FC = () => {
         profit: newMove.type === 'Venda' ? (Number(newMove.val) - (Number(newMove.amount) / 1000 * Number(newMove.cpm))) : undefined,
         bonusPercent: newMove.type === 'Transferência' ? Number(newMove.bonusPercent) : undefined,
         expirationDate: newMove.expirationDate || undefined
-      } as MileageMovement;
+      } as any;
 
       // Update balances
       updatedProgs = updatedProgs.map(p => {
@@ -349,7 +469,7 @@ const Clients: React.FC = () => {
       // Since we fetched 'freshClient', we should update THAT.
       // NOTE: updateCurrent updates 'selectedClient' state after saving. 
       // We'll call updateCurrent with the modified freshClient.
-      await updateCurrent({ ...freshClient, history: [m, ...freshClient.history], programs: updatedProgs });
+      await updateCurrent({ ...freshClient, history: [m, ...freshClient.history], programs: updatedProgs } as any);
 
       setNewMove({ type: 'Inclusão', program: '', amount: '', desc: '', val: '', obs: '', bonusPercent: '', expirationDate: '', passengers: '1', flightClass: 'Econômica', ticketVal: '', cpm: '15.00', yieldCpm: '' });
       setCustomProgram('');
@@ -389,12 +509,12 @@ const Clients: React.FC = () => {
       const m: MileageMovement = {
         id: `H-ADJ-${Date.now()}`,
         date: new Date().toISOString().split('T')[0],
-        type: (diff > 0 ? 'Inclusão' : 'Resgate') as 'Inclusão' | 'Resgate',
+        type: (diff > 0 ? 'Inclusão' : 'Resgate') as MileageMovement['type'],
         program: freshProgram.name,
         amount: Math.abs(diff),
         description: 'Ajuste Manual de Saldo',
         observation: `Saldo anterior: ${freshProgram.balance.toLocaleString('pt-BR')} | Novo saldo: ${newBalance.toLocaleString('pt-BR')}`
-      } as MileageMovement;
+      } as any;
 
       const updatedProgs = freshClient.programs.map(p => p.id === freshProgram.id ? { ...p, balance: newBalance } : p);
       await updateCurrent({ ...freshClient, programs: updatedProgs, history: [m, ...freshClient.history] });
@@ -408,14 +528,15 @@ const Clients: React.FC = () => {
 
   const filteredHistory = useMemo(() => {
     if (!selectedClient) return [];
-    return selectedClient.history.filter(h => {
+    const source = activeMember ? activeMember.history : selectedClient.history;
+    return source.filter(h => {
       const matchesType = hFilterType === 'Todos' || h.type === hFilterType;
       const hDate = new Date(h.date).getTime();
       const start = hStartDate ? new Date(hStartDate).getTime() : 0;
       const end = hEndDate ? new Date(hEndDate).getTime() : Infinity;
       return matchesType && hDate >= start && hDate <= end;
     });
-  }, [selectedClient, hFilterType, hStartDate, hEndDate]);
+  }, [selectedClient, activeMember, hFilterType, hStartDate, hEndDate]);
 
   const reportMetrics = useMemo(() => {
     if (!selectedClient) return { roi: 0, saving: 0, totalMoves: 0, filteredHistory: [] };
@@ -425,16 +546,17 @@ const Clients: React.FC = () => {
     // 1. LIFETIME METRICS (Common)
     const lifetimeHistory = selectedClient.history;
     const lifetimeInvested = lifetimeHistory
-      .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
-      .reduce((acc, h) => acc + (h.negotiatedValue || h.economyGenerated || 0), 0);
+      .filter(h => h.type === 'Compra')
+      .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
     const lifetimeSaving = lifetimeHistory.reduce((acc, h) => {
+      // Inclusão = milhas do próprio cliente, não conta no financeiro
+      if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc;
       let profit = Number(h.profit || 0);
       if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
         const estimatedCpm = Number(h.cpm || 15.00);
         profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
       }
-      if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc + profit;
       return acc + Number(h.economyGenerated || 0) + profit;
     }, 0);
 
@@ -479,12 +601,12 @@ const Clients: React.FC = () => {
         .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
       saving = fHistory.reduce((acc, h) => {
+        if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc;
         let profit = Number(h.profit || 0);
         if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
           const estimatedCpm = Number(h.cpm || 15.00);
           profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
         }
-        if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc + profit;
         return acc + Number(h.economyGenerated || 0) + profit;
       }, 0);
 
@@ -504,20 +626,20 @@ const Clients: React.FC = () => {
         .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
       saving = fHistory.reduce((acc, h) => {
+        if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc;
         let profit = Number(h.profit || 0);
         if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
           const estimatedCpm = Number(h.cpm || 15.00);
           profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
         }
-        if (h.type === 'Inclusão') return acc + profit;
         return acc + Number(h.economyGenerated || 0) + profit;
       }, 0);
     }
 
     // 3. PERIOD INVESTED (Dependent on fHistory)
     const totalInvested = fHistory
-      .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
-      .reduce((acc, h) => acc + (h.negotiatedValue || h.economyGenerated || 0), 0);
+      .filter(h => h.type === 'Compra')
+      .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
     return {
       roi,
@@ -604,13 +726,15 @@ const Clients: React.FC = () => {
 
   const consolidatedPrograms = useMemo(() => {
     if (!selectedClient) return {};
-    return selectedClient.programs.reduce((acc, curr) => {
+    // When a member is active, show only their programs
+    const source = activeMember ? activeMember.programs : selectedClient.programs;
+    return source.reduce((acc, curr) => {
       const key = curr.name.trim().toUpperCase();
       if (!acc[key]) acc[key] = 0;
       acc[key] += Number(curr.balance);
       return acc;
     }, {} as Record<string, number>);
-  }, [selectedClient]);
+  }, [selectedClient, activeMember]);
 
   const addProgram = () => {
     if (!selectedClient || !newProg.name) return;
@@ -672,13 +796,40 @@ const Clients: React.FC = () => {
             <span className="material-symbols-outlined text-sm">person_add</span> NOVO CLIENTE
           </Link>
         ) : (
-          <button onClick={() => alert('Limite de clientes atingido. Acesse "Meu Plano" no menu para fazer upgrade do seu plano e cadastrar mais clientes.')} className="shrink-0 bg-red-500/20 text-red-400 border border-red-500/30 px-8 py-3 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-3 active:scale-95 whitespace-nowrap">
+          <button onClick={() => setShowLimitModal(true)} className="shrink-0 bg-red-500/20 text-red-500 border border-red-500/30 px-8 py-3 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-3 active:scale-95 whitespace-nowrap shadow-xl shadow-red-500/10">
             <span className="material-symbols-outlined text-sm">lock</span> LIMITE ATINGIDO
           </button>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:hidden">
+        {clients.length === 0 && !isLoading && (
+          <div className="col-span-full py-32 flex flex-col items-center justify-center text-center border-2 border-dashed border-white/5 rounded-[40px] bg-bg-surface/30">
+            <div className="size-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <span className="material-symbols-outlined text-primary text-5xl">group_add</span>
+            </div>
+            <h2 className="display-font text-2xl font-bold text-white italic uppercase tracking-tighter mb-4">
+              Nenhum Cliente Cadastrado
+            </h2>
+            <p className="text-slate-400 text-sm max-w-md mx-auto mb-8">
+              A sua base de clientes está vazia. Cadastre sua primeira conta para começar a gerenciar patrimônio em milhas, gerar análises e relatórios estratégicos.
+            </p>
+            {canAddClient && (
+              <Link to="/onboarding" className="inline-flex items-center gap-3 bg-[#E2BE6A] hover:bg-[#B8952E] text-[#0A0D11] px-10 py-4 rounded-2xl font-black text-xs tracking-widest uppercase transition-all shadow-xl shadow-[#E2BE6A]/20">
+                <span className="material-symbols-outlined text-sm">person_add</span>
+                CADASTRAR PRIMEIRO CLIENTE
+              </Link>
+            )}
+          </div>
+        )}
+
+        {clients.length > 0 && filteredClients.length === 0 && !isLoading && (
+          <div className="col-span-full py-20 text-center border border-white/5 rounded-[32px] bg-bg-surface opacity-60">
+            <span className="material-symbols-outlined text-4xl text-slate-500 mb-4">search_off</span>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Nenhum cliente encontrado para sua busca.</p>
+          </div>
+        )}
+
         {filteredClients.map((client) => {
           // Metrics Calculation
           const totalPoints = client.programs.reduce((acc, p) => acc + p.balance, 0);
@@ -688,17 +839,18 @@ const Clients: React.FC = () => {
             .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
           const totalInvested = client.history
-            .filter(h => h.type === 'Compra' || h.type === 'Inclusão')
-            .reduce((acc, h) => acc + (h.negotiatedValue || h.economyGenerated || 0), 0);
+            .filter(h => h.type === 'Compra')
+            .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
           const totalEconomy = client.history.reduce((acc, h) => {
+            // Inclusão = milhas do próprio cliente, não conta no financeiro
+            if (h.type === 'Inclusão') return acc;
             // Fallback Logic: If profit is missing but it's a Sale, calculate it
             let profit = h.profit || 0;
             if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
               const estimatedCpm = h.cpm || 15.00; // Legacy Fallback
               profit = h.negotiatedValue - ((h.amount / 1000) * estimatedCpm);
             }
-            if (h.type === 'Inclusão') return acc + profit;
             return acc + (h.economyGenerated || 0) + profit;
           }, 0);
 
@@ -878,11 +1030,17 @@ const Clients: React.FC = () => {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-8">
                   <div className="size-24 rounded-full bg-gradient-to-br from-card-dark to-black border-4 border-primary/20 flex items-center justify-center text-primary text-4xl font-black display-font shadow-[0_0_50px_-12px_rgba(226,190,106,0.4)]">
-                    {getInitials(selectedClient.name)}
+                    {activeMember ? getInitials(activeMember.name) : getInitials(selectedClient.name)}
                   </div>
                   <div>
-                    <h2 className="display-font text-4xl font-bold text-white italic uppercase tracking-tighter leading-none">{selectedClient.name}</h2>
-                    <p className="text-primary text-[10px] font-bold uppercase tracking-[0.4em] mt-4 italic">{selectedClient.managementLevel} Protocol • Membro desde {selectedClient.startDate}</p>
+                    <h2 className="display-font text-4xl font-bold text-white italic uppercase tracking-tighter leading-none">
+                      {activeMember ? activeMember.name : selectedClient.name}
+                    </h2>
+                    {activeMember ? (
+                      <p className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.4em] mt-4 italic">{activeMember.relationship} de {selectedClient.name}</p>
+                    ) : (
+                      <p className="text-primary text-[10px] font-bold uppercase tracking-[0.4em] mt-4 italic">{selectedClient.managementLevel} Protocol • Titular</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -904,9 +1062,87 @@ const Clients: React.FC = () => {
                 </div>
               </div>
 
+              {/* ── FAMILY PROFILE SWITCHER ───────────────────────────────── */}
+              <div className="flex items-center gap-3 overflow-x-auto pb-1 custom-scrollbar">
+                {/* Titular chip */}
+                <button
+                  onClick={() => setSelectedMemberId(null)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                    !selectedMemberId
+                      ? 'bg-primary text-bg-dark border-primary shadow-lg shadow-primary/20'
+                      : 'bg-white/5 text-slate-400 border-white/10 hover:border-primary/40 hover:text-white'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-sm">person</span>
+                  {selectedClient.name.split(' ')[0]} (Titular)
+                </button>
+
+                {/* Family member chips */}
+                {clientMembers.map(member => (
+                  <div key={member.id} className="relative group/chip flex-shrink-0">
+                    <button
+                      onClick={() => setSelectedMemberId(member.id)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                        selectedMemberId === member.id
+                          ? 'bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20'
+                          : 'bg-white/5 text-slate-400 border-white/10 hover:border-blue-400/40 hover:text-white'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">family_restroom</span>
+                      {member.name.split(' ')[0]} ({member.relationship})
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMemberToDelete(member); }}
+                      className="absolute -top-1.5 -right-1.5 size-5 bg-red-500 text-white rounded-full opacity-0 group-hover/chip:opacity-100 transition-opacity flex items-center justify-center shadow-lg z-10"
+                    >
+                      <span className="material-symbols-outlined text-[10px]">close</span>
+                    </button>
+                  </div>
+                ))}
+
+                {/* Add member button */}
+                <button
+                  onClick={() => setShowAddMember(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border border-dashed border-white/20 text-slate-600 hover:border-primary/40 hover:text-primary flex-shrink-0"
+                >
+                  <span className="material-symbols-outlined text-sm">person_add</span>
+                  Familiar
+                </button>
+              </div>
+              {/* ── END FAMILY PROFILE SWITCHER ──────────────────────────── */}
+
+              {/* ── MEMBER INFO CARD (shown when a member is active) ── */}
+              {activeMember && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 py-5 bg-blue-500/5 border border-blue-500/10 rounded-2xl animate-in fade-in duration-300">
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-blue-400/60 uppercase tracking-[0.3em]">Parentesco</p>
+                    <p className="text-[11px] font-black text-white italic">{activeMember.relationship}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-blue-400/60 uppercase tracking-[0.3em]">CPF</p>
+                    <p className="text-[11px] font-black text-white italic">{activeMember.cpf || '—'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-blue-400/60 uppercase tracking-[0.3em]">Nascimento</p>
+                    <p className="text-[11px] font-black text-white italic">
+                      {activeMember.birthDate
+                        ? `${new Date(activeMember.birthDate).toLocaleDateString('pt-BR')} (${new Date().getFullYear() - new Date(activeMember.birthDate).getFullYear()} anos)`
+                        : '—'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-blue-400/60 uppercase tracking-[0.3em]">Titular</p>
+                    <p className="text-[11px] font-black text-white italic">{selectedClient.name}</p>
+                  </div>
+                </div>
+              )}
+              {/* ─────────────────────────────────────────────────────────── */}
+
               <div className="flex gap-10 border-b border-white/5 overflow-x-auto pb-0.5 custom-scrollbar">
                 {(['info', 'programs', 'cards', 'history'] as const).map((t) => (
-                  <button key={t} onClick={() => setActiveTab(t)} className={`pb-5 px-1 text-[11px] font-black uppercase tracking-[0.3em] transition-all whitespace-nowrap ${activeTab === t ? 'border-b-2 border-primary text-primary' : 'text-slate-500 hover:text-white'}`}>
+                  <button key={t} onClick={() => setActiveTab(t)} className={`pb-5 px-1 text-[11px] font-black uppercase tracking-[0.3em] transition-all whitespace-nowrap ${
+                    t === 'info' && activeMember ? 'hidden' : ''
+                  } ${activeTab === t ? 'border-b-2 border-primary text-primary' : 'text-slate-500 hover:text-white'}`}>
                     {t === 'info' ? 'Dossiê' : t === 'programs' ? 'Ativos' : t === 'cards' ? 'Cartões' : 'Auditoria'}
                   </button>
                 ))}
@@ -977,66 +1213,95 @@ const Clients: React.FC = () => {
               {/* Ativos Tab */}
               {activeTab === 'programs' && (
                 <div className="space-y-10 animate-in fade-in duration-500">
-                  {/* Smart Asset Cards (Evolution & Economy) - UPDATED WITH LIQUIDITY */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-bg-surface border border-emerald-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-emerald-500/40 transition-all">
-                      <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <span className="material-symbols-outlined text-6xl text-emerald-500">savings</span>
+                  {/* Smart Asset Cards — hide for member profiles, show simple summary instead */}
+                  {activeMember ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                      <div className="bg-bg-surface border border-blue-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl">
+                        <div className="absolute top-0 right-0 p-6 opacity-10">
+                          <span className="material-symbols-outlined text-6xl text-blue-400">family_restroom</span>
+                        </div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Total de Milhas — {activeMember.name}</p>
+                        <p className="text-4xl font-black text-white italic tracking-tighter">
+                          {activeMember.programs.reduce((s, p) => s + p.balance, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          <span className="text-[16px] text-slate-500 ml-2">mi</span>
+                        </p>
+                        <div className="mt-4 flex items-center gap-2">
+                          <span className="text-[9px] bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full font-bold uppercase tracking-widest">{activeMember.relationship}</span>
+                        </div>
                       </div>
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Economia Total Gerada</p>
-                      <p className="text-4xl font-black text-white italic tracking-tighter">
-                        <span className="text-emerald-500 mr-2">R$</span>
-                        {reportMetrics.lifetimeSaving.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <div className="mt-4 flex items-center gap-2">
-                        <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
-                          Lifetime Saving
-                        </span>
+                      <div className="bg-bg-surface border border-emerald-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl">
+                        <div className="absolute top-0 right-0 p-6 opacity-10">
+                          <span className="material-symbols-outlined text-6xl text-emerald-500">payments</span>
+                        </div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Valor de Mercado Estimado</p>
+                        <p className="text-4xl font-black text-white italic tracking-tighter">
+                          <span className="text-emerald-500 mr-2">R$</span>
+                          {(activeMember.programs.reduce((s, p) => s + p.balance, 0) * 0.0185).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        <div className="mt-4">
+                          <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">@ R$ 18,50 / 1000 mi</span>
+                        </div>
                       </div>
                     </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                      <div className="bg-bg-surface border border-emerald-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-emerald-500/40 transition-all">
+                        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                          <span className="material-symbols-outlined text-6xl text-emerald-500">savings</span>
+                        </div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Economia Total Gerada</p>
+                        <p className="text-4xl font-black text-white italic tracking-tighter">
+                          <span className="text-emerald-500 mr-2">R$</span>
+                          {reportMetrics.lifetimeSaving.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                        <div className="mt-4 flex items-center gap-2">
+                          <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
+                            Lifetime Saving
+                          </span>
+                        </div>
+                      </div>
 
-                    <div className="bg-bg-surface border border-blue-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-blue-500/40 transition-all">
-                      <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <span className="material-symbols-outlined text-6xl text-blue-500">trending_up</span>
+                      <div className="bg-bg-surface border border-blue-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-blue-500/40 transition-all">
+                        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                          <span className="material-symbols-outlined text-6xl text-blue-500">trending_up</span>
+                        </div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Evolução Patrimonial</p>
+                        <p className="text-4xl font-black text-white italic tracking-tighter">
+                          {reportMetrics.totalInvested > 1
+                            ? (() => {
+                              const val = ((reportMetrics.totalValue - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100;
+                              if (val > 2000) return '+100,0%';
+                              return `${val > 0 ? '+' : ''}${val.toFixed(1).replace('.', ',')}%`;
+                            })()
+                            : (reportMetrics.totalValue > 0 ? '+100,0%' : '0,0%')}
+                        </p>
+                        <div className="mt-4 flex items-center gap-2">
+                          <span className="text-[9px] bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
+                            Rentabilidade Global
+                          </span>
+                          <span className="text-[9px] text-slate-600 font-bold">
+                            (Mkt Val + ROI vs Invest)
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Evolução Patrimonial</p>
-                      <p className="text-4xl font-black text-white italic tracking-tighter">
-                        {reportMetrics.totalInvested > 1
-                          ? (() => {
-                            const val = ((reportMetrics.totalValue - reportMetrics.totalInvested) / reportMetrics.totalInvested) * 100;
-                            // Sanity check: se o ROI for absurdo (> 2000%), provavelmente é erro de base de custo ou acúmulo orgânico.
-                            // Nesses casos, mostramos 100% (lucro total) para manter a coerência visual.
-                            if (val > 2000) return '+100,0%';
-                            return `${val > 0 ? '+' : ''}${val.toFixed(1).replace('.', ',')}%`;
-                          })()
-                          : (reportMetrics.totalValue > 0 ? '+100,0%' : '0,0%')}
-                      </p>
-                      <div className="mt-4 flex items-center gap-2">
-                        <span className="text-[9px] bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
-                          Rentabilidade Global
-                        </span>
-                        <span className="text-[9px] text-slate-600 font-bold">
-                          (Mkt Val + ROI vs Invest)
-                        </span>
-                      </div>
-                    </div>
 
-                    <div className="bg-bg-surface border border-indigo-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-indigo-500/40 transition-all">
-                      <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <span className="material-symbols-outlined text-6xl text-indigo-500">payments</span>
-                      </div>
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Liquidez Realizada (ROI)</p>
-                      <p className="text-4xl font-black text-white italic tracking-tighter">
-                        <span className="text-emerald-500 mr-2">R$</span>
-                        {reportMetrics.lifetimeRoi.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <div className="mt-4 flex items-center gap-2">
-                        <span className="text-[9px] bg-indigo-500/10 text-indigo-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
-                          Cash-out Real
-                        </span>
+                      <div className="bg-bg-surface border border-indigo-500/20 p-8 rounded-[32px] relative overflow-hidden shadow-2xl group hover:border-indigo-500/40 transition-all">
+                        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                          <span className="material-symbols-outlined text-6xl text-indigo-500">payments</span>
+                        </div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Liquidez Realizada (ROI)</p>
+                        <p className="text-4xl font-black text-white italic tracking-tighter">
+                          <span className="text-emerald-500 mr-2">R$</span>
+                          {reportMetrics.lifetimeRoi.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                        <div className="mt-4 flex items-center gap-2">
+                          <span className="text-[9px] bg-indigo-500/10 text-indigo-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">
+                            Cash-out Real
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Consolidated Summary - existing */}
                   <div className="bg-gradient-to-r from-amber-500/10 to-bg-card border-l-4 border-amber-500 p-8 rounded-r-3xl shadow-2xl relative overflow-hidden">
@@ -1060,6 +1325,12 @@ const Clients: React.FC = () => {
                   </div>
 
                   {/* Add Program Action */}
+                  {activeMember && (
+                    <div className="flex items-center gap-3 px-4 py-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+                      <span className="material-symbols-outlined text-blue-400 text-sm">family_restroom</span>
+                      <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Gerenciando ativos de <span className="text-white">{activeMember.name}</span></p>
+                    </div>
+                  )}
                   <div className="bg-bg-surface border border-white/5 p-6 rounded-2xl flex flex-col md:flex-row gap-6 items-end shadow-lg">
                     <div className="flex-1 w-full space-y-2">
                       <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest px-1">Novo Programa</label>
@@ -1069,17 +1340,17 @@ const Clients: React.FC = () => {
                       <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest px-1">Capital Inicial</label>
                       <input type="number" className="w-full bg-bg-card border-none rounded-xl py-4 px-5 text-lg text-white font-black italic outline-none focus:ring-1 focus:ring-primary placeholder:text-slate-700" value={newProg.balance} onChange={e => setNewProg({ ...newProg, balance: e.target.value })} placeholder="0" />
                     </div>
-                    <button onClick={addProgram} className="bg-primary hover:bg-primary-dark text-bg-dark font-black px-8 py-4 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg hover:shadow-primary/20 h-[52px] flex items-center gap-2">
+                    <button onClick={addProgramToActive} className="bg-primary hover:bg-primary-dark text-bg-dark font-black px-8 py-4 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg hover:shadow-primary/20 h-[52px] flex items-center gap-2">
                       <span className="material-symbols-outlined text-sm">add_circle</span> VINCULAR
                     </button>
                   </div>
 
                   {/* Compact Rows List */}
                   <div className="space-y-3 pb-20">
-                    {selectedClient.programs.length === 0 && (
+                    {activePrograms.length === 0 && (
                       <p className="text-center text-slate-600 italic text-xs py-10 opacity-50">Nenhum ativo vinculado.</p>
                     )}
-                    {selectedClient.programs.filter(p => p.balance > 0).map(p => (
+                    {activePrograms.filter(p => p.balance > 0).map(p => (
                       <div key={p.id} className="bg-bg-card border-b border-white/5 p-4 rounded-xl flex items-center justify-between group hover:bg-white/5 transition-all">
                         {/* Left: Icon & Info */}
                         <div className="flex items-center gap-6">
@@ -1092,7 +1363,7 @@ const Clients: React.FC = () => {
                               <span className="text-sm font-black text-white uppercase italic tracking-tighter">{p.name}</span>
                               <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest bg-bg-dark px-2 py-0.5 rounded-full">
                                 {(() => {
-                                  const lastMove = selectedClient.history
+                                  const lastMove = activeHistory
                                     .filter(h => h.program.toLowerCase() === p.name.toLowerCase())
                                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
                                   return lastMove
@@ -1108,8 +1379,8 @@ const Clients: React.FC = () => {
                         <div className="flex items-center gap-4">
                           {editingProgramId === p.id ? (
                             <div className="flex items-center gap-2">
-                              <input autoFocus type="number" className="bg-bg-dark border border-primary/30 rounded py-1 px-2 text-sm text-primary font-black italic w-24 outline-none text-right" value={editBalanceValue} onChange={e => setEditBalanceValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEditedBalance(p)} />
-                              <button onClick={() => saveEditedBalance(p)} className="text-emerald-400 hover:scale-110"><span className="material-symbols-outlined text-lg">check</span></button>
+                              <input autoFocus type="number" className="bg-bg-dark border border-primary/30 rounded py-1 px-2 text-sm text-primary font-black italic w-24 outline-none text-right" value={editBalanceValue} onChange={e => setEditBalanceValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && (activeMember ? updateActiveMember({ programs: activeMember.programs.map(x => x.id === p.id ? { ...x, balance: Number(editBalanceValue) } : x) }).then(() => setEditingProgramId(null)) : saveEditedBalance(p))} />
+                              <button onClick={() => activeMember ? updateActiveMember({ programs: activeMember.programs.map(x => x.id === p.id ? { ...x, balance: Number(editBalanceValue) } : x) }).then(() => setEditingProgramId(null)) : saveEditedBalance(p)} className="text-emerald-400 hover:scale-110"><span className="material-symbols-outlined text-lg">check</span></button>
                               <button onClick={() => setEditingProgramId(null)} className="text-slate-600 hover:scale-110"><span className="material-symbols-outlined text-lg">close</span></button>
                             </div>
                           ) : (
@@ -1123,7 +1394,13 @@ const Clients: React.FC = () => {
                             </>
                           )}
 
-                          <button onClick={() => updateCurrent({ ...selectedClient, programs: selectedClient.programs.filter(x => x.id !== p.id) })} className="size-8 rounded-lg text-slate-700 hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-colors" title="Excluir programa">
+                          <button
+                            onClick={() => activeMember
+                              ? updateActiveMember({ programs: activeMember.programs.filter(x => x.id !== p.id) })
+                              : updateCurrent({ ...selectedClient, programs: selectedClient.programs.filter(x => x.id !== p.id) })
+                            }
+                            className="size-8 rounded-lg text-slate-700 hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-colors" title="Excluir programa"
+                          >
                             <span className="material-symbols-outlined text-sm">delete</span>
                           </button>
                         </div>
@@ -1136,6 +1413,12 @@ const Clients: React.FC = () => {
               {/* Cartões Tab */}
               {activeTab === 'cards' && (
                 <div className="space-y-8 animate-in fade-in duration-500">
+                  {activeMember && (
+                    <div className="flex items-center gap-3 px-4 py-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+                      <span className="material-symbols-outlined text-blue-400 text-sm">family_restroom</span>
+                      <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Cartões de <span className="text-white">{activeMember.name}</span></p>
+                    </div>
+                  )}
                   <div className="bg-bg-surface border border-white/10 p-10 rounded-[40px] flex flex-col md:flex-row gap-8 items-end shadow-2xl">
                     <div className="flex-1 w-full space-y-3">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Banco</label>
@@ -1145,14 +1428,17 @@ const Clients: React.FC = () => {
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Cartão</label>
                       <input className="w-full bg-bg-card border border-white/5 rounded-2xl py-5 px-6 text-sm text-white italic outline-none focus:ring-1 focus:ring-primary" value={newCard.name} onChange={e => setNewCard({ ...newCard, name: e.target.value })} placeholder="Ex: Unlimited Black" />
                     </div>
-                    <button onClick={addCard} className="bg-primary hover:bg-primary-dark text-bg-dark font-black px-10 py-5 rounded-2xl text-[11px] uppercase tracking-widest transition-all shadow-xl shadow-primary/20 h-[64px]">CADASTRAR</button>
+                    <button onClick={addCardToActive} className="bg-primary hover:bg-primary-dark text-bg-dark font-black px-10 py-5 rounded-2xl text-[11px] uppercase tracking-widest transition-all shadow-xl shadow-primary/20 h-[64px]">CADASTRAR</button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {selectedClient.cards.map(c => (
+                    {activeCards.map(c => (
                       <div key={c.id} className="group relative">
                         <CardSkin bank={c.bank} name={c.name} className="h-40 w-full hover:scale-105 transition-transform duration-300" />
                         <button
-                          onClick={() => updateCurrent({ ...selectedClient, cards: selectedClient.cards.filter(x => x.id !== c.id) })}
+                          onClick={() => activeMember
+                            ? updateActiveMember({ cards: activeMember.cards.filter(x => x.id !== c.id) })
+                            : updateCurrent({ ...selectedClient, cards: selectedClient.cards.filter(x => x.id !== c.id) })
+                          }
                           className="absolute -top-2 -right-2 size-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg"
                         >
                           <span className="material-symbols-outlined text-sm">close</span>
@@ -1167,6 +1453,12 @@ const Clients: React.FC = () => {
               {activeTab === 'history' && (
                 <div className="space-y-12 animate-in fade-in duration-500 pb-20">
                   <div className="bg-bg-surface border border-white/10 p-10 rounded-[40px] shadow-2xl space-y-10">
+                    {activeMember && (
+                      <div className="flex items-center gap-3 px-4 py-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+                        <span className="material-symbols-outlined text-blue-400 text-sm">family_restroom</span>
+                        <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Lançamentos de <span className="text-white">{activeMember.name}</span></p>
+                      </div>
+                    )}
                     <h4 className="display-font text-[10px] text-primary font-black uppercase tracking-[0.4em] italic border-b border-white/5 pb-5">Manual Ledger Injection 3.0</h4>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div className="space-y-3">
@@ -1195,7 +1487,7 @@ const Clients: React.FC = () => {
                         ) : (
                           <select className="w-full bg-bg-card border-none rounded-2xl py-5 px-6 text-[11px] text-white font-black italic outline-none appearance-none cursor-pointer" value={newMove.program} onChange={e => setNewMove({ ...newMove, program: e.target.value })}>
                             <option value="">Selecione o ativo...</option>
-                            {selectedClient.programs.map(p => <option key={p.id} value={p.name}>{p.name.toUpperCase()}</option>)}
+                            {activePrograms.map(p => <option key={p.id} value={p.name}>{p.name.toUpperCase()}</option>)}
                             <option value="_NEW_">✨ Inserir Novo Programa...</option>
                           </select>
                         )}
@@ -1287,7 +1579,7 @@ const Clients: React.FC = () => {
                         </>
                       )}
                     </div>
-                    <button onClick={addMovement} className="w-full bg-primary hover:bg-primary-dark text-bg-dark font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.4em] shadow-2xl shadow-primary/20 active:scale-95 transition-all">INJETAR NO LEDGER DE AUDITORIA</button>
+                    <button onClick={addMovementToActive} className="w-full bg-primary hover:bg-primary-dark text-bg-dark font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.4em] shadow-2xl shadow-primary/20 active:scale-95 transition-all">INJETAR NO LEDGER DE AUDITORIA</button>
                   </div>
 
                   <div className="space-y-6">
@@ -1705,6 +1997,85 @@ const Clients: React.FC = () => {
                   </div>
                 </section>
 
+                {/* FAMILY MEMBERS SECTION - shown in report if any members exist */}
+                {clientMembers.length > 0 && (
+                  <section className="mb-12">
+                    <div className="flex items-center gap-6 mb-8">
+                      <span className="text-primary font-black italic text-4xl display-font">04</span>
+                      <h3 className="text-[14px] font-black text-slate-800 uppercase tracking-[0.5em] border-b-2 border-slate-100 flex-1 pb-4">Família — Extratos Individuais</h3>
+                    </div>
+
+                    {clientMembers.map((member) => (
+                      <div key={member.id} className="mb-12 break-inside-avoid">
+                        {/* Member Header */}
+                        <div className="flex items-center gap-4 mb-4 px-6 py-4 bg-slate-50 rounded-2xl print:bg-transparent print:border print:border-slate-200 print:rounded-none">
+                          <span className="material-symbols-outlined text-blue-500 print:text-black">family_restroom</span>
+                          <div>
+                            <p className="font-black text-slate-900 uppercase tracking-widest text-sm">{member.name}</p>
+                            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">{member.relationship} de {selectedClient.name}</p>
+                          </div>
+                          {/* Member Programs Summary */}
+                          <div className="ml-auto flex gap-6">
+                            {member.programs.filter(p => p.balance > 0).map(p => (
+                              <div key={p.id} className="text-right">
+                                <p className="text-[9px] text-slate-400 uppercase font-bold tracking-widest">{p.name}</p>
+                                <p className="text-sm font-black text-slate-900 italic">{p.balance.toLocaleString('pt-BR')} <span className="text-[9px] opacity-40">mi</span></p>
+                              </div>
+                            ))}
+                            {member.programs.filter(p => p.balance > 0).length === 0 && (
+                              <p className="text-[10px] text-slate-400 italic">Sem saldo ativo</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Member History Table */}
+                        {member.history.length > 0 ? (
+                          <div className="overflow-hidden border border-slate-100 rounded-[24px] print:overflow-visible print:border-none print:rounded-none">
+                            <table className="w-full">
+                              <thead className="bg-slate-50 print:bg-transparent">
+                                <tr>
+                                  <th className="px-6 py-4 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Data</th>
+                                  <th className="px-6 py-4 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Operação</th>
+                                  <th className="px-6 py-4 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Programa</th>
+                                  <th className="px-6 py-4 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Milhas</th>
+                                  <th className="px-6 py-4 text-right text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Resultado</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 print:divide-slate-200">
+                                {[...member.history]
+                                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                  .map((h, i) => (
+                                    <tr key={i} className="hover:bg-slate-50/50 transition-colors break-inside-avoid print:bg-white">
+                                      <td className="px-6 py-4 text-[10px] font-bold text-slate-600 uppercase tracking-widest">{new Date(h.date).toLocaleDateString()}</td>
+                                      <td className="px-6 py-4">
+                                        <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest print:border print:px-2 ${['Venda', 'Resgate'].includes(h.type) ? 'bg-red-100 text-red-600 print:border-red-600 print:bg-transparent' : 'bg-emerald-100 text-emerald-600 print:border-emerald-600 print:bg-transparent'}`}>
+                                          {h.type}
+                                        </span>
+                                      </td>
+                                      <td className="px-6 py-4 text-[11px] font-black text-slate-900 uppercase italic">{h.program}</td>
+                                      <td className={`px-6 py-4 text-[12px] font-black italic tracking-tight ${['Venda', 'Resgate'].includes(h.type) ? 'text-red-500' : 'text-slate-900'}`}>
+                                        {['Venda', 'Resgate', 'Transferência'].includes(h.type) ? '-' : '+'}{Number(h.amount).toLocaleString('pt-BR')}
+                                      </td>
+                                      <td className="px-6 py-4 text-right text-[11px] font-black text-slate-900 italic">
+                                        {h.negotiatedValue && Number(h.negotiatedValue) > 0
+                                          ? `R$ ${Number(h.negotiatedValue).toLocaleString('pt-BR')}`
+                                          : h.economyGenerated && Number(h.economyGenerated) > 0
+                                            ? `Eco: R$ ${Number(h.economyGenerated).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                                            : '-'}
+                                      </td>
+                                    </tr>
+                                  ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <p className="text-center text-slate-400 italic text-sm py-6">Nenhuma movimentação registrada.</p>
+                        )}
+                      </div>
+                    ))}
+                  </section>
+                )}
+
                 <section className="pt-20 text-center border-t border-slate-100 opacity-60">
                   <p className="display-font text-slate-400 text-[11px] tracking-[1em] uppercase italic mb-16">FL360MILES Wealth Management Protocol — 2024</p>
                 </section>
@@ -1758,6 +2129,107 @@ const Clients: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+      {/* ADD MEMBER MODAL */}
+      {showAddMember && selectedClient && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-6 animate-in fade-in duration-300 print:hidden">
+          <div className="absolute inset-0 bg-bg-dark/95 backdrop-blur-2xl" onClick={() => setShowAddMember(false)}></div>
+          <div className="relative bg-bg-surface border border-blue-500/20 p-12 rounded-[48px] w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-500">
+            <div className="flex items-center gap-6 mb-10">
+              <div className="size-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                <span className="material-symbols-outlined text-blue-400 text-2xl">family_restroom</span>
+              </div>
+              <div>
+                <h3 className="display-font text-2xl font-bold text-white uppercase italic tracking-tighter">Novo Familiar</h3>
+                <p className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.3em] mt-1">Perfil vinculado a {selectedClient.name}</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 block mb-2">Nome Completo *</label>
+                <input
+                  className="w-full bg-bg-card border border-white/10 rounded-2xl py-4 px-5 text-sm text-white italic outline-none focus:ring-1 focus:ring-blue-400"
+                  value={newMemberForm.name}
+                  onChange={e => setNewMemberForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Ex: Maria Silva"
+                  autoFocus
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 block mb-2">CPF</label>
+                  <input
+                    className="w-full bg-bg-card border border-white/10 rounded-2xl py-4 px-5 text-sm text-white italic outline-none focus:ring-1 focus:ring-blue-400"
+                    value={newMemberForm.cpf}
+                    onChange={e => setNewMemberForm(prev => ({ ...prev, cpf: e.target.value }))}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 block mb-2">Nascimento</label>
+                  <input
+                    type="date"
+                    className="w-full bg-bg-card border border-white/10 rounded-2xl py-4 px-5 text-sm text-white italic outline-none focus:ring-1 focus:ring-blue-400"
+                    value={newMemberForm.birthDate}
+                    onChange={e => setNewMemberForm(prev => ({ ...prev, birthDate: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1 block mb-2">Grau de Parentesco *</label>
+                <select
+                  className="w-full bg-bg-card border border-white/10 rounded-2xl py-4 px-5 text-sm text-white italic outline-none focus:ring-1 focus:ring-blue-400 appearance-none cursor-pointer"
+                  value={newMemberForm.relationship}
+                  onChange={e => setNewMemberForm(prev => ({ ...prev, relationship: e.target.value as ClientMember['relationship'] }))}
+                >
+                  <option value="Cônjuge">Cônjuge</option>
+                  <option value="Filho(a)">Filho(a)</option>
+                  <option value="Pai/Mãe">Pai / Mãe</option>
+                  <option value="Irmão/Irmã">Irmão / Irmã</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-4 mt-10">
+              <button
+                onClick={() => setShowAddMember(false)}
+                className="flex-1 py-4 text-slate-500 font-black uppercase tracking-widest text-[10px] hover:text-white transition-all"
+              >
+                CANCELAR
+              </button>
+              <button
+                onClick={handleAddMember}
+                disabled={isSavingMember || !newMemberForm.name.trim()}
+                className="flex-1 bg-blue-500 hover:bg-blue-400 disabled:opacity-40 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+              >
+                {isSavingMember ? <span className="material-symbols-outlined text-sm animate-spin">sync</span> : <span className="material-symbols-outlined text-sm">person_add</span>}
+                {isSavingMember ? 'SALVANDO...' : 'ADICIONAR'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE MEMBER CONFIRMATION */}
+      {memberToDelete && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-6 animate-in fade-in duration-300 print:hidden">
+          <div className="absolute inset-0 bg-bg-dark/95 backdrop-blur-2xl" onClick={() => setMemberToDelete(null)}></div>
+          <div className="relative bg-bg-surface border border-red-500/20 p-12 rounded-[48px] w-full max-w-md shadow-2xl text-center space-y-10 animate-in zoom-in-95 duration-500">
+            <div className="size-20 bg-red-600/10 rounded-full flex items-center justify-center mx-auto border border-red-600/20">
+              <span className="material-symbols-outlined text-red-500 text-4xl">warning</span>
+            </div>
+            <div>
+              <h3 className="display-font text-2xl font-bold text-white uppercase italic tracking-widest mb-3">Remover Familiar?</h3>
+              <p className="text-slate-500 text-sm italic">O perfil de <span className="text-white font-black">{memberToDelete.name}</span> e todos os seus dados de milhas serão excluídos permanentemente.</p>
+            </div>
+            <div className="flex flex-col gap-4">
+              <button onClick={() => handleDeleteMember(memberToDelete)} className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-2xl text-[10px] uppercase tracking-[0.3em] shadow-2xl active:scale-95 transition-all">CONFIRMAR REMOÇÃO</button>
+              <button onClick={() => setMemberToDelete(null)} className="w-full py-2 text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] hover:text-white transition-all">CANCELAR</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* WHATSAPP GENERATOR MODAL */}
@@ -1866,6 +2338,13 @@ const Clients: React.FC = () => {
           </div>
         </div>
       )}
+      <ClientLimitModal
+        isOpen={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        planId={planId}
+        limit={clientLimit}
+        current={currentClients}
+      />
     </div>
   );
 };

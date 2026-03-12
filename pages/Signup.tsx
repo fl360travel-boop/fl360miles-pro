@@ -42,6 +42,8 @@ const Signup: React.FC = () => {
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [step, setStep] = useState(1);
+    const [signupType, setSignupType] = useState<'trial' | 'immediate'>('trial');
+    const [billingType, setBillingType] = useState<'CREDIT_CARD' | 'PIX'>('CREDIT_CARD');
 
     const isAdmin = ADMIN_EMAILS.includes(email.trim().toLowerCase());
 
@@ -151,22 +153,33 @@ const Signup: React.FC = () => {
             const expiryParts = cardExpiry.split('/');
 
             try {
+                const trialDays = signupType === 'trial' ? 7 : 0;
+                const finalBillingType = signupType === 'trial' ? 'CREDIT_CARD' : billingType;
+
                 const result = await asaasService.createSubscription(
                     selectedPlan,
                     'MONTHLY',
-                    'CREDIT_CARD',
+                    finalBillingType,
                     cpfCnpj,
                     mobilePhone,
-                    7, // trialDays
-                    {
+                    trialDays,
+                    finalBillingType === 'CREDIT_CARD' ? {
                         holderName: cardHolder.trim(),
                         number: cardNumber.replace(/\D/g, ''),
                         expiryMonth: expiryParts[0],
                         expiryYear: '20' + expiryParts[1],
                         ccv: cardCvv,
-                    },
-                    {
+                    } : undefined,
+                    finalBillingType === 'CREDIT_CARD' ? {
                         name: cardHolder.trim(),
+                        email: email.trim(),
+                        cpfCnpj: cpfCnpj.replace(/\D/g, ''),
+                        postalCode: postalCode.replace(/\D/g, ''),
+                        addressNumber: addressNumber || 'S/N',
+                        phone: mobilePhone.replace(/\D/g, ''),
+                        mobilePhone: mobilePhone.replace(/\D/g, ''),
+                    } : {
+                        name: advisorName.trim(),
                         email: email.trim(),
                         cpfCnpj: cpfCnpj.replace(/\D/g, ''),
                         postalCode: postalCode.replace(/\D/g, ''),
@@ -175,6 +188,14 @@ const Signup: React.FC = () => {
                         mobilePhone: mobilePhone.replace(/\D/g, ''),
                     }
                 );
+
+                if (signupType === 'immediate') {
+                    setSuccessMessage(`✅ Conta criada! Redirecionando para o pagamento ${billingType === 'PIX' ? 'PIX' : ''}...`);
+                    if (result.paymentLink) {
+                        setTimeout(() => window.location.href = result.paymentLink, 2500);
+                        return;
+                    }
+                }
 
                 setSuccessMessage('✅ Cartão validado! Seus 7 dias grátis começam agora. Entrando no sistema...');
                 setTimeout(() => window.location.href = '/', 3000);
@@ -293,6 +314,34 @@ const Signup: React.FC = () => {
                                 </div>
                             </div>
 
+                            {/* Signup Type Selection */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <button onClick={() => { setSignupType('trial'); setBillingType('CREDIT_CARD'); }}
+                                    className={`p-3 rounded-xl border text-center transition-all ${signupType === 'trial' ? 'border-primary bg-primary/10 text-primary' : 'border-white/5 bg-bg-card text-slate-400'}`}>
+                                    <p className="text-[10px] font-black uppercase tracking-wider">7 Dias Grátis</p>
+                                    <p className="text-[8px] opacity-60">Cartão Obrigatório</p>
+                                </button>
+                                <button onClick={() => setSignupType('immediate')}
+                                    className={`p-3 rounded-xl border text-center transition-all ${signupType === 'immediate' ? 'border-primary bg-primary/10 text-primary' : 'border-white/5 bg-bg-card text-slate-400'}`}>
+                                    <p className="text-[10px] font-black uppercase tracking-wider">Acesso Imediato</p>
+                                    <p className="text-[8px] opacity-60">Pague agora (Pix/CC)</p>
+                                </button>
+                            </div>
+
+                            {/* Payment Method (if immediate) */}
+                            {signupType === 'immediate' && (
+                                <div className="flex gap-4 justify-center">
+                                    <button onClick={() => setBillingType('PIX')} className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest ${billingType === 'PIX' ? 'text-primary' : 'text-slate-500'}`}>
+                                        <span className={`size-3 rounded-full border-2 ${billingType === 'PIX' ? 'bg-primary border-primary' : 'border-slate-700'}`} />
+                                        PIX
+                                    </button>
+                                    <button onClick={() => setBillingType('CREDIT_CARD')} className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest ${billingType === 'CREDIT_CARD' ? 'text-primary' : 'text-slate-500'}`}>
+                                        <span className={`size-3 rounded-full border-2 ${billingType === 'CREDIT_CARD' ? 'bg-primary border-primary' : 'border-slate-700'}`} />
+                                        Cartão de Crédito
+                                    </button>
+                                </div>
+                            )}
+
                             {/* CPF + Phone */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
@@ -308,48 +357,58 @@ const Signup: React.FC = () => {
                             </div>
 
                             {/* Credit Card Section */}
-                            <div className="border border-primary/20 bg-primary/5 rounded-2xl p-4 space-y-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="material-symbols-outlined text-primary text-lg">credit_card</span>
-                                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Cartão de Crédito</p>
-                                    <span className="material-symbols-outlined text-emerald-400 text-sm ml-auto">lock</span>
-                                </div>
-
-                                <div>
-                                    <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">Número do Cartão</label>
-                                    <input type="text" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                                        placeholder="0000 0000 0000 0000" maxLength={19}
-                                        className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all tracking-wider font-mono" />
-                                </div>
-
-                                <div>
-                                    <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">Nome Impresso no Cartão</label>
-                                    <input type="text" value={cardHolder} onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-                                        placeholder="JOAO DA SILVA" maxLength={50}
-                                        className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all uppercase" />
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div>
-                                        <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">Validade</label>
-                                        <input type="text" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                                            placeholder="MM/AA" maxLength={5}
-                                            className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-center font-mono" />
+                            {(signupType === 'trial' || (signupType === 'immediate' && billingType === 'CREDIT_CARD')) && (
+                                <div className="border border-primary/20 bg-primary/5 rounded-2xl p-4 space-y-3">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="material-symbols-outlined text-primary text-lg">credit_card</span>
+                                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Cartão de Crédito</p>
+                                        <span className="material-symbols-outlined text-emerald-400 text-sm ml-auto">lock</span>
                                     </div>
+
                                     <div>
-                                        <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">CVV</label>
-                                        <input type="text" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                            placeholder="123" maxLength={4}
-                                            className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-center font-mono" />
+                                        <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">Número do Cartão</label>
+                                        <input type="text" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                                            placeholder="0000 0000 0000 0000" maxLength={19}
+                                            className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all tracking-wider font-mono" />
                                     </div>
+
                                     <div>
-                                        <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">CEP</label>
-                                        <input type="text" value={postalCode} onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                                            placeholder="00000-000" maxLength={9}
-                                            className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-center font-mono" />
+                                        <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">Nome Impresso no Cartão</label>
+                                        <input type="text" value={cardHolder} onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                                            placeholder="JOAO DA SILVA" maxLength={50}
+                                            className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all uppercase" />
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">Validade</label>
+                                            <input type="text" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                                                placeholder="MM/AA" maxLength={5}
+                                                className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-center font-mono" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">CVV</label>
+                                            <input type="text" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                                placeholder="123" maxLength={4}
+                                                className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-center font-mono" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1 px-1">CEP</label>
+                                            <input type="text" value={postalCode} onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                                placeholder="00000-000" maxLength={9}
+                                                className="w-full bg-bg-dark border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-center font-mono" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* PIX Message */}
+                            {signupType === 'immediate' && billingType === 'PIX' && (
+                                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 text-center">
+                                    <span className="material-symbols-outlined text-primary text-3xl mb-2">qr_code_2</span>
+                                    <p className="text-[10px] text-slate-300 font-medium">Você receberá o QR Code e o código PIX para pagamento logo após confirmar o cadastro.</p>
+                                </div>
+                            )}
 
                             {error && <p className="text-red-400 text-[11px] font-medium text-center bg-red-500/10 p-3 rounded-xl">{error}</p>}
                             {successMessage && <div className="text-green-400 text-[11px] font-medium text-center bg-green-500/10 p-3 rounded-xl animate-pulse">{successMessage}</div>}
@@ -359,18 +418,33 @@ const Signup: React.FC = () => {
                                 {isLoading ? (
                                     <><span className="material-symbols-outlined animate-spin text-lg">sync</span> Processando...</>
                                 ) : (
-                                    <><span className="material-symbols-outlined text-lg">shield</span> INICIAR 7 DIAS GRÁTIS</>
+                                    signupType === 'trial' ? (
+                                        <><span className="material-symbols-outlined text-lg">shield</span> INICIAR 7 DIAS GRÁTIS</>
+                                    ) : (
+                                        <><span className="material-symbols-outlined text-lg">rocket_launch</span> ATIVAR ACESSO IMEDIATO</>
+                                    )
                                 )}
                             </button>
 
-                            <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 text-center">
-                                <p className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">
-                                    ✨ Cobrança somente após os 7 dias
-                                </p>
-                                <p className="text-[9px] text-slate-500 mt-0.5">
-                                    R$ {plans.find(p => p.id === selectedPlan)?.price.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/mês • Seu cartão será validado agora mas cobrado apenas no 8º dia.
-                                </p>
-                            </div>
+                            {signupType === 'trial' ? (
+                                <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 text-center">
+                                    <p className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">
+                                        ✨ Cobrança somente após os 7 dias
+                                    </p>
+                                    <p className="text-[9px] text-slate-500 mt-0.5">
+                                        R$ {plans.find(p => p.id === selectedPlan)?.price.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/mês • Seu cartão será validado agora mas cobrado apenas no 8º dia.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 text-center">
+                                    <p className="text-[9px] text-primary font-bold uppercase tracking-widest">
+                                        ⚡️ Ativação D-0 Selecionada
+                                    </p>
+                                    <p className="text-[9px] text-slate-500 mt-0.5">
+                                        R$ {plans.find(p => p.id === selectedPlan)?.price.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} será cobrado hoje para liberar seu acesso instantâneo.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -379,6 +453,11 @@ const Signup: React.FC = () => {
                     FL360 Miles Systems<br />
                     <span className="opacity-50">Secure Enrollment Portal</span>
                 </p>
+                <div className="flex items-center justify-center gap-3 mt-3">
+                    <Link to="/terms" className="text-[9px] text-slate-500 hover:text-primary transition-colors">Termos de Uso</Link>
+                    <span className="text-slate-700 text-[8px]">•</span>
+                    <Link to="/privacy" className="text-[9px] text-slate-500 hover:text-primary transition-colors">Política de Privacidade</Link>
+                </div>
             </div>
         </div>
     );

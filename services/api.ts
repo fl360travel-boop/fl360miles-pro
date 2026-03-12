@@ -2,6 +2,7 @@ import { supabase, DbClient } from './supabase';
 
 export interface Client {
     id: string;
+    public_token?: string;
     name: string;
     email: string;
     cpf?: string;
@@ -46,6 +47,7 @@ export interface Client {
 function dbToClient(db: DbClient, programs: any[], cards: any[], movements: any[], economyHistory: any[]): Client {
     return {
         id: db.id,
+        public_token: db.public_token,
         name: db.name,
         email: db.email,
         cpf: db.cpf,
@@ -109,7 +111,7 @@ export async function getClients(): Promise<Client[]> {
         .order('name');
 
     if (error) throw new Error(`Failed to fetch clients: ${error.message}`);
-    if (!clients) return [];
+    if (!clients || clients.length === 0) return [];
 
     // Fetch related data for all clients
     const clientIds = clients.map(c => c.id);
@@ -550,27 +552,49 @@ export async function getSubscription(): Promise<{ planId: string, status: strin
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    // Get the first organization for now (assuming single org per user context)
+    // Get all organizations the user belongs to
     const { data: memberships } = await supabase
         .from('organization_members')
         .select('organization_id')
-        .eq('user_id', user.id)
-        .limit(1);
+        .eq('user_id', user.id);
 
     if (!memberships || memberships.length === 0) return null;
 
-    const orgId = memberships[0].organization_id;
+    const orgIds = memberships.map(m => m.organization_id);
 
-    const { data: sub, error } = await supabase
+    // Get all subscriptions for these organizations
+    const { data: subs, error } = await supabase
         .from('subscriptions')
-        .select('plan_id, status, trial_ends_at, current_period_end, updated_at')
-        .eq('organization_id', orgId)
-        .single();
+        .select('plan_id, status, trial_ends_at, current_period_end, updated_at, organization_id')
+        .in('organization_id', orgIds);
 
-    if (error) {
-        console.error('Error fetching subscription:', error);
+    if (error || !subs || subs.length === 0) {
+        if (error) console.error('Error fetching subscriptions:', error);
         return null;
     }
+
+    // Prioritization logic:
+    // 1. active enterprise
+    // 2. active pro
+    // 3. active starter
+    // 4. trial active
+    // 5. any active
+    // 6. anything else
+
+    const sortedSubs = [...subs].sort((a, b) => {
+        const score = (s: any) => {
+            let pts = 0;
+            if (s.status === 'active' || s.status === 'lifetime' || s.status === 'legacy') pts += 1000;
+            if (s.status === 'trial') pts += 500;
+            if (s.plan_id === 'enterprise') pts += 100;
+            if (s.plan_id === 'elite') pts += 50;
+            if (s.plan_id === 'pro') pts += 30;
+            return pts;
+        };
+        return score(b) - score(a);
+    });
+
+    const sub = sortedSubs[0];
 
     return {
         planId: sub.plan_id,
@@ -622,10 +646,109 @@ export async function getOrganizationMembers(organizationId: string): Promise<Te
     });
 }
 
-// Add member (Simple direct insert for now - in production use Invite System)
+// Get member limit for an organization based on its subscription plan
+export async function getOrgMemberLimit(organizationId: string): Promise<{ current: number; max: number; planId: string }> {
+    // Get current member count
+    const { count, error: countErr } = await supabase
+        .from('organization_members')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', organizationId);
+
+    if (countErr) console.warn('Error counting members:', countErr.message);
+
+    // Get org plan
+    const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan_id')
+        .eq('organization_id', organizationId)
+        .maybeSingle();
+
+    const planId = sub?.plan_id || 'starter';
+    const maxMembers = planId === 'enterprise' ? 999 : 5;
+
+    return { current: count || 0, max: maxMembers, planId };
+}
+
+// Add member to organization with limit check
 export async function inviteMember(organizationId: string, email: string, role: string): Promise<void> {
-    console.warn("Invite API not fully implemented yet. Needs Backend Edge Function.");
-    throw new Error("Funcionalidade de Convite requer Edge Function (Fase 4 - Pendente).");
+    // 1. Check member limit
+    const { current, max, planId } = await getOrgMemberLimit(organizationId);
+
+    if (current >= max) {
+        throw new Error(
+            planId === 'enterprise'
+                ? 'Erro ao verificar limite de membros.'
+                : `Limite de ${max} usuários atingido para o plano ${planId.toUpperCase()}. Faça upgrade para o plano White Label para membros ilimitados.`
+        );
+    }
+
+    // 2. Check if user already exists in auth
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if already a member
+    const { data: existingMembers } = await supabase
+        .from('organization_members')
+        .select('id, user_id')
+        .eq('organization_id', organizationId);
+
+    // Get profiles to check email
+    if (existingMembers && existingMembers.length > 0) {
+        const userIds = existingMembers.map(m => m.user_id);
+        const { data: profiles } = await supabase
+            .from('user_profiles')
+            .select('user_id, email')
+            .in('user_id', userIds);
+
+        const alreadyMember = profiles?.find(p => p.email?.toLowerCase() === normalizedEmail);
+        if (alreadyMember) {
+            throw new Error('Este e-mail já é membro desta organização.');
+        }
+    }
+
+    // 3. Look up user by email in user_profiles
+    const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('user_id')
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+
+    let userId: string;
+
+    if (existingProfile) {
+        userId = existingProfile.user_id;
+    } else {
+        // User doesn't exist yet — create a basic profile entry
+        // The user will need to sign up separately, but we pre-register their membership
+        const tempUserId = crypto.randomUUID();
+
+        const { error: profileErr } = await supabase
+            .from('user_profiles')
+            .insert({
+                user_id: tempUserId,
+                email: normalizedEmail,
+                display_name: normalizedEmail.split('@')[0],
+                role: role,
+            });
+
+        if (profileErr) throw new Error(`Erro ao criar perfil: ${profileErr.message}`);
+        userId = tempUserId;
+    }
+
+    // 4. Add to organization_members
+    const { error: memberErr } = await supabase
+        .from('organization_members')
+        .insert({
+            organization_id: organizationId,
+            user_id: userId,
+            role: role,
+        });
+
+    if (memberErr) {
+        if (memberErr.message.includes('duplicate') || memberErr.message.includes('unique')) {
+            throw new Error('Este usuário já pertence a esta organização.');
+        }
+        throw new Error(`Erro ao adicionar membro: ${memberErr.message}`);
+    }
 }
 
 // Remove member

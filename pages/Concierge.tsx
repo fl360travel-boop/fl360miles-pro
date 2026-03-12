@@ -285,6 +285,21 @@ const Concierge: React.FC = () => {
                       <button onClick={() => window.open('https://www.esfera.com.vc', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
                         <span className="text-[9px] font-black text-slate-400 group-hover:text-red-400 uppercase tracking-widest">Esfera</span>
                       </button>
+                      <button onClick={() => window.open('https://www.aircanada.com/home/ca/en/aco/flights', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-red-500 uppercase tracking-widest">Air Canada</span>
+                      </button>
+                      <button onClick={() => window.open('https://www.finnair.com/us-en/booking/flight-selection?json=%7B%22flights%22:%5B%7B%22origin%22:%22MIA%22,%22destination%22:%22GRU%22,%22departureDate%22:%222026-03-14%22%7D%5D,%22cabin%22:%22MIXED%22,%22adults%22:1,%22c15s%22:0,%22children%22:0,%22infants%22:0,%22isAward%22:true%7D', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-blue-500 uppercase tracking-widest">Finnair</span>
+                      </button>
+                      <button onClick={() => window.open('https://www.flytap.com/pt-cl/miles-and-go/utilizar-milhas/comprar-bilhete', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-green-500 uppercase tracking-widest">TAP M&G</span>
+                      </button>
+                      <button onClick={() => window.open('https://www.virginatlantic.com/flying-club/account/flights', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-red-600 uppercase tracking-widest">Virgin Atl.</span>
+                      </button>
+                      <button onClick={() => window.open('https://www.qatarairways.com/pt-br/homepage.html', '_blank')} className="bg-bg-card hover:bg-white/5 border border-white/5 rounded-lg py-2.5 flex items-center justify-center group transition-all">
+                        <span className="text-[9px] font-black text-slate-400 group-hover:text-purple-600 uppercase tracking-widest">Qatar</span>
+                      </button>
                     </div>
                   </div>
                 </div>

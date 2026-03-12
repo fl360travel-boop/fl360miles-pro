@@ -108,8 +108,14 @@ export default async (request: Request) => {
         }
 
         // 2. Criar assinatura no Asaas
-        const trialOffset = trialDays ? Number(trialDays) : 1;
-        const nextDueDate = new Date(Date.now() + trialOffset * 86400000).toISOString().split('T')[0];
+        // Se trialDays for 0, nextDueDate é hoje (D-0)
+        let nextDueDate: string;
+        if (trialDays === 0) {
+            nextDueDate = new Date().toISOString().split('T')[0];
+        } else {
+            const trialOffset = trialDays ? Number(trialDays) : 7;
+            nextDueDate = new Date(Date.now() + trialOffset * 86400000).toISOString().split('T')[0];
+        }
 
         const subscriptionPayload: Record<string, any> = {
             customer: asaasCustomerId,
@@ -154,16 +160,24 @@ export default async (request: Request) => {
             .upsert({
                 organization_id: organizationId,
                 plan_id: planId,
-                status: 'pending',
+                status: trialDays && trialDays > 0 ? 'trial' : 'pending',
                 asaas_customer_id: asaasCustomerId,
                 asaas_subscription_id: subData.id,
                 amount: value,
+                trial_ends_at: trialDays && trialDays > 0 ? nextDueDate : null,
                 current_period_end: periodEnd.toISOString(),
                 updated_at: new Date().toISOString(),
             }, {
                 onConflict: 'organization_id',
             });
 
+        // 3.5 Save phone to user_profiles for Master Admin contact
+        if (mobilePhone && userId) {
+            await supabase
+                .from('user_profiles')
+                .update({ phone: mobilePhone.replace(/\D/g, '') })
+                .eq('user_id', userId);
+        }
         // 4. Retornar link de pagamento
         // O Asaas gera automaticamente a primeira cobrança
         // Buscar o link de pagamento da primeira cobrança

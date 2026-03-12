@@ -13,6 +13,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Database types
 export interface DbClient {
     id: string;
+    public_token?: string;
     name: string;
     email: string;
     cpf?: string;
@@ -86,6 +87,31 @@ export interface DbEconomyHistory {
 // ============================================
 
 const AVATARS_BUCKET = 'avatars';
+const BRANDING_BUCKET = 'branding';
+
+// Upload logo for branding
+export async function uploadBrandingLogo(file: File, orgId: string): Promise<string> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${orgId}-${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from(BRANDING_BUCKET)
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true
+        });
+
+    if (uploadError) {
+        throw new Error(`Failed to upload logo: ${uploadError.message}`);
+    }
+
+    const { data } = supabase.storage
+        .from(BRANDING_BUCKET)
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+}
 
 // Upload avatar image
 export async function uploadAvatar(file: File, clientId: string): Promise<string> {

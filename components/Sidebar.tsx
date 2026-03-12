@@ -1,7 +1,7 @@
-
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useBranding } from '../contexts/BrandingContext';
 
 const navItems = [
   { label: 'Início', path: '/', icon: 'dashboard' },
@@ -10,48 +10,82 @@ const navItems = [
   { label: 'Resumo', path: '/summary', icon: 'analytics' },
   { label: 'Alertas', path: '/alerts', icon: 'notifications_active' },
   { label: 'Concierge', path: '/concierge', icon: 'support_agent' },
-  { label: 'Audit Log', path: '/settings', icon: 'security' },
+  { label: 'Configurações', path: '/settings', icon: 'settings' },
   { label: 'Equipe', path: '/settings/team', icon: 'diversity_3' },
 ];
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
-  const { userProfile, userRole } = useAuth();
+  const { user, userRole, userProfile } = useAuth();
+  const { branding } = useBranding();
+
+  const isMaster = ['fl360travel@gmail.com', 'adriano.moraesnr@gmail.com'].includes(user?.email?.trim().toLowerCase() || '') || userRole === 'owner';
 
   return (
-    <aside className="w-64 bg-bg-dark border-r border-white/5 flex flex-col h-full shrink-0">
+    <aside className="w-full lg:w-64 bg-bg-dark border-r border-white/5 flex flex-col h-full shrink-0">
       <div className="p-8">
         <div className="flex items-center gap-3 mb-10 group cursor-pointer">
-          <div className="size-8 bg-primary rounded flex items-center justify-center transition-transform group-hover:scale-110">
-            <span className="material-symbols-outlined text-bg-dark font-bold">diamond</span>
-          </div>
-          <span className="display-font text-sm font-bold tracking-widest text-white uppercase italic">
-            FL360<span className="text-primary">MILES</span>
-          </span>
+          {branding.logoUrl ? (
+            <img src={branding.logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
+          ) : (
+            <>
+              <div className="size-8 bg-primary rounded flex items-center justify-center transition-transform group-hover:scale-110">
+                <span className="material-symbols-outlined text-bg-dark font-bold">diamond</span>
+              </div>
+              <span className="display-font text-sm font-bold tracking-widest text-white uppercase italic">
+                FL360<span className="text-primary">MILES</span>
+              </span>
+            </>
+          )}
         </div>
 
         <nav className="space-y-1">
+          {/* BOTÃO PAINEL MASTER - SOMENTE PARA ADMINS */}
+          {isMaster && (
+            <Link
+              to="/master-admin"
+              className={`flex items-center gap-4 px-5 py-4 text-[12px] font-black uppercase tracking-[0.15em] rounded-2xl transition-all mb-6 border-2 shadow-lg ${location.pathname === '/master-admin'
+                ? 'bg-primary text-bg-dark border-primary shadow-primary/30'
+                : 'bg-primary/15 text-primary border-primary/50 hover:bg-primary/25 animate-pulse'
+                }`}
+            >
+              <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
+              PAINEL MASTER
+            </Link>
+          )}
+
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const tourClass =
+              item.path === '/' ? 'tour-step-dashboard-nav' :
+                item.path === '/clients' ? 'tour-step-clients' :
+                  item.path === '/operations' ? 'tour-step-operations' :
+                    item.path === '/summary' ? 'tour-step-summary' :
+                      item.path === '/alerts' ? 'tour-step-alerts' :
+                        item.path === '/concierge' ? 'tour-step-concierge' :
+                          item.path === '/settings' ? 'tour-step-settings' :
+                            item.path === '/settings/team' ? 'tour-step-team' : '';
+
             return (
-              <Link
+              <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${isActive
-                  ? 'bg-primary/10 text-primary border-r-2 border-primary shadow-lg shadow-primary/5'
-                  : 'text-slate-500 hover:text-white hover:bg-white/5'
-                  }`}
+                className={({ isActive }) =>
+                  `${tourClass} flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${isActive
+                    ? 'bg-primary/10 text-primary border-r-2 border-primary shadow-lg shadow-primary/5'
+                    : 'text-slate-500 hover:text-white hover:bg-white/5'
+                  }`
+                }
               >
                 <span className="material-symbols-outlined text-lg">{item.icon}</span>
                 {item.label}
-              </Link>
+              </NavLink>
             );
           })}
 
-          <div className="pt-4 mt-2 border-t border-white/5">
+          <div className="pt-4 mt-2 border-t border-white/5 space-y-1">
             <Link
               to="/plans"
-              className={`flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${location.pathname === '/plans'
+              className={`tour-step-plans flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${location.pathname === '/plans'
                 ? 'bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-2 border-primary'
                 : 'text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10'
                 }`}
@@ -77,7 +111,7 @@ const Sidebar: React.FC = () => {
               {userProfile?.display_name || 'Usuário'}
             </p>
             <p className="text-[8px] text-primary uppercase font-bold tracking-widest mt-0.5">
-              {userProfile?.role === 'owner' ? 'Dono/Gestor' : userProfile?.role === 'developer' ? 'Operador' : 'Wealth Advisor'}
+              {userRole === 'owner' ? 'Dono/Gestor' : userRole === 'developer' ? 'Operador' : 'Wealth Advisor'}
             </p>
           </div>
         </div>

@@ -14,27 +14,31 @@ const Onboarding: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { canAddClient, clientLimit, currentClients, planId } = useSubscription();
 
-  // Bloquear criação se atingiu limite (apenas para novos clientes, não edição)
   if (!editClientId && !canAddClient) {
     return (
-      <div className="max-w-2xl mx-auto py-20 text-center animate-in fade-in duration-500">
-        <div className="bg-bg-surface border border-amber-500/20 rounded-[40px] p-12 shadow-2xl">
-          <div className="size-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-amber-500/20">
-            <span className="material-symbols-outlined text-amber-400 text-4xl">lock</span>
-          </div>
-          <h2 className="display-font text-2xl font-bold text-white italic uppercase tracking-tighter mb-3">Limite de Clientes Atingido</h2>
-          <p className="text-slate-400 text-sm mb-2">
-            Seu plano <span className="text-primary font-bold uppercase">{planId}</span> permite até <b>{clientLimit}</b> clientes.
-          </p>
-          <p className="text-slate-500 text-sm mb-8">
-            Você já possui <b>{currentClients}</b> clientes cadastrados.
-          </p>
+      <div className="max-w-3xl mx-auto py-20 text-center animate-in zoom-in-95 duration-700">
+        <div className="size-32 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-8 border-2 border-primary/20 shadow-[0_0_50px_-10px_rgba(226,190,106,0.3)]">
+          <span className="material-symbols-outlined text-primary text-6xl">diamond</span>
+        </div>
+        <h1 className="display-font text-5xl font-bold italic text-white mb-6 uppercase tracking-tighter leading-none">
+          Limite de Clientes<br /><span className="text-[#E2BE6A]">Atingido</span>
+        </h1>
+        <p className="text-slate-400 text-lg mb-12 max-w-xl mx-auto leading-relaxed">
+          Seu plano atual permite gerenciar até <strong className="text-white">{clientLimit}</strong> clientes na operação. Faça o upgrade agora para expandir sua capacidade e impulsionar o crescimento do seu negócio de milhas.
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             to="/plans"
-            className="inline-flex items-center gap-3 bg-primary hover:bg-primary-dark text-bg-dark font-black px-10 py-4 rounded-2xl transition-all shadow-xl shadow-primary/20 text-[11px] tracking-[0.2em] uppercase"
+            className="inline-flex items-center gap-3 bg-[#E2BE6A] hover:bg-[#B8952E] text-[#0A0D11] px-10 py-5 rounded-2xl font-black text-sm tracking-widest uppercase transition-all shadow-2xl shadow-[#E2BE6A]/20 active:scale-95"
           >
-            <span className="material-symbols-outlined">upgrade</span>
-            Fazer Upgrade
+            <span className="material-symbols-outlined">workspace_premium</span>
+            EXPANDIR MINHA OPERAÇÃO
+          </Link>
+          <Link
+            to="/clients"
+            className="inline-flex items-center gap-3 px-10 py-5 text-slate-500 font-bold uppercase tracking-widest text-[11px] hover:text-white transition-all"
+          >
+            VOLTAR
           </Link>
         </div>
       </div>

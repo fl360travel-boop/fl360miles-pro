@@ -7,7 +7,7 @@
 // Import pure functions (we inline them here for standalone execution)
 // =============================================
 
-type BillingStatusType = 'ACTIVE' | 'DUE_SOON' | 'DUE_TODAY' | 'OVERDUE_WARNING' | 'BLOCKED';
+type BillingStatusType = 'ACTIVE' | 'TRIAL' | 'DUE_SOON' | 'DUE_TODAY' | 'OVERDUE_WARNING' | 'BLOCKED';
 
 function calculateDueDate(lastPaidAt: string | null): string | null {
     if (!lastPaidAt) return null;
@@ -16,7 +16,14 @@ function calculateDueDate(lastPaidAt: string | null): string | null {
     return d.toISOString().split('T')[0];
 }
 
-function calculateStatus(todayStr: string, dueDateStr: string | null): BillingStatusType {
+function calculateStatus(todayStr: string, dueDateStr: string | null, trialEndsAtStr?: string | null): BillingStatusType {
+    if (trialEndsAtStr) {
+        const today = new Date(todayStr + 'T00:00:00');
+        const trialEndsAt = new Date(trialEndsAtStr + 'T00:00:00');
+        if (today <= trialEndsAt) return 'TRIAL';
+        if (!dueDateStr) return 'BLOCKED'; // Trial expired and no payment yet
+    }
+
     if (!dueDateStr) return 'ACTIVE';
     const today = new Date(todayStr + 'T00:00:00');
     const dueDate = new Date(dueDateStr + 'T00:00:00');
@@ -97,6 +104,12 @@ assert(calculateStatus('2026-02-04', '2026-02-01') === 'OVERDUE_WARNING', '3 day
 assert(calculateStatus('2026-02-05', '2026-02-01') === 'BLOCKED', '4 days after = BLOCKED');
 assert(calculateStatus('2026-02-10', '2026-02-01') === 'BLOCKED', '9 days after = BLOCKED');
 assert(calculateStatus('2026-02-01', null) === 'ACTIVE', 'null due date = ACTIVE');
+
+section('calculateStatus - TRIAL');
+assert(calculateStatus('2026-02-01', null, '2026-02-07') === 'TRIAL', 'Today <= TrialEnd = TRIAL');
+assert(calculateStatus('2026-02-07', null, '2026-02-07') === 'TRIAL', 'Last day of trial = TRIAL');
+assert(calculateStatus('2026-02-08', null, '2026-02-07') === 'BLOCKED', 'Today > TrialEnd and no DueDate = BLOCKED');
+assert(calculateStatus('2026-02-08', '2026-03-08', '2026-02-07') === 'ACTIVE', 'Trial expired but HAS DueDate = ACTIVE (converted to paid)');
 
 section('remainingDays');
 assert(remainingDays('2026-02-01', '2026-02-06') === 5, '5 days remaining');

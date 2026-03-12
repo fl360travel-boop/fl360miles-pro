@@ -2,6 +2,7 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { supabase } from '../services/supabase';
+import { useBillingStatus } from './useBillingStatus';
 
 // Limites por plano
 const PLAN_LIMITS: Record<string, number> = {
@@ -15,6 +16,13 @@ const PLAN_LIMITS: Record<string, number> = {
 
 export function useSubscription() {
     const { user, subscription, userRole } = useAuth();
+    const {
+        status: billingStatus,
+        remainingDays: billingDays,
+        isBypassed: isOwnerBypass,
+        loading: billingLoading
+    } = useBillingStatus();
+
     const [currentClients, setCurrentClients] = useState(0);
 
     // Buscar contagem de clientes
@@ -36,41 +44,22 @@ export function useSubscription() {
         fetchClientCount();
     }, []);
 
-    // Helper: verificar se data já passou
-    const isPast = (dateStr: string | null) => {
-        if (!dateStr) return false;
-        return new Date(dateStr) < new Date();
-    };
+    // Status computados (Delegados para useBillingStatus)
+    const isTrialing = billingStatus === 'TRIAL';
+    const isTrialExpired = billingStatus === 'BLOCKED' && !subscription?.lastPaidAt;
+    const isActive = billingStatus === 'ACTIVE' || billingStatus === 'DUE_SOON' || billingStatus === 'DUE_TODAY' || billingStatus === 'OVERDUE_WARNING' || isOwnerBypass;
 
-    // Helper: horas desde uma data
-    const hoursSince = (dateStr: string | null): number => {
-        if (!dateStr) return 9999;
-        return (Date.now() - new Date(dateStr).getTime()) / (1000 * 3600);
-    };
-
-    // --- BYPASS PARA O DONO DO SAAS ---
-    const isOwnerBypass = user?.email === 'fl360travel@gmail.com';
-
-    // Status computados
-    // O dono nunca deve ser marcado como 'trial' ou 'expirado'
-    const isTrialing = (subscription?.status === 'trial' && !isPast(subscription.trialEndsAt)) && !isOwnerBypass;
-    const isTrialExpired = (subscription?.status === 'trial' && isPast(subscription.trialEndsAt)) && !isOwnerBypass;
-    const isActive = subscription?.status === 'active' || subscription?.status === 'lifetime' || subscription?.status === 'legacy' || isOwnerBypass;
-
-    const referenceDate = subscription?.currentPeriodEnd || subscription?.updatedAt || null;
-    const isGracePeriodOver = subscription?.status === 'past_due' && hoursSince(referenceDate) > 48 && !isOwnerBypass;
     const isCanceled = subscription?.status === 'canceled' && !isOwnerBypass;
+    const isGracePeriodOver = billingStatus === 'BLOCKED' && subscription?.status === 'past_due';
 
-    // BLOQUEADO = trial expirou OU cancelado OU past_due > 48h
-    const isBlocked = (isTrialExpired || isCanceled || isGracePeriodOver) && !isOwnerBypass;
+    // BLOQUEADO = Status é BLOCKED no billing (que engloba trial expirado e past_due > 3 dias)
+    const isBlocked = billingStatus === 'BLOCKED' && !isOwnerBypass;
 
     // Demo e owner sem subscription não são bloqueados
     const shouldBlock = isBlocked && userRole !== 'demo';
 
-    // Dias restantes do trial (Dono não vê timer)
-    const daysLeft = isTrialing && subscription?.trialEndsAt
-        ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / (1000 * 3600 * 24)))
-        : 0;
+    // Dias restantes do trial
+    const daysLeft = isTrialing ? billingDays : 0;
 
     // Limites de clientes
     const planId = isOwnerBypass ? 'enterprise' : (subscription?.planId || 'starter');
@@ -99,5 +88,6 @@ export function useSubscription() {
         // Plano
         planId,
         subscription,
+        loading: billingLoading
     };
 }

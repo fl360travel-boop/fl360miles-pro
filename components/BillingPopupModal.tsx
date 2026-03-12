@@ -81,7 +81,7 @@ const BillingPopupModal: React.FC = () => {
                     iconColor: 'text-red-400',
                     btnPrimary: 'bg-red-600 hover:bg-red-700 shadow-red-600/30',
                 };
-            default:
+            case 'TRIAL':
                 return {
                     icon: 'info',
                     gradient: 'from-blue-500/90 to-indigo-500/90',
@@ -90,6 +90,15 @@ const BillingPopupModal: React.FC = () => {
                     iconColor: 'text-blue-400',
                     btnPrimary: 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/30',
                 };
+            default:
+                return {
+                    icon: 'info',
+                    gradient: 'from-slate-500/90 to-slate-700/90',
+                    shadow: 'shadow-slate-500/20',
+                    iconBg: 'bg-slate-500/15',
+                    iconColor: 'text-slate-400',
+                    btnPrimary: 'bg-slate-500 hover:bg-slate-600 shadow-slate-500/30',
+                };
         }
     };
 
@@ -97,6 +106,7 @@ const BillingPopupModal: React.FC = () => {
 
     const getTitle = (s: BillingStatusType) => {
         switch (s) {
+            case 'TRIAL': return 'Degustação Grátis';
             case 'DUE_SOON': return 'Lembrete de Pagamento';
             case 'DUE_TODAY': return 'Vencimento Hoje';
             case 'OVERDUE_WARNING': return 'Pagamento em Atraso';

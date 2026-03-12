@@ -14,15 +14,18 @@ import TransferForm from './pages/TransferForm';
 import SaleForm from './pages/SaleForm';
 import RedemptionForm from './pages/RedemptionForm';
 import Concierge from './pages/Concierge';
-import Team from './pages/Settings/Team'; // Add import
+import Team from './pages/Settings/Team';
+import SystemTour from './components/SystemTour';
 
 import Landing from './pages/Landing';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+
 import Signup from './pages/Signup';
 import SubscriptionPlans from './pages/SubscriptionPlans';
+import AdminDashboard from './pages/AdminDashboard';
 import ChangePassword from './pages/ChangePassword';
 import PrintReport from './pages/PrintReport';
 import { SearchProvider } from './contexts/SearchContext';
@@ -100,6 +103,9 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Billing: Tela de bloqueio total (BLOCKED) */}
       <BillingBlockedScreen />
 
+      {/* Guided Tour Engine */}
+      {!isOnboarding && <SystemTour />}
+
       {!isOnboarding && (
         <>
           {/* Overlay Mobile */}
@@ -125,7 +131,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AuthenticatedApp: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, userRole } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -182,6 +188,18 @@ const AuthenticatedApp: React.FC = () => {
         <Route path="/settings/team" element={<AppLayout><OwnerRoute><Team /></OwnerRoute></AppLayout>} />
         <Route path="/onboarding/*" element={<SubscriptionGuard><AppLayout><ReadOnlyGuard><Onboarding /></ReadOnlyGuard></AppLayout></SubscriptionGuard>} />
         <Route path="/plans" element={<AppLayout><SubscriptionPlans /></AppLayout>} />
+        <Route
+          path="/master-admin"
+          element={
+            <AppLayout>
+              {userRole === 'owner' || ['fl360travel@gmail.com', 'adriano.moraesnr@gmail.com'].includes(user?.email?.trim().toLowerCase() || '') ? (
+                <AdminDashboard />
+              ) : (
+                <Navigate to="/" replace />
+              )}
+            </AppLayout>
+          }
+        />
         <Route path="/change-password" element={<ChangePassword />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/print-report" element={<PrintReport />} />
@@ -191,11 +209,15 @@ const AuthenticatedApp: React.FC = () => {
   );
 };
 
+import { BrandingProvider } from './contexts/BrandingContext';
+
 const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
-        <AuthenticatedApp />
+        <BrandingProvider>
+          <AuthenticatedApp />
+        </BrandingProvider>
       </AuthProvider>
     </Router>
   );

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { getOrganizations, getOrganizationMembers, Organization, TeamMember, inviteMember, removeMember } from '../../services/api';
+import { getOrganizations, getOrganizationMembers, getOrgMemberLimit, Organization, TeamMember, inviteMember, removeMember } from '../../services/api';
 
 const Team: React.FC = () => {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -8,6 +8,7 @@ const Team: React.FC = () => {
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [showInviteModal, setShowInviteModal] = useState(false);
+    const [memberLimit, setMemberLimit] = useState<{ current: number; max: number; planId: string }>({ current: 0, max: 5, planId: 'starter' });
 
     // Form State
     const [inviteEmail, setInviteEmail] = useState('');
@@ -22,6 +23,7 @@ const Team: React.FC = () => {
                 if (orgs.length > 0) {
                     setCurrentOrg(orgs[0]);
                     loadMembers(orgs[0].id);
+                    loadMemberLimit(orgs[0].id);
                 } else {
                     setLoading(false);
                 }
@@ -45,6 +47,15 @@ const Team: React.FC = () => {
         }
     };
 
+    const loadMemberLimit = async (orgId: string) => {
+        try {
+            const limit = await getOrgMemberLimit(orgId);
+            setMemberLimit(limit);
+        } catch (error) {
+            console.error("Failed to load member limit", error);
+        }
+    };
+
     const handleInvite = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!currentOrg) return;
@@ -58,11 +69,12 @@ const Team: React.FC = () => {
                 setInviteStatus('idle');
                 setInviteEmail('');
             }, 1500);
-            loadMembers(currentOrg.id); // Refresh list
+            loadMembers(currentOrg.id);
+            loadMemberLimit(currentOrg.id);
         } catch (error: any) {
             console.error("Invite failed", error);
             setInviteStatus('error');
-            alert(error.message); // Temporary feedback
+            alert(error.message);
         }
     };
 
@@ -70,11 +82,17 @@ const Team: React.FC = () => {
         if (!confirm('Tem certeza que deseja remover este membro da equipe?')) return;
         try {
             await removeMember(memberId);
-            if (currentOrg) loadMembers(currentOrg.id);
+            if (currentOrg) {
+                loadMembers(currentOrg.id);
+                loadMemberLimit(currentOrg.id);
+            }
         } catch (error) {
             alert('Erro ao remover membro');
         }
     };
+
+    const isAtLimit = memberLimit.current >= memberLimit.max;
+    const isEnterprise = memberLimit.planId === 'enterprise';
 
     if (loading && !currentOrg) {
         return <div className="text-white p-8">Carregando organização...</div>;
@@ -92,6 +110,16 @@ const Team: React.FC = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    {/* Member count badge */}
+                    <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 ${
+                        isAtLimit && !isEnterprise
+                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    }`}>
+                        <span className="material-symbols-outlined text-xs">group</span>
+                        {memberLimit.current}/{isEnterprise ? '∞' : memberLimit.max} membros
+                    </div>
+
                     {organizations.length > 1 && (
                         <select
                             className="bg-bg-surface text-slate-400 text-xs rounded-lg px-3 py-2 border border-white/10 outline-none"
@@ -101,6 +129,7 @@ const Team: React.FC = () => {
                                 if (org) {
                                     setCurrentOrg(org);
                                     loadMembers(org.id);
+                                    loadMemberLimit(org.id);
                                 }
                             }}
                         >
@@ -110,11 +139,15 @@ const Team: React.FC = () => {
                         </select>
                     )}
                     <button
-                        onClick={() => setShowInviteModal(true)}
-                        className="bg-primary hover:bg-primary-dark text-bg-dark px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg hover:shadow-primary/20"
+                        onClick={() => isAtLimit && !isEnterprise ? alert(`Limite de ${memberLimit.max} membros atingido! Faça upgrade para o plano White Label para membros ilimitados.`) : setShowInviteModal(true)}
+                        className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg ${
+                            isAtLimit && !isEnterprise
+                                ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                                : 'bg-primary hover:bg-primary-dark text-bg-dark hover:shadow-primary/20'
+                        }`}
                     >
-                        <span className="material-symbols-outlined text-sm">person_add</span>
-                        Convidar Membro
+                        <span className="material-symbols-outlined text-sm">{isAtLimit && !isEnterprise ? 'lock' : 'person_add'}</span>
+                        {isAtLimit && !isEnterprise ? 'Limite Atingido' : 'Convidar Membro'}
                     </button>
                 </div>
             </header>

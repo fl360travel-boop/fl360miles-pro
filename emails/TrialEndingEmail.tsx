@@ -42,7 +42,7 @@ export const TrialEndingEmail = ({
                     </Text>
 
                     <Section style={btnContainer}>
-                        <Link style={button} href={`https://fl360miles.netlify.app/plans`}>
+                        <Link style={button} href={`https://fl360miles.com.br/plans`}>
                             Ver Planos e Preços
                         </Link>
                     </Section>

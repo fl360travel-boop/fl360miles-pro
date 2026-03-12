@@ -39,7 +39,7 @@ export const WelcomeEmail = ({
                     </Text>
 
                     <Section style={btnContainer}>
-                        <Link style={button} href={`https://fl360miles.netlify.app`}>
+                        <Link style={button} href={`https://fl360miles.com.br`}>
                             Acessar Meu Painel
                         </Link>
                     </Section>
