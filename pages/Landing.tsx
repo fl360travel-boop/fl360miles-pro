@@ -186,7 +186,6 @@ const Landing: React.FC = () => {
                                 </div>
                                 <h3 className="text-xl font-bold text-white mb-6 flex items-center justify-center gap-2 text-center">
                                     Agência Estruturada
-                                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-primary text-bg-dark uppercase tracking-widest">FL360</span>
                                 </h3>
                                 <div className="space-y-4 relative z-10">
                                     <p className="text-sm text-white font-medium border-l-2 border-primary pl-4">Escala com sistema próprio</p>
