@@ -145,7 +145,7 @@ const Landing: React.FC = () => {
                                 <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-100 transition-opacity">
                                     <span className="text-6xl font-black text-slate-700">01</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-300 mb-6">Agência Tradicional</h3>
+                                <h3 className="text-xl font-bold text-slate-300 mb-6 text-center">Agência Tradicional</h3>
                                 <div className="space-y-4">
                                     <p className="text-sm text-slate-500 border-l-2 border-slate-700 pl-4">Margem limitada pela Cia Aérea</p>
                                     <p className="text-sm text-slate-500 border-l-2 border-slate-700 pl-4">Dependência de comissão fixa</p>
@@ -164,7 +164,7 @@ const Landing: React.FC = () => {
                                 <div className="absolute top-0 right-0 p-6 opacity-30 group-hover:opacity-100 transition-opacity">
                                     <span className="text-6xl font-black text-primary/20">02</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-6">Agência Estratégica</h3>
+                                <h3 className="text-xl font-bold text-white mb-6 text-center">Agência Estratégica</h3>
                                 <div className="space-y-4">
                                     <p className="text-sm text-slate-300 border-l-2 border-primary/50 pl-4">Monetiza milhas do cliente</p>
                                     <p className="text-sm text-slate-300 border-l-2 border-primary/50 pl-4">Aumenta ticket médio</p>
@@ -184,7 +184,7 @@ const Landing: React.FC = () => {
                                 <div className="absolute top-0 right-0 p-6">
                                     <span className="text-6xl font-black text-primary/40 group-hover:text-primary transition-colors duration-500">03</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                                <h3 className="text-xl font-bold text-white mb-6 flex items-center justify-center gap-2 text-center">
                                     Agência Estruturada
                                     <span className="px-2 py-0.5 rounded text-[10px] font-black bg-primary text-bg-dark uppercase tracking-widest">FL360</span>
                                 </h3>
@@ -364,7 +364,7 @@ const Landing: React.FC = () => {
                             }
                         ].map((item, i) => (
                             <RevealOnScroll key={i} delay={i * 200}>
-                                <div className="h-full min-h-[220px] p-8 rounded-2xl bg-bg-card border border-white/5 hover:border-primary/30 transition-all duration-300 group hover:-translate-y-2 flex flex-col">
+                                <div className="h-full min-h-[220px] p-8 rounded-2xl bg-bg-card border border-white/5 hover:border-primary/30 transition-all duration-300 group hover:-translate-y-2 flex flex-col items-center text-center">
                                     <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center mb-6 text-primary group-hover:scale-110 transition-transform shrink-0">
                                         <span className="material-symbols-outlined text-2xl">{item.icon}</span>
                                     </div>
@@ -565,16 +565,16 @@ const Landing: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                         {/* Start */}
                         <RevealOnScroll delay={200}>
-                            <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-white/5 hover:border-white/10 transition-all group flex flex-col">
+                            <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-white/5 hover:border-white/10 transition-all group flex flex-col items-center text-center">
                                 <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Nível 1</div>
                                 <h3 className="text-xl font-bold text-white mb-2">Plano Estrutura Inicial</h3>
                                 <p className="text-slate-400 text-sm mb-6 h-10">Para agências que querem abrir a vertical de milhas com organização.</p>
-                                <div className="flex items-baseline gap-1 mb-6">
+                                <div className="flex items-baseline justify-center gap-1 mb-6">
                                     <span className="text-sm text-slate-400">R$</span>
                                     <span className="text-4xl font-black text-white">799,99</span>
                                     <span className="text-sm text-slate-400">/mês</span>
                                 </div>
-                                <ul className="space-y-3 mb-8 flex-1">
+                                <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Até 20 Clientes</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Scanner Award</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Relatórios Padrão</li>
@@ -585,12 +585,12 @@ const Landing: React.FC = () => {
 
                         {/* Pro */}
                         <RevealOnScroll delay={400}>
-                            <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-primary/30 relative shadow-2xl shadow-primary/5 group transform md:-translate-y-4 flex flex-col overflow-hidden">
+                            <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-primary/30 relative shadow-2xl shadow-primary/5 group transform md:-translate-y-4 flex flex-col items-center text-center overflow-hidden">
                                 <div className="absolute top-0 right-0 bg-primary text-bg-dark px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-bl-xl rounded-tr-2xl">Mais Escolhido</div>
                                 <div className="text-xs font-bold text-primary uppercase tracking-widest mb-4">Nível 2</div>
                                 <h3 className="text-xl font-bold text-white mb-2">Plano Escala Profissional</h3>
                                 <p className="text-slate-300 text-sm mb-6 h-10">Para agências que já vendem milhas e querem previsibilidade.</p>
-                                <div className="flex items-baseline gap-1 mb-2">
+                                <div className="flex items-baseline justify-center gap-1 mb-2">
                                     <span className="text-sm text-slate-400">R$</span>
                                     <span className="text-4xl font-black text-white">1.299,00</span>
                                     <span className="text-sm text-slate-400">/mês</span>
@@ -598,7 +598,7 @@ const Landing: React.FC = () => {
                                 <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wide mb-6">
                                     Recuperação média: 1 a 2 clientes ativos
                                 </p>
-                                <ul className="space-y-3 mb-8 flex-1">
+                                <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
                                     <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Até 100 Clientes</li>
                                     <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>AI Advisor Completo</li>
                                     <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Múltiplos Usuários</li>
@@ -609,16 +609,16 @@ const Landing: React.FC = () => {
 
                         {/* Elite */}
                         <RevealOnScroll delay={600}>
-                            <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-white/5 hover:border-primary/30 transition-all group flex flex-col">
+                            <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-white/5 hover:border-primary/30 transition-all group flex flex-col items-center text-center">
                                 <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-4">Nível 3</div>
                                 <h3 className="text-xl font-bold text-white mb-2">Plano Marca Própria</h3>
                                 <p className="text-slate-400 text-sm mb-6 h-10">Para agências que querem posicionamento e autoridade (White Label).</p>
-                                <div className="flex items-baseline gap-1 mb-6">
+                                <div className="flex items-baseline justify-center gap-1 mb-6">
                                     <span className="text-sm text-slate-400">R$</span>
                                     <span className="text-4xl font-black text-white">2.399,00</span>
                                     <span className="text-sm text-slate-400">/mês</span>
                                 </div>
-                                <ul className="space-y-3 mb-8 flex-1">
+                                <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Clientes Ilimitados</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>White Label Total</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>API Dedicada</li>
