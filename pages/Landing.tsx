@@ -211,8 +211,8 @@ const Landing: React.FC = () => {
                 <div className="max-w-6xl mx-auto">
                     <RevealOnScroll>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
-                            <div className="flex flex-col items-center text-center">
-                                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
+                            <div className="flex flex-col items-center justify-center text-center w-full">
+                                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight text-center">
                                     Quanto custa <span className="text-red-500">não estruturar</span> sua gestão de milhas?
                                 </h2>
                                 <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-xl">
@@ -268,9 +268,9 @@ const Landing: React.FC = () => {
 
             {/* 4. DIAGNÓSTICO ESTRATÉGICO (Inevitabilidade) */}
             <section className="py-24 px-6 bg-bg-dark relative border-t border-white/5">
-                <div className="max-w-3xl mx-auto text-center">
+                <div className="max-w-5xl mx-auto text-center flex flex-col items-center">
                     <RevealOnScroll>
-                        <h2 className="text-3xl md:text-5xl font-black text-white mb-8 leading-tight">
+                        <h2 className="text-3xl md:text-5xl font-black text-white mb-8 leading-tight text-center">
                             "Milhas não são produto.<br />
                             <span className="text-primary">São alavancagem.</span>"
                         </h2>
@@ -329,10 +329,10 @@ const Landing: React.FC = () => {
 
                 <div className="max-w-7xl mx-auto">
                     <RevealOnScroll>
-                        <div className="text-center mb-24">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block">Infraestrutura</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 max-w-3xl mx-auto">Sistema Operacional da Gestão de Milhas</h2>
-                            <p className="text-slate-400 text-lg max-w-2xl mx-auto">Não é uma ferramenta. É a espinha dorsal da sua nova vertical de receita.</p>
+                        <div className="text-center mb-24 flex flex-col items-center">
+                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Infraestrutura</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 max-w-4xl mx-auto text-center">Sistema Operacional da Gestão de Milhas</h2>
+                            <p className="text-slate-400 text-lg max-w-2xl mx-auto text-center">Não é uma ferramenta. É a espinha dorsal da sua nova vertical de receita.</p>
                         </div>
                     </RevealOnScroll>
 
@@ -428,12 +428,12 @@ const Landing: React.FC = () => {
             {/* MERCADO - Dados Quantitativos */}
             <section className="py-24 px-6 bg-bg-surface border-t border-white/5 relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
-                <div className="max-w-6xl mx-auto">
+                <div className="max-w-7xl mx-auto">
                     <RevealOnScroll>
-                        <div className="text-center mb-16">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block">Mercado Brasileiro de Milhagem</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-4">O dinheiro já está circulando.<br /><span className="text-primary">A questão é: quem está capturando?</span></h2>
-                            <p className="text-slate-400 max-w-2xl mx-auto">Enquanto você lê isso, bilhões em milhas expiram sem gerar margem para nenhuma agência. Isso vai mudar — com ou sem você.</p>
+                        <div className="text-center mb-16 flex flex-col items-center">
+                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Mercado Brasileiro de Milhagem</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-4 text-center">O dinheiro já está circulando.<br /><span className="text-primary">A questão é: quem está capturando?</span></h2>
+                            <p className="text-slate-400 max-w-3xl mx-auto text-center">Enquanto você lê isso, bilhões em milhas expiram sem gerar margem para nenhuma agência. Isso vai mudar — com ou sem você.</p>
                         </div>
                     </RevealOnScroll>
 
@@ -495,10 +495,10 @@ const Landing: React.FC = () => {
             <section className="py-32 px-6 bg-bg-dark relative border-t border-white/5">
                 <div className="max-w-4xl mx-auto">
                     <RevealOnScroll>
-                        <div className="text-center mb-16">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block">Perguntas Frequentes</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6">Ainda gerenciando na planilha e caderninho?</h2>
-                            <p className="text-slate-400 text-lg">Entenda como o FL360 transforma o amadorismo em uma operação elegante e lucrativa.</p>
+                        <div className="text-center mb-16 flex flex-col items-center">
+                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Perguntas Frequentes</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 text-center">Ainda gerenciando na planilha e caderninho?</h2>
+                            <p className="text-slate-400 text-lg text-center">Entenda como o FL360 transforma o amadorismo em uma operação elegante e lucrativa.</p>
                         </div>
                     </RevealOnScroll>
 
@@ -555,10 +555,10 @@ const Landing: React.FC = () => {
             <section id="pricing" className="py-32 px-6 bg-bg-dark border-t border-white/5 relative">
                 <div className="max-w-7xl mx-auto">
                     <RevealOnScroll>
-                        <div className="text-center mb-20">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block">Investimento no Negócio</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6">Escolha seu Nível de Acesso</h2>
-                            <p className="text-slate-400">O custo de oportunidade de não começar hoje é muito maior.</p>
+                        <div className="text-center mb-20 flex flex-col items-center w-full">
+                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Investimento no Negócio</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 text-center w-full">Escolha seu Nível de Acesso</h2>
+                            <p className="text-slate-400 text-center">O custo de oportunidade de não começar hoje é muito maior.</p>
                         </div>
                     </RevealOnScroll>
 
