@@ -4,15 +4,17 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ManagementLevel, PaymentMethod, BillingCycle, Client, MileageProgram, CreditCard } from '../types';
 import { createClient, getClient, updateClient } from '../services/api';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAuth } from '../contexts/AuthContext';
 
 const Onboarding: React.FC = () => {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const editClientId = searchParams.get('edit');
+  const [editClientId = searchParams.get('edit')] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { canAddClient, clientLimit, currentClients, planId } = useSubscription();
+  const { signOut } = useAuth();
 
   if (!editClientId && !canAddClient) {
     return (
@@ -40,6 +42,16 @@ const Onboarding: React.FC = () => {
           >
             VOLTAR
           </Link>
+          <button
+            type="button"
+            onClick={async () => {
+              await signOut();
+              window.location.href = '/login';
+            }}
+            className="inline-flex items-center gap-3 px-10 py-5 text-slate-500 font-bold uppercase tracking-widest text-[11px] hover:text-white transition-all"
+          >
+            JÁ SOU CLIENTE? FAZER LOGIN
+          </button>
         </div>
       </div>
     );

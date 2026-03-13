@@ -70,9 +70,9 @@ const Landing: React.FC = () => {
                     </RevealOnScroll>
 
                     <RevealOnScroll delay={500}>
-                        <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-16 font-light leading-relaxed">
-                            O mercado de milhas não é tendência.<br />
-                            <span className="text-white font-medium">É reposicionamento estratégico.</span>
+                        <p className="text-xl md:text-2xl text-slate-400 mb-16 font-light leading-relaxed max-w-3xl mx-auto flex flex-col items-center justify-center text-center">
+                            <span>O mercado de milhas não é tendência.</span>
+                            <span className="text-white font-medium mt-1">É reposicionamento estratégico.</span>
                         </p>
                     </RevealOnScroll>
 
@@ -94,14 +94,10 @@ const Landing: React.FC = () => {
                             </button>
                         </div>
                     </RevealOnScroll>
-                </div>
-
-                {/* Logos de Autoridade na Dobra */}
-                <div className="absolute bottom-10 left-0 right-0 w-full z-20">
                     <RevealOnScroll delay={1000}>
-                        <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
-                            <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-6">Integrado e otimizado para os maiores players</p>
-                            <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
+                        <div className="mt-20 max-w-7xl mx-auto px-6 flex flex-col items-center">
+                            <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 text-center bg-primary/10 text-primary px-4 py-2 rounded-full font-bold border border-primary/20">Integrado e otimizado para os maiores players</p>
+                            <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-40 grayscale hover:grayscale-0 transition-all duration-700 w-full max-w-4xl mx-auto">
                                 {['livelo', 'latam', 'smiles', 'azul', 'esfera'].map((brand, i) => (
                                     <BrandLogo key={brand} name={brand} className="h-6 md:h-8 w-auto text-white transition-transform hover:scale-110" />
                                 ))}

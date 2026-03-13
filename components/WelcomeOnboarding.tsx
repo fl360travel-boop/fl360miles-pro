@@ -7,7 +7,7 @@ interface WelcomeOnboardingProps {
 }
 
 const WelcomeOnboarding: React.FC<WelcomeOnboardingProps> = ({ isOpen }) => {
-    const { userProfile } = useAuth();
+    const { userProfile, signOut } = useAuth();
     if (!isOpen) return null;
 
     return (
@@ -46,6 +46,18 @@ const WelcomeOnboarding: React.FC<WelcomeOnboardingProps> = ({ isOpen }) => {
                         <span className="material-symbols-outlined">person_add</span>
                         CADASTRAR PRIMEIRO CLIENTE
                     </Link>
+
+                    <button
+                        type="button"
+                        onClick={async () => {
+                            await signOut();
+                            window.location.href = '/login';
+                        }}
+                        className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-slate-300 px-8 py-3 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center gap-3 active:scale-95 mt-3"
+                    >
+                        <span className="material-symbols-outlined text-sm">login</span>
+                        JÁ SOU CLIENTE? FAZER LOGIN
+                    </button>
 
                     <div className="flex items-center justify-center mt-6 opacity-60">
                         <span className="material-symbols-outlined text-xs mr-2 text-slate-500">lock</span>
