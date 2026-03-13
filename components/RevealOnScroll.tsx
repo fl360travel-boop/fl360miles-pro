@@ -52,7 +52,6 @@ export const RevealOnScroll = ({ children, width = "100%", delay = 0, direction 
             style={{
                 width,
                 position: "relative",
-                overflow: "hidden"
             }}
         >
             <div

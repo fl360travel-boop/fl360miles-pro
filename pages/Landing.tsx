@@ -389,10 +389,10 @@ const Landing: React.FC = () => {
                         </h2>
                     </RevealOnScroll>
 
-                    <div className="flex flex-wrap justify-center gap-12 md:gap-20 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
+                    <div className="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-30 grayscale hover:grayscale-0 transition-all duration-700 w-full overflow-visible">
                         {['livelo', 'latam', 'smiles', 'azul', 'esfera'].map((brand, i) => (
-                            <RevealOnScroll key={brand} delay={i * 100}>
-                                <BrandLogo name={brand} className="h-8 w-auto text-white" />
+                            <RevealOnScroll key={brand} delay={i * 100} width="fit-content" direction="up">
+                                <BrandLogo name={brand} className="h-6 md:h-8 w-auto text-white" />
                             </RevealOnScroll>
                         ))}
                     </div>
