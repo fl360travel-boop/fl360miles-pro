@@ -131,10 +131,10 @@ const Landing: React.FC = () => {
             {/* 2. MOVIMENTO DE CONSCIÊNCIA (3 NÍVEIS) */}
             <section id="levels" className="py-32 px-6 bg-bg-surface relative border-t border-white/5">
                 <div className="max-w-7xl mx-auto">
-                    <RevealOnScroll>
-                        <div className="text-center mb-24">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block">Evolução do Mercado</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white">Qual jogo você está jogando?</h2>
+                    <RevealOnScroll width="100%">
+                        <div className="w-full flex flex-col items-center justify-center text-center mb-24">
+                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Evolução do Mercado</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white text-center">Qual jogo você está jogando?</h2>
                         </div>
                     </RevealOnScroll>
 
@@ -212,18 +212,18 @@ const Landing: React.FC = () => {
                     <RevealOnScroll>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
                             <div className="flex flex-col items-center justify-center text-center w-full">
-                                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight text-center">
+                                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight text-center w-full">
                                     Quanto custa <span className="text-red-500">não estruturar</span> sua gestão de milhas?
                                 </h2>
-                                <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-xl">
+                                <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-xl text-center">
                                     Não estamos falando do custo do sistema. Estamos falando do dinheiro que você deixa na mesa todos os meses por não ter a infraestrutura para capturar essa margem.
                                 </p>
-                                <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20 inline-block mx-auto">
+                                <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20 flex flex-col items-center justify-center">
                                     <div className="flex items-center justify-center gap-3 text-red-400 font-bold uppercase tracking-widest text-xs mb-2">
                                         <span className="material-symbols-outlined text-lg">money_off</span>
                                         Dinheiro Perdido / Mês
                                     </div>
-                                    <div className="text-3xl md:text-4xl font-black text-white">
+                                    <div className="text-3xl md:text-4xl font-black text-white text-center">
                                         R$ {totalLoss.toLocaleString('pt-BR')}
                                     </div>
                                 </div>
@@ -268,46 +268,48 @@ const Landing: React.FC = () => {
 
             {/* 4. DIAGNÓSTICO ESTRATÉGICO (Inevitabilidade) */}
             <section className="py-24 px-6 bg-bg-dark relative border-t border-white/5">
-                <div className="max-w-5xl mx-auto text-center flex flex-col items-center">
-                    <RevealOnScroll>
-                        <h2 className="text-3xl md:text-5xl font-black text-white mb-8 leading-tight text-center">
-                            "Milhas não são produto.<br />
-                            <span className="text-primary">São alavancagem.</span>"
-                        </h2>
+                <div className="max-w-5xl mx-auto text-center flex flex-col items-center w-full">
+                    <RevealOnScroll width="100%">
+                        <div className="w-full flex flex-col items-center justify-center text-center">
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-8 leading-tight text-center w-full">
+                                "Milhas não são produto.<br />
+                                <span className="text-primary">São alavancagem.</span>"
+                            </h2>
+                        </div>
                     </RevealOnScroll>
 
-                    <RevealOnScroll delay={200}>
-                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 md:p-12 text-center mb-12">
-                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 border-b border-white/5 pb-4">Diagnóstico Estratégico</h3>
+                    <RevealOnScroll delay={200} width="100%">
+                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 md:p-12 text-center mb-12 flex flex-col items-center w-full">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 border-b border-white/5 pb-4 text-center w-full">Diagnóstico Estratégico</h3>
 
-                            <div className="space-y-6">
-                                <div className="flex flex-col items-center justify-center gap-4">
+                            <div className="space-y-6 w-full flex flex-col items-center">
+                                <div className="flex flex-col items-center justify-center gap-4 text-center w-full">
                                     <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
                                         <span className="text-[10px] text-slate-400">1</span>
                                     </div>
-                                    <div>
+                                    <div className="w-full">
                                         <p className="text-lg text-white font-medium text-center">Sua agência tem receita recorrente previsível?</p>
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-center justify-center gap-4">
+                                <div className="flex flex-col items-center justify-center gap-4 text-center w-full">
                                     <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
                                         <span className="text-[10px] text-slate-400">2</span>
                                     </div>
-                                    <div>
+                                    <div className="w-full">
                                         <p className="text-lg text-white font-medium text-center">Você controla sua margem ou depende de comissão?</p>
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-center justify-center gap-4">
+                                <div className="flex flex-col items-center justify-center gap-3 text-center w-full">
                                     <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
                                         <span className="text-[10px] text-slate-400">3</span>
                                     </div>
-                                    <div>
+                                    <div className="w-full">
                                         <p className="text-lg text-white font-medium text-center">Sua operação de milhas é automatizada ou manual?</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-8 pt-8 border-t border-white/5">
+                            <div className="mt-8 pt-8 border-t border-white/5 w-full flex justify-center">
                                 <p className="text-slate-400 text-sm italic text-center">
                                     <span className="text-red-400 font-bold not-italic">⚠️ Alerta:</span> Se respondeu <strong className="text-white">"não"</strong> para 2 ou mais, você está operando no <strong className="text-white">Modelo Antigo</strong>.
                                 </p>
@@ -315,8 +317,8 @@ const Landing: React.FC = () => {
                         </div>
                     </RevealOnScroll>
 
-                    <RevealOnScroll delay={400}>
-                        <p className="text-xl text-slate-300 font-light max-w-2xl mx-auto">
+                    <RevealOnScroll delay={400} width="100%">
+                        <p className="text-xl text-slate-300 font-light max-w-2xl mx-auto text-center">
                             Se você ainda não estruturou milhas, <strong className="text-white font-bold">está competindo errado.</strong>
                         </p>
                     </RevealOnScroll>

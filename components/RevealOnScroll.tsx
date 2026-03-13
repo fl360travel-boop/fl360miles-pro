@@ -9,7 +9,7 @@ interface RevealProps {
     key?: string | number;
 }
 
-export const RevealOnScroll = ({ children, width = "fit-content", delay = 0, direction = "up" }: RevealProps) => {
+export const RevealOnScroll = ({ children, width = "100%", delay = 0, direction = "up" }: RevealProps) => {
     const [isVisible, setIsVisible] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
