@@ -8,9 +8,9 @@ import { asaasService } from '../services/asaas';
 const ADMIN_EMAILS = ['fl360travel@gmail.com', 'adriano.moraesnr@gmail.com'];
 
 const plans = [
-    { id: 'starter', name: 'Starter', price: 799.99 },
-    { id: 'pro', name: 'Profissional', price: 1299 },
-    { id: 'enterprise', name: 'White Label', price: 2399 },
+    { id: 'starter', name: 'Starter', price: 499.00, features: ['Até 20 clientes', 'Scanner Award', 'Relatórios Padrão'] },
+    { id: 'pro', name: 'Profissional', price: 899.00, features: ['Até 100 clientes', 'AI Advisor Completo', 'Múltiplos Usuários'] },
+    { id: 'enterprise', name: 'White Label', price: 1999.00, features: ['Clientes Ilimitados', 'Sua Marca/Domínio', 'API Dedicada'] }
 ];
 
 const Signup: React.FC = () => {
@@ -220,7 +220,9 @@ const Signup: React.FC = () => {
 
             <div className="relative w-full max-w-md animate-in fade-in zoom-in duration-1000 my-8">
                 <div className="text-center mb-6">
-                    <img src="/login-logo.png" alt="FL360 Miles" className="w-36 mx-auto mb-3 object-contain drop-shadow-2xl" />
+                    <div className="w-36 h-36 mx-auto mb-3 rounded-[28px] overflow-hidden shadow-2xl border border-white/10">
+                        <img src="/login-logo.png" alt="FL360 Miles" className="w-full h-full object-cover" />
+                    </div>
                     <h2 className="text-2xl font-bold text-white mb-1">Crie sua conta</h2>
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.4em]">
                         {step === 1 ? 'Dados da sua empresa' : 'Plano e Pagamento'}

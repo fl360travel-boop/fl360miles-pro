@@ -18,11 +18,11 @@ BEGIN
         price NUMERIC(10,2) NOT NULL
     );
     INSERT INTO public.subscription_plans VALUES 
-    ('starter', 'Iniciante', 97), 
-    ('pro', 'Pro', 197), 
-    ('elite', 'Elite', 497), 
+    ('starter', 'Starter', 499.00), 
+    ('pro', 'Profissional', 899.00), 
+    ('enterprise', 'White Label', 1999.00), 
     ('demo', 'Demo', 0),
-    ('legacy', 'Legado (Gratuito)', 0); -- Novo plano para os antigos
+    ('legacy', 'Legado (Gratuito)', 0);
 
     -- 3. CRIA TABELA SAAS
     CREATE TABLE public.subscriptions (

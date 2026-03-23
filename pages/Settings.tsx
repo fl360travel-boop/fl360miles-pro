@@ -126,6 +126,21 @@ const Settings: React.FC = () => {
               </div>
 
               <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Link de Redirecionamento (Opcional)</label>
+                <div className="relative group">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">redo</span>
+                  <input
+                    type="url"
+                    value={tempBranding.redirectUrl || ''}
+                    onChange={e => setTempBranding({ ...tempBranding, redirectUrl: e.target.value })}
+                    placeholder="https://sua-pagina-de-vendas.com"
+                    className="bg-card-dark border border-white/10 rounded-xl py-3 pl-10 pr-4 text-[11px] text-white focus:ring-1 focus:ring-primary w-full outline-none italic"
+                  />
+                </div>
+                <p className="text-[9px] text-slate-600 mt-2 italic">* Se preenchido, quem acessar o subdomínio será levado para este link.</p>
+              </div>
+
+              <div>
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Logotipo da Empresa (PNG/SVG)</label>
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-4">
@@ -273,9 +288,9 @@ const Settings: React.FC = () => {
                 {tempBranding.logoUrl ? (
                   <img src={tempBranding.logoUrl} alt="Preview" className="max-h-full max-w-full object-contain" />
                 ) : (
-                  <div className="flex items-center gap-3 opacity-20">
-                    <span className="material-symbols-outlined text-4xl">diamond</span>
-                    <span className="display-font text-xl font-bold tracking-widest uppercase italic">PREVIEW</span>
+                  <div className="flex flex-col items-center gap-2 opacity-40">
+                    <img src="/login-logo.png" alt="Preview" className="h-12 w-auto rounded-lg" />
+                    <span className="display-font text-[10px] font-bold tracking-[0.3em] uppercase italic">Padrão FL360</span>
                   </div>
                 )}
               </div>

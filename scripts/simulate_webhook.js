@@ -19,7 +19,7 @@ const simulatePaymentConfirmed = async () => {
             customer: 'cus_123456789',
             subscription: 'sub_123456789',
             externalReference: TEST_ORG_ID,
-            value: 799.00,
+            value: 499.00,
             netValue: 790.00,
             billingType: 'CREDIT_CARD',
             status: 'CONFIRMED',

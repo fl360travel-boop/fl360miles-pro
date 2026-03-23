@@ -5,15 +5,15 @@
 import { createClient } from '@supabase/supabase-js';
 
 const PLAN_PRICES: Record<string, number> = {
-    starter: 799.99,
-    pro: 1299,
-    enterprise: 2399,
+    'starter': 499.00,
+    'pro': 899.00,
+    'enterprise': 1999.00
 };
 
 const PLAN_NAMES: Record<string, string> = {
-    starter: 'Starter',
-    pro: 'Profissional',
-    enterprise: 'White Label',
+    'starter': 'Starter',
+    'pro': 'Profissional',
+    'enterprise': 'White Label'
 };
 
 export default async (request: Request) => {

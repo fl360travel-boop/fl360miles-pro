@@ -7,7 +7,7 @@ const plans = [
     {
         id: 'starter',
         name: 'Starter',
-        price: 799.99,
+        price: 499,
         cycle: 'mês',
         features: ['Até 20 clientes', 'Gestão completa de milhas', 'Dashboard inteligente', 'Suporte por email'],
         recommended: false
@@ -15,7 +15,7 @@ const plans = [
     {
         id: 'pro',
         name: 'Profissional',
-        price: 1299,
+        price: 899,
         cycle: 'mês',
         features: ['Até 100 clientes', 'Tudo do Starter', 'AI Concierge (Altitude AI)', 'Relatórios PDF personalizados', 'Suporte prioritário'],
         recommended: true
@@ -23,7 +23,7 @@ const plans = [
     {
         id: 'enterprise',
         name: 'White Label',
-        price: 2399,
+        price: 1999,
         cycle: 'mês',
         features: ['Clientes ilimitados', 'Tudo do Profissional', 'Plataforma personalizada', 'Sua marca, seu domínio', 'Gerente de conta dedicado'],
         recommended: false

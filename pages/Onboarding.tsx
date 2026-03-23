@@ -20,7 +20,7 @@ const Onboarding: React.FC = () => {
     return (
       <div className="max-w-3xl mx-auto py-20 text-center animate-in zoom-in-95 duration-700">
         <div className="size-32 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-8 border-2 border-primary/20 shadow-[0_0_50px_-10px_rgba(226,190,106,0.3)]">
-          <span className="material-symbols-outlined text-primary text-6xl">diamond</span>
+          <img src="/login-logo.png" alt="Logo" className="h-16 w-auto mx-auto rounded-2xl shadow-2xl mb-4" />
         </div>
         <h1 className="display-font text-5xl font-bold italic text-white mb-6 uppercase tracking-tighter leading-none">
           Limite de Clientes<br /><span className="text-[#E2BE6A]">Atingido</span>

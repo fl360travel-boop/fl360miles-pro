@@ -8,8 +8,8 @@ import { useBillingStatus } from './useBillingStatus';
 const PLAN_LIMITS: Record<string, number> = {
     starter: 20,
     pro: 100,
-    elite: Infinity,
-    enterprise: Infinity,
+    enterprise: Infinity, // White Label
+    elite: Infinity,      // Legacy mapping if any
     demo: 5,
     legacy: Infinity,
 };

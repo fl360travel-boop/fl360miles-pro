@@ -26,7 +26,9 @@ RETURNS TABLE (
     trial_ends_at TIMESTAMP WITH TIME ZONE,
     current_period_end TIMESTAMP WITH TIME ZONE,
     last_updated TIMESTAMP WITH TIME ZONE,
-    owner_email TEXT
+    owner_email TEXT,
+    joined_at TIMESTAMP WITH TIME ZONE,
+    total_paid NUMERIC
 ) AS $$
 BEGIN
     -- Strict security check
@@ -43,7 +45,9 @@ BEGIN
         s.trial_ends_at,
         s.current_period_end,
         s.updated_at as last_updated,
-        p.email as owner_email
+        p.email as owner_email,
+        o.created_at as joined_at,
+        0 as total_paid
     FROM organizations o
     LEFT JOIN subscriptions s ON s.organization_id = o.id
     LEFT JOIN organization_members om ON om.organization_id = o.id AND om.role = 'owner'

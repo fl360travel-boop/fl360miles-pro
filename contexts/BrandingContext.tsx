@@ -8,6 +8,7 @@ interface Branding {
     primaryColor: string;
     secondaryColor: string;
     subdomain: string | null;
+    redirectUrl?: string | null;
 }
 
 interface BrandingContextType {
@@ -23,6 +24,7 @@ const DEFAULT_BRANDING: Branding = {
     primaryColor: '#E2BE6A',
     secondaryColor: '#B8952E',
     subdomain: null,
+    redirectUrl: null,
 };
 
 // Helper to get subdomain
@@ -53,16 +55,23 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 try {
                     const { data: tenant, error } = await supabase
                         .from('tenants')
-                        .select('company_logo, primary_color, secondary_color, subdomain')
+                        .select('company_logo, primary_color, secondary_color, subdomain, redirect_url')
                         .eq('subdomain', currentSubdomain)
                         .single();
 
                     if (!error && tenant) {
+                        // Check for redirect
+                        if (tenant.redirect_url) {
+                            window.location.href = tenant.redirect_url;
+                            return;
+                        }
+
                         setBranding({
                             logoUrl: tenant.company_logo,
                             primaryColor: tenant.primary_color || DEFAULT_BRANDING.primaryColor,
                             secondaryColor: tenant.secondary_color || DEFAULT_BRANDING.secondaryColor,
                             subdomain: tenant.subdomain,
+                            redirectUrl: tenant.redirect_url,
                         });
                         setLoading(false);
                         return;
@@ -99,7 +108,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     if (targetOrgId) {
                         const { data: tenant } = await supabase
                             .from('tenants')
-                            .select('company_logo, primary_color, secondary_color, subdomain')
+                            .select('company_logo, primary_color, secondary_color, subdomain, redirect_url')
                             .eq('id', targetOrgId)
                             .single();
 
@@ -109,6 +118,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                                 primaryColor: tenant.primary_color || DEFAULT_BRANDING.primaryColor,
                                 secondaryColor: tenant.secondary_color || DEFAULT_BRANDING.secondaryColor,
                                 subdomain: tenant.subdomain,
+                                redirectUrl: tenant.redirect_url,
                             });
                         }
                     }
@@ -163,6 +173,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 if (updates.primaryColor !== undefined) dbUpdates.primary_color = updates.primaryColor;
                 if (updates.secondaryColor !== undefined) dbUpdates.secondary_color = updates.secondaryColor;
                 if (updates.subdomain !== undefined) dbUpdates.subdomain = updates.subdomain;
+                if (updates.redirectUrl !== undefined) dbUpdates.redirect_url = updates.redirectUrl;
 
                 const { error } = await supabase
                     .from('tenants')

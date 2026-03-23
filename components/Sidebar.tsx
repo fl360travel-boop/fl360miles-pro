@@ -26,16 +26,13 @@ const Sidebar: React.FC = () => {
       <div className="p-8">
         <div className="flex items-center gap-3 mb-10 group cursor-pointer">
           {branding.logoUrl ? (
-            <img src={branding.logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
+            <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0">
+               <img src={branding.logoUrl} alt="Logo" className="h-full w-full object-contain" />
+            </div>
           ) : (
-            <>
-              <div className="size-8 bg-primary rounded flex items-center justify-center transition-transform group-hover:scale-110">
-                <span className="material-symbols-outlined text-bg-dark font-bold">diamond</span>
-              </div>
-              <span className="display-font text-sm font-bold tracking-widest text-white uppercase italic">
-                FL360<span className="text-primary">MILES</span>
-              </span>
-            </>
+            <div className="h-10 w-10 rounded-xl overflow-hidden shrink-0">
+               <img src="/login-logo.png" alt="FL360 MILES" className="h-full w-full object-cover" />
+            </div>
           )}
         </div>
 

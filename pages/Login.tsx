@@ -104,9 +104,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <div className="relative w-full max-w-md animate-in fade-in zoom-in duration-1000">
         <div className="text-center mb-12">
           {branding.logoUrl ? (
-            <img src={branding.logoUrl} alt="Organization Logo" className="h-12 mx-auto mb-6 object-contain drop-shadow-2xl" />
+            <div className="h-12 mx-auto mb-6 rounded-xl overflow-hidden shadow-2xl">
+               <img src={branding.logoUrl} alt="Organization Logo" className="h-full w-full object-contain" />
+            </div>
           ) : (
-            <img src="/login-logo.png" alt="FL360 Miles Logo" className="w-48 mx-auto mb-6 object-contain drop-shadow-2xl" />
+            <div className="w-48 h-48 mx-auto mb-6 rounded-[32px] overflow-hidden shadow-2xl border border-white/10">
+               <img src="/login-logo.png" alt="FL360 Miles Logo" className="w-full h-full object-cover" />
+            </div>
           )}
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.6em] mt-4">Terminal de Gestão Confidencial</p>
         </div>

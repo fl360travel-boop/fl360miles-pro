@@ -36,10 +36,9 @@ const Landing: React.FC = () => {
             <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-dark/80 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3 opacity-90 hover:opacity-100 transition-opacity cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-                        <span className="material-symbols-outlined text-primary text-xl">flight_takeoff</span>
-                        <span className="text-xl font-bold tracking-tight text-white">
-                            FL360<span className="text-primary">MILES</span>
-                        </span>
+                        <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0 border border-white/5">
+                            <img src="/login-logo.png" alt="FL360 MILES" className="h-full w-full object-cover" />
+                        </div>
                     </div>
 
                     <div className="hidden md:flex items-center gap-8">
@@ -568,19 +567,17 @@ const Landing: React.FC = () => {
                         <RevealOnScroll delay={200}>
                             <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-white/5 hover:border-white/10 transition-all group flex flex-col items-center text-center">
                                 <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Nível 1</div>
-                                <h3 className="text-xl font-bold text-white mb-2">Plano Estrutura Inicial</h3>
+                                <h3 className="text-xl font-bold text-white mb-2">Plano Starter</h3>
                                 <p className="text-slate-400 text-sm mb-6 h-10">Para agências que querem abrir a vertical de milhas com organização.</p>
-                                <div className="flex items-baseline justify-center gap-1 mb-6">
                                     <span className="text-sm text-slate-400">R$</span>
-                                    <span className="text-4xl font-black text-white">799,99</span>
+                                    <span className="text-4xl font-black text-white">499,00</span>
                                     <span className="text-sm text-slate-400">/mês</span>
-                                </div>
                                 <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Até 20 Clientes</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Scanner Award</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Relatórios Padrão</li>
                                 </ul>
-                                <button disabled className="w-full py-4 rounded-xl border border-white/5 bg-white/5 text-slate-500 font-bold uppercase text-xs cursor-not-allowed">Esgotado</button>
+                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl bg-white/5 text-white hover:bg-white/10 font-bold uppercase text-xs transition-all">Começar Agora</button>
                             </div>
                         </RevealOnScroll>
 
@@ -589,11 +586,11 @@ const Landing: React.FC = () => {
                             <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-primary/30 relative shadow-2xl shadow-primary/5 group transform md:-translate-y-4 flex flex-col items-center text-center overflow-hidden">
                                 <div className="absolute top-0 right-0 bg-primary text-bg-dark px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-bl-xl rounded-tr-2xl">Mais Escolhido</div>
                                 <div className="text-xs font-bold text-primary uppercase tracking-widest mb-4">Nível 2</div>
-                                <h3 className="text-xl font-bold text-white mb-2">Plano Escala Profissional</h3>
+                                <h3 className="text-xl font-bold text-white mb-2">Plano Profissional</h3>
                                 <p className="text-slate-300 text-sm mb-6 h-10">Para agências que já vendem milhas e querem previsibilidade.</p>
                                 <div className="flex items-baseline justify-center gap-1 mb-2">
                                     <span className="text-sm text-slate-400">R$</span>
-                                    <span className="text-4xl font-black text-white">1.299,00</span>
+                                    <span className="text-4xl font-black text-white">899,00</span>
                                     <span className="text-sm text-slate-400">/mês</span>
                                 </div>
                                 <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wide mb-6">
@@ -612,11 +609,11 @@ const Landing: React.FC = () => {
                         <RevealOnScroll delay={600}>
                             <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-white/5 hover:border-primary/30 transition-all group flex flex-col items-center text-center">
                                 <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-4">Nível 3</div>
-                                <h3 className="text-xl font-bold text-white mb-2">Plano Marca Própria</h3>
-                                <p className="text-slate-400 text-sm mb-6 h-10">Para agências que querem posicionamento e autoridade (White Label).</p>
+                                <h3 className="text-xl font-bold text-white mb-2">Plano White Label</h3>
+                                <p className="text-slate-400 text-sm mb-6 h-10">Para agências que querem posicionamento e autoridade (Marca Própria).</p>
                                 <div className="flex items-baseline justify-center gap-1 mb-6">
                                     <span className="text-sm text-slate-400">R$</span>
-                                    <span className="text-4xl font-black text-white">2.399,00</span>
+                                    <span className="text-4xl font-black text-white">1.999,00</span>
                                     <span className="text-sm text-slate-400">/mês</span>
                                 </div>
                                 <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
@@ -624,7 +621,7 @@ const Landing: React.FC = () => {
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>White Label Total</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>API Dedicada</li>
                                 </ul>
-                                <button disabled className="w-full py-4 rounded-xl border border-white/5 bg-white/5 text-slate-500 font-bold uppercase text-xs cursor-not-allowed">Entrar na Lista de Espera</button>
+                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl bg-white/5 text-white hover:bg-white/10 font-bold uppercase text-xs transition-all">Consulte-nos</button>
                             </div>
                         </RevealOnScroll>
                     </div>

@@ -5,6 +5,15 @@ import { SubscriptionResponse } from '../types/asaas';
 // Netlify Functions endpoint
 const API_URL = '/api';
 
+const PLAN_PRICES: Record<string, number> = {
+    'starter': 499.00,
+    'pro': 899.00,
+    'enterprise': 1999.00,
+    'elite': 1999.00,
+    'demo': 0,
+    'legacy': 0
+};
+
 export const asaasService = {
     /**
      * Cria uma assinatura anual para o usuário atual
@@ -109,7 +118,7 @@ export const asaasService = {
             // 1. Get all tenants with their subscriptions
             const { data: tenants, error: tenErr } = await supabase
                 .from('tenants')
-                .select('id, company_name');
+                .select('id, company_name, created_at');
 
             if (tenErr) throw tenErr;
             if (!tenants || tenants.length === 0) return [];
@@ -161,7 +170,9 @@ export const asaasService = {
                     current_period_end: sub?.current_period_end || null,
                     last_updated: sub?.updated_at || null,
                     owner_email: ownerProfile?.email || 'N/A',
-                    owner_phone: ownerProfile?.phone || null
+                    owner_phone: ownerProfile?.phone || null,
+                    joined_at: tenant.created_at || null,
+                    total_paid: 0 // Will be populated by RPC if available, or fallback left as 0
                 };
             });
         } catch (fallbackErr) {
