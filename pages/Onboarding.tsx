@@ -60,6 +60,7 @@ const Onboarding: React.FC = () => {
   // Perfil & Dados Pessoais
   const [name, setName] = useState('');
   const [cpf, setCpf] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState('');
@@ -93,6 +94,7 @@ const Onboarding: React.FC = () => {
           const client = await getClient(editClientId);
           setName(client.name);
           setCpf(client.cpf || '');
+          setPhone(client.phone || '');
           setEmail(client.email);
           setBirthDate(client.birthDate || '');
           setGender(client.gender || '');
@@ -171,7 +173,7 @@ const Onboarding: React.FC = () => {
       if (editClientId) {
         // Update existing client
         await updateClient(editClientId, {
-          name, cpf, email, birthDate, gender, maritalStatus, region, profession,
+          name, cpf, phone, email, birthDate, gender, maritalStatus, region, profession,
           startDate, managementFee: Number(fee), billingCycle, managementLevel: level,
           paymentMethod, notes: observations,
           programs: formattedPrograms,
@@ -197,6 +199,7 @@ const Onboarding: React.FC = () => {
         await createClient({
           name: name || 'Cliente Sem Nome',
           cpf: cpf || '',
+          phone: phone || '',
           email: email || '',
           birthDate: birthDate || '',
           gender,
@@ -292,6 +295,10 @@ const Onboarding: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">E-mail</label>
                     <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={email} onChange={e => setEmail(e.target.value)} placeholder="exemplo@high-ticket.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Telefone / WhatsApp</label>
+                    <input className="w-full bg-bg-card border border-white/5 rounded-xl py-3.5 px-5 text-sm text-white focus:ring-1 focus:ring-primary outline-none" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(00) 00000-0000" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Data de Nascimento</label>

@@ -191,5 +191,32 @@ export const asaasService = {
         });
         if (error) throw error;
         return true;
+    },
+
+    /**
+     * Master Admin: Get detailed payments from Asaas across all accounts
+     */
+    async getMasterPayments(startDate?: string, endDate?: string) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('Usuário não autenticado');
+
+        let url = `${API_URL}/master-payments`;
+        if (startDate && endDate) {
+            url += `?startDate=${startDate}&endDate=${endDate}`;
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${session.access_token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Falha ao buscar faturamento Asaas');
+        }
+
+        const data = await response.json();
+        return data.data || [];
     }
 };

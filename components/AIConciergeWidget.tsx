@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AIAdvisorService, Opportunity, ChatMessage } from '../services/ai_advisor';
+import { AmadeusService, FlightSearchParams } from '../services/amadeus';
 import { getClients } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -11,6 +12,7 @@ const AIConciergeWidget: React.FC = () => {
     const [input, setInput] = useState('');
     const [hasUnread, setHasUnread] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
+    const [isSearchingFlights, setIsSearchingFlights] = useState(false);
     const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
     const [clientContext, setClientContext] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -34,7 +36,11 @@ const AIConciergeWidget: React.FC = () => {
 
             // Greeting
             setMessages([
-                { id: '1', text: 'Olá! Sou a **Altitude AI** 🏔️\nEstou conectada e pronta para ajudar.\n\nPosso analisar sua carteira, sugerir estratégias de milhas e responder qualquer dúvida sobre o mercado.', sender: 'ai' }
+                {
+                    id: '1',
+                    text: 'Olá! Sou a **Altitude AI** 🏔️\nEstou conectada e pronta para ajudar.\n\nPosso analisar sua carteira, comparar passagens com milhas e buscar **preços reais de voos** ✈️\n\nExemplo: *"Analise GRU para JFK no dia 15 de junho, 1 adulto, econômica"*',
+                    sender: 'ai'
+                }
             ]);
 
             // Load and analyze
@@ -77,10 +83,49 @@ const AIConciergeWidget: React.FC = () => {
         setMessages(prev => [...prev, { id: Date.now().toString(), text: userMsg, sender: 'user' }]);
         setIsTyping(true);
 
-        try {
-            const response = await AIAdvisorService.chat(userMsg, chatHistory, clientContext);
+        let flightContext: string | undefined;
 
-            // Update chat history for context continuity
+        try {
+            // 1. Detectar se a mensagem contém dados de voo
+            const flightParams: Partial<FlightSearchParams> | null = AmadeusService.detectFlightParams(userMsg);
+
+            if (flightParams && flightParams.origin && flightParams.destination && flightParams.departureDate) {
+                // 2. Indicar busca em andamento
+                setIsSearchingFlights(true);
+                setIsTyping(false);
+
+                const searchMsg = `🔍 **Buscando preços reais...**\n${flightParams.origin} → ${flightParams.destination} | ${flightParams.departureDate}${flightParams.returnDate ? ` → ${flightParams.returnDate}` : ''}${flightParams.adults ? ` | ${flightParams.adults} passageiro(s)` : ''} | ${flightParams.travelClass || 'ECONOMY'}`;
+                setMessages(prev => [...prev, { id: `search-${Date.now()}`, text: searchMsg, sender: 'ai' }]);
+
+                // 3. Buscar no Amadeus
+                try {
+                    const flightResult = await AmadeusService.searchFlights(flightParams as FlightSearchParams);
+                    
+                    if (!flightResult.fallback && flightResult.success && flightResult.offers.length > 0) {
+                        // Dados reais encontrados
+                        flightContext = AmadeusService.formatForAIContext(flightResult);
+                        const cheapest = flightResult.cheapest;
+                        const confirmMsg = `✅ **${flightResult.totalFound} voo(s) encontrado(s)!**\n💰 Menor preço real: **${cheapest?.priceFormatted || 'N/A'}** (${cheapest?.validatingAirline || ''})${cheapest && cheapest.segments.length > 1 ? ` — ${cheapest.segments.length - 1} escala(s)` : cheapest ? ' — direto' : ''}\n\n_Analisando com a ALTITUDE AI..._`;
+                        setMessages(prev => [...prev, { id: `found-${Date.now()}`, text: confirmMsg, sender: 'ai' }]);
+                    } else {
+                        // Fallback: Amadeus não configurado ou sem resultados
+                        const errorDetail = flightResult.error || (flightResult.totalFound === 0 ? 'Nenhum voo encontrado' : '');
+                        const fallbackMsg = `⚠️ **Nota:** Não foi possível obter preços em tempo real (${errorDetail || 'usando estimativas de mercado'}).\n_Processando análise financeira..._`;
+                        setMessages(prev => [...prev, { id: `fallback-${Date.now()}`, text: fallbackMsg, sender: 'ai' }]);
+                    }
+                } catch (searchError) {
+                    console.error('Erro na etapa de busca:', searchError);
+                    setMessages(prev => [...prev, { id: `error-search-${Date.now()}`, text: '⚠️ Erro temporário na conexão com o serviço de voos. Usando estimativas...', sender: 'ai' }]);
+                } finally {
+                    setIsSearchingFlights(false);
+                    setIsTyping(true);
+                }
+            }
+
+            // 4. Chamar IA com contexto completo (carteira + voos reais)
+            const response = await AIAdvisorService.chat(userMsg, chatHistory, clientContext, flightContext);
+
+            // 5. Atualizar histórico
             setChatHistory(prev => [
                 ...prev,
                 { role: 'user', parts: [{ text: userMsg }] },
@@ -89,23 +134,23 @@ const AIConciergeWidget: React.FC = () => {
 
             setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: response, sender: 'ai' }]);
         } catch (error) {
+            console.error('Erro no fluxo de chat:', error);
             setMessages(prev => [...prev, {
                 id: (Date.now() + 1).toString(),
-                text: '❌ Erro ao processar sua mensagem. Tente novamente.',
+                text: '❌ Desculpe, a Altitude AI encontrou uma turbulência técnica. Por favor, tente enviar sua mensagem novamente em instantes.',
                 sender: 'ai'
             }]);
         } finally {
             setIsTyping(false);
+            setIsSearchingFlights(false);
         }
     };
-
-    // Markdown format is handled directly in rendering via ReactMarkdown
 
     return (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
             {/* Chat Window */}
             {isOpen && (
-                <div className="mb-4 w-96 h-[500px] bg-slate-900 border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300 backdrop-blur-md bg-opacity-95">
+                <div className="mb-4 w-96 h-[520px] bg-slate-900 border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300 backdrop-blur-md bg-opacity-95">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-emerald-900 to-slate-900 p-4 border-b border-white/5 flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -115,13 +160,34 @@ const AIConciergeWidget: React.FC = () => {
                             <div>
                                 <h3 className="font-black text-white text-sm tracking-wider uppercase italic">Altitude AI</h3>
                                 <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-1">
-                                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Gemini · Online
+                                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    {isSearchingFlights ? '✈️ Buscando voos...' : 'Gemini · Amadeus · Online'}
                                 </p>
                             </div>
                         </div>
-                        <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">close</span>
-                        </button>
+                        <div className="flex items-center gap-1">
+                            <button 
+                                id="btn-new-chat"
+                                onClick={() => {
+                                    console.log('Resetando chat...');
+                                    setMessages([{
+                                        id: Date.now().toString(),
+                                        text: 'Olá novamente! Como posso ajudar na sua próxima estratégia de milhas? ✈️',
+                                        sender: 'ai'
+                                    }]);
+                                    setChatHistory([]);
+                                    setIsTyping(false);
+                                    setIsSearchingFlights(false);
+                                }} 
+                                title="Nova Conversa"
+                                className="text-slate-400 hover:text-emerald-400 p-1 transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-lg">refresh</span>
+                            </button>
+                            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white p-1 transition-colors">
+                                <span className="material-symbols-outlined text-lg">close</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Messages Area */}
@@ -170,15 +236,22 @@ const AIConciergeWidget: React.FC = () => {
                             </div>
                         ))}
 
-                        {/* Typing indicator */}
-                        {isTyping && (
+                        {/* Typing / Searching indicator */}
+                        {(isTyping || isSearchingFlights) && (
                             <div className="flex justify-start">
                                 <div className="bg-white/5 rounded-2xl rounded-tl-none border border-white/5 p-3 px-5">
-                                    <div className="flex gap-1.5 items-center">
-                                        <span className="size-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                        <span className="size-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                        <span className="size-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                                    </div>
+                                    {isSearchingFlights ? (
+                                        <div className="flex items-center gap-2 text-xs text-emerald-400">
+                                            <span className="material-symbols-outlined text-sm animate-spin">airplane_ticket</span>
+                                            Buscando voos reais...
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-1.5 items-center">
+                                            <span className="size-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                            <span className="size-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                            <span className="size-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -188,24 +261,29 @@ const AIConciergeWidget: React.FC = () => {
 
                     {/* Input Area */}
                     <div className="p-3 bg-black/20 border-t border-white/5">
-                        <div className="relative">
+                        <div className="relative flex items-center gap-2">
                             <input
-                                type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                placeholder="Pergunte algo à Altitude..."
-                                disabled={isTyping}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-all font-medium disabled:opacity-50"
-                            />
-                            <button
-                                onClick={handleSend}
-                                disabled={isTyping}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400 p-1.5 transition-colors disabled:opacity-50"
-                            >
-                                <span className="material-symbols-outlined text-lg">send</span>
-                            </button>
+                            id="chat-input"
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                            placeholder="Pergunte algo à Altitude..."
+                            className="flex-1 bg-white/5 border border-white/10 rounded-xl pl-4 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-all font-medium disabled:opacity-50"
+                            disabled={isTyping || isSearchingFlights}
+                        />
+                        <button
+                            id="btn-send-chat"
+                            onClick={handleSend}
+                            disabled={isTyping || isSearchingFlights || !input.trim()}
+                            className="text-slate-400 hover:text-emerald-400 p-1.5 transition-colors disabled:opacity-50"
+                        >
+                            <span className="material-symbols-outlined text-lg">send</span>
+                        </button>
                         </div>
+                        <p className="text-[9px] text-slate-600 text-center mt-1.5">
+                            ✈️ Preços reais via Amadeus · 🧠 Análise via ALTITUDE AI
+                        </p>
                     </div>
                 </div>
             )}

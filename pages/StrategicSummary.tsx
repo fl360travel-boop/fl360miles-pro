@@ -7,9 +7,23 @@ import { useAuth } from '../contexts/AuthContext';
 
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import PDFReport from '../components/PDFReport';
+import MasterPDFReport from '../components/MasterPDFReport';
 
 type CardType = 'profit' | 'miles' | 'economy' | 'audit';
 type ViewMode = 'miles' | 'agency';
+
+interface MasterPayment {
+  id: string;
+  customer: string;
+  dueDate: string;
+  value: number;
+  netValue: number;
+  status: string;
+  billingType: string;
+  paymentDate: string | null;
+  description: string;
+  agencyName: string;
+}
 
 interface MasterAgencyData {
   org_id: string;
@@ -31,9 +45,11 @@ const StrategicSummary: React.FC = () => {
 
   const [viewMode, setViewMode] = useState<ViewMode>('miles');
   const { searchQuery } = useSearch();
-  const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('month');
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [clients, setClients] = useState<Client[]>([]);
   const [masterData, setMasterData] = useState<MasterAgencyData[]>([]);
+  const [masterPayments, setMasterPayments] = useState<MasterPayment[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>('all');
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingDetail, setIsExportingDetail] = useState(false);
@@ -48,12 +64,14 @@ const StrategicSummary: React.FC = () => {
       try {
         setLoading(true);
         if (isMaster) {
-          const [clientsData, masterAgencies] = await Promise.all([
+          const [clientsData, masterAgencies, paymentsResult] = await Promise.all([
             getClients(),
-            asaasService.getMasterAdminData()
+            asaasService.getMasterAdminData(),
+            asaasService.getMasterPayments()
           ]);
           setClients(clientsData);
           setMasterData(masterAgencies as MasterAgencyData[]);
+          setMasterPayments(paymentsResult);
         } else {
           const data = await getClients();
           setClients(data);
@@ -102,18 +120,15 @@ const StrategicSummary: React.FC = () => {
           totalInvested += (h.negotiatedValue || h.economyGenerated || 0);
         }
 
-        const hDate = new Date(h.date);
-        const now = new Date();
+        const hParts = h.date.split('-');
+        const hYear = parseInt(hParts[0]);
+        const hMonth = parseInt(hParts[1]) - 1; // Convert 1-12 to 0-11
         let isInPeriod = false;
 
-        if (period === 'month') {
-          isInPeriod = hDate.getMonth() === now.getMonth() && hDate.getFullYear() === now.getFullYear();
-        } else if (period === 'quarter') {
-          const quarter = Math.floor(now.getMonth() / 3);
-          const hQuarter = Math.floor(hDate.getMonth() / 3);
-          isInPeriod = quarter === hQuarter && hDate.getFullYear() === now.getFullYear();
+        if (selectedMonth !== -1) {
+          isInPeriod = hMonth === selectedMonth && hYear === selectedYear;
         } else {
-          isInPeriod = hDate.getFullYear() === now.getFullYear();
+          isInPeriod = hYear === selectedYear;
         }
 
         if (isInPeriod) {
@@ -139,7 +154,7 @@ const StrategicSummary: React.FC = () => {
       totalValue,
       totalInvested
     };
-  }, [selectedClientId, searchFilteredClients, period]);
+  }, [selectedClientId, searchFilteredClients, selectedMonth, selectedYear]);
 
   const detailData = useMemo(() => {
     if (!activeDetail) return [];
@@ -196,7 +211,23 @@ const StrategicSummary: React.FC = () => {
       aggregatedPrograms.push({ name, balance });
     });
 
-    aggregatedPrograms.sort((a, b) => b.balance - a.balance);
+    const newClientsInPeriod = targetClients.filter(c => {
+      if (!c.startDate) return false;
+      const cParts = c.startDate.split('-');
+      const cYear = parseInt(cParts[0]);
+      const cMonth = parseInt(cParts[1]) - 1; // Convert 1-12 to 0-11
+      
+      if (selectedMonth !== -1) {
+        return cMonth === selectedMonth && cYear === selectedYear;
+      } else {
+        return cYear === selectedYear;
+      }
+    }).map(c => ({
+      name: c.name,
+      plan: c.managementLevel || 'Standard',
+      fee: c.managementFee || 0,
+      startDate: c.startDate
+    })).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 
     return {
       clientName: selectedClientName,
@@ -208,12 +239,51 @@ const StrategicSummary: React.FC = () => {
         totalInvested: stats.totalInvested,
         lastUpdate: new Date().toISOString(),
         programs: aggregatedPrograms,
-        filteredHistory: stats.allMovements
+        filteredHistory: stats.allMovements,
+        clientSubscriptions: newClientsInPeriod
       },
-      period: period.toUpperCase(),
+      period: selectedMonth === -1 ? `ANO ${selectedYear}` : `${['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'][selectedMonth]} ${selectedYear}`,
       generatedDate: new Date().toISOString()
     };
-  }, [stats, selectedClientId, clients, period, searchFilteredClients]);
+  }, [stats, selectedClientId, clients, selectedMonth, selectedYear, searchFilteredClients]);
+
+  const filteredMasterPayments = useMemo(() => {
+    return masterPayments.filter(p => {
+      // Consider received or confirmed payments
+      if (p.status !== 'RECEIVED' && p.status !== 'CONFIRMED' && p.status !== 'RECEIVED_IN_CASH') return false;
+      const pDate = new Date(p.paymentDate || p.dueDate);
+      
+      if (selectedMonth !== -1) {
+        return pDate.getMonth() === selectedMonth && pDate.getFullYear() === selectedYear;
+      } else {
+        return pDate.getFullYear() === selectedYear;
+      }
+    }).sort((a, b) => new Date(b.paymentDate || b.dueDate).getTime() - new Date(a.paymentDate || a.dueDate).getTime());
+  }, [masterPayments, selectedMonth, selectedYear]);
+
+  const masterPdfData = useMemo(() => {
+    const totalPaid = filteredMasterPayments.reduce((acc, curr) => acc + (curr.netValue || curr.value || 0), 0);
+    const activeAgencies = masterData.filter(a => a.status === 'active').length;
+    
+    return {
+      period: selectedMonth === -1 ? `ANO DE ${selectedYear}` : `${['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'][selectedMonth]} / ${selectedYear}`,
+      generatedDate: new Date().toISOString(),
+      metrics: {
+        totalPaid,
+        totalAgencies: masterData.length,
+        activeAgencies,
+        totalMovements: filteredMasterPayments.length
+      },
+      payments: filteredMasterPayments.map(p => ({
+        id: p.id,
+        date: p.paymentDate || p.dueDate,
+        agencyName: p.agencyName,
+        plan: p.description?.replace('FL360 Miles - Plano ', '') || 'SaaS',
+        amount: p.netValue || p.value || 0,
+        status: p.status
+      }))
+    };
+  }, [filteredMasterPayments, masterData, selectedMonth, selectedYear]);
 
   if (loading) {
     return (
@@ -269,16 +339,26 @@ const StrategicSummary: React.FC = () => {
             <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-primary pointer-events-none text-sm">filter_list</span>
           </div>
 
-          <div className="flex items-center gap-1 bg-bg-surface p-1 rounded-xl border border-white/10 shadow-2xl">
-            {['month', 'quarter', 'year'].map(p => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p as any)}
-                className={`px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${period === p ? 'bg-primary text-bg-dark' : 'text-slate-500 hover:text-white'}`}
-              >
-                {p === 'month' ? 'Mensal' : p === 'quarter' ? 'Tri' : 'Anual'}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 bg-bg-surface p-1.5 rounded-xl border border-white/10 shadow-2xl">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              className="bg-bg-dark border border-white/5 rounded-lg py-2 px-4 text-[9px] font-black uppercase text-white outline-none cursor-pointer"
+            >
+              <option value={-1}>Ano Todo</option>
+              {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map((m, i) => (
+                <option key={i} value={i}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="bg-bg-dark border border-white/5 rounded-lg py-2 px-4 text-[9px] font-black uppercase text-white outline-none cursor-pointer"
+            >
+              {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
           </div>
         </div>
       </header>
@@ -289,7 +369,7 @@ const StrategicSummary: React.FC = () => {
           <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-bottom-4 duration-700">
             {[
               { label: 'Total de Agências', value: masterData.length, icon: 'business', color: 'text-white' },
-              { label: 'Faturamento Total Est.', value: `R$ ${masterData.reduce((acc, curr) => acc + (curr.total_paid || 0), 0).toLocaleString('pt-BR')}`, icon: 'payments', color: 'text-emerald-400' },
+              { label: 'Faturamento Recebido (Período)', value: `R$ ${masterPdfData.metrics.totalPaid.toLocaleString('pt-BR')}`, icon: 'payments', color: 'text-emerald-400' },
               { label: 'Planos Ativos', value: masterData.filter(a => a.status === 'active').length, icon: 'check_circle', color: 'text-primary' },
               { label: 'Em Trial/Teste', value: masterData.filter(a => a.status === 'trial').length, icon: 'experiment', color: 'text-blue-400' },
             ].map((stat, i) => (
@@ -330,7 +410,9 @@ const StrategicSummary: React.FC = () => {
                       <div className="flex">
                         <span className="text-[9px] font-black text-white bg-white/5 px-3 py-1.5 rounded-lg uppercase tracking-widest border border-white/5">{agency.plan}</span>
                       </div>
-                      <span className="text-center text-sm font-black text-emerald-400 tabular-nums italic tracking-tighter">R$ {(agency.total_paid || 0).toLocaleString('pt-BR')}</span>
+                      <span className="text-center text-sm font-black text-emerald-400 tabular-nums italic tracking-tighter">
+                        R$ {filteredMasterPayments.filter(p => p.agencyName === agency.company_name).reduce((acc, curr) => acc + (curr.netValue || curr.value || 0), 0).toLocaleString('pt-BR')}
+                      </span>
                       <div className="flex justify-end">
                         <span className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${
                           agency.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
@@ -356,13 +438,20 @@ const StrategicSummary: React.FC = () => {
                 Gere o compilado mensal de todas as agências ativas para controle próprio e da agência parceira.
               </p>
             </div>
-            <button 
-              onClick={() => alert('Exportando relatório de agências...')}
-              className="bg-emerald-500 hover:bg-emerald-400 text-bg-dark px-16 py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all shadow-2xl shadow-emerald-500/30 flex items-center gap-4 active:scale-95 relative z-10 group"
-            >
-              <span className="material-symbols-outlined group-hover:scale-110 transition-transform">picture_as_pdf</span>
-              EXPORTAR RELATÓRIO AGÊNCIAS (PDF)
-            </button>
+            <div className="relative z-10 group">
+              <PDFDownloadLink
+                document={<MasterPDFReport data={masterPdfData} />}
+                fileName={`FL360_Master_Report_${selectedMonth === -1 ? selectedYear : selectedMonth + '-' + selectedYear}_${new Date().toISOString().split('T')[0]}.pdf`}
+                className="bg-emerald-500 hover:bg-emerald-400 text-bg-dark px-16 py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all shadow-2xl shadow-emerald-500/30 flex items-center gap-4 active:scale-95"
+              >
+                {({ loading }) => (
+                  <>
+                    {loading ? <span className="material-symbols-outlined animate-spin">sync</span> : <span className="material-symbols-outlined group-hover:scale-110 transition-transform">picture_as_pdf</span>}
+                    {loading ? 'PROCESSANDO...' : 'EXPORTAR RELATÓRIO AGÊNCIAS (PDF)'}
+                  </>
+                )}
+              </PDFDownloadLink>
+            </div>
           </div>
         </>
       ) : (
@@ -410,7 +499,7 @@ const StrategicSummary: React.FC = () => {
             <div className="relative z-10 group">
               <PDFDownloadLink
                 document={<PDFReport data={printData} />}
-                fileName={`Audit_Wealth_${new Date().toISOString().split('T')[0]}.pdf`}
+                fileName={`Audit_Wealth_${selectedMonth === -1 ? selectedYear : selectedMonth + '-' + selectedYear}_${new Date().toISOString().split('T')[0]}.pdf`}
                 className="bg-primary hover:bg-primary-dark text-bg-dark px-16 py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all shadow-2xl shadow-primary/30 flex items-center gap-4 active:scale-95 disabled:opacity-50"
               >
                 {({ blob, url, loading, error }) => (
@@ -477,13 +566,13 @@ const StrategicSummary: React.FC = () => {
                       activeDetail === 'economy' ? 'Auditoria de Savings' :
                         'Trilha de Auditoria'}
                 </h3>
-                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.4em] mt-3 italic border-l-2 border-primary pl-4 print:text-slate-400">Audit Period: {period.toUpperCase()}</p>
+                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.4em] mt-3 italic border-l-2 border-primary pl-4 print:text-slate-400">Audit Period: {selectedMonth === -1 ? `Ano de ${selectedYear}` : `${['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][selectedMonth]} de ${selectedYear}`}</p>
               </div>
               <div className="flex gap-4 print:hidden">
                 <div className="flex items-center">
                   <PDFDownloadLink
                     document={<PDFReport data={printData} />}
-                    fileName={`Audit_Detail_${period}_${new Date().toISOString().split('T')[0]}.pdf`}
+                    fileName={`Audit_Detail_${selectedMonth === -1 ? selectedYear : selectedMonth + '-' + selectedYear}_${new Date().toISOString().split('T')[0]}.pdf`}
                     className="size-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-bg-dark transition-all shadow-xl group"
                   >
                     {({ loading }) => (

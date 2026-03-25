@@ -5,9 +5,9 @@ import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/rendere
 Font.register({
     family: 'Inter',
     fonts: [
-        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff' }, // Regular
-        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGkyAZ9hjp-Ek-_EeA.woff', fontWeight: 700 }, // Bold
-        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuDyDAZ9hjp-Ek-_EeA.woff', fontWeight: 900 }  // Black
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyeMZhrib2Bg-4.ttf', fontWeight: 400 },
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYMZhrib2Bg-4.ttf', fontWeight: 700 },
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYMZhrib2Bg-4.ttf', fontWeight: 900 }
     ]
 });
 
@@ -151,9 +151,9 @@ interface PDFReportProps {
             totalEconomy: number;
             totalInvested: number;
             lastUpdate: string;
-
             programs: any[];
             filteredHistory: any[];
+            clientSubscriptions?: any[];
         };
         period: string;
         generatedDate: string;
@@ -161,8 +161,9 @@ interface PDFReportProps {
 }
 
 const PDFReport: React.FC<PDFReportProps> = ({ data }) => {
-    const { totalPoints, totalValue, totalEconomy, totalInvested, filteredHistory } = data.metrics;
+    const { totalPoints, totalValue, totalEconomy, totalInvested, filteredHistory, clientSubscriptions = [] } = data.metrics;
     const standardItems = filteredHistory.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const totalFees = clientSubscriptions.reduce((acc, curr) => acc + (curr.fee || 0), 0);
 
     return (
         <Document>
@@ -219,8 +220,35 @@ const PDFReport: React.FC<PDFReportProps> = ({ data }) => {
                     ))}
                 </View>
 
-                {/* TABLE */}
-                <Text style={styles.sectionTitle}>Detalhamento de Movimentações</Text>
+                {/* CLIENT SUBSCRIPTIONS / GESTÃO */}
+                {clientSubscriptions && clientSubscriptions.length > 0 && (
+                    <View wrap={false} style={{ marginBottom: 20 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+                            <Text style={styles.sectionTitle}>Novos Clientes (Faturamento Gestão - {data.period})</Text>
+                            <Text style={{ fontSize: 9, color: '#059669', fontWeight: 900 }}>Total: R$ {totalFees.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
+                        </View>
+                        <View style={styles.table}>
+                            <View style={styles.tableHeader}>
+                                <Text style={styles.colDate}>DATA ADESÃO</Text>
+                                <Text style={[styles.colProgram, { width: '45%' }]}>NOME DO CLIENTE</Text>
+                                <Text style={[styles.colType, { width: '25%' }]}>PLANO EST.</Text>
+                                <Text style={[styles.colAmount, { width: '15%' }]}>MENSALIDADE</Text>
+                            </View>
+
+                            {clientSubscriptions.map((c: any, i: number) => (
+                                <View key={`sub-${i}`} style={styles.tableRow} wrap={false}>
+                                    <Text style={[styles.colDate, styles.cellText]}>{new Date(c.startDate).toLocaleDateString('pt-BR')}</Text>
+                                    <Text style={[styles.colProgram, styles.cellBold, { width: '45%' }]}>{c.name}</Text>
+                                    <Text style={[styles.colType, styles.cellText, { width: '25%' }]}>{c.plan}</Text>
+                                    <Text style={[styles.colAmount, styles.cellBold, { color: '#059669', width: '15%' }]}>R$ {c.fee.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
+
+                {/* TABLE FOR MILES */}
+                <Text style={styles.sectionTitle}>Detalhamento de Movimentações Milihagem</Text>
                 <View style={styles.table}>
                     <View style={styles.tableHeader}>
                         <Text style={styles.colDate}>DATA</Text>

@@ -9,7 +9,7 @@ const plans = [
         name: 'Starter',
         price: 499,
         cycle: 'mês',
-        features: ['Até 20 clientes', 'Gestão completa de milhas', 'Dashboard inteligente', 'Suporte por email'],
+        features: ['Até 20 clientes', 'Gestão completa de milhas', 'Dashboard inteligente', 'Sem Acesso à IA'],
         recommended: false
     },
     {
@@ -17,7 +17,7 @@ const plans = [
         name: 'Profissional',
         price: 899,
         cycle: 'mês',
-        features: ['Até 100 clientes', 'Tudo do Starter', 'AI Concierge (Altitude AI)', 'Relatórios PDF personalizados', 'Suporte prioritário'],
+        features: ['Tudo do Starter +', 'Até 100 clientes', 'Acesso à Inteligência (IA)', 'Relatórios PDF', 'Múltiplos Usuários'],
         recommended: true
     },
     {
@@ -25,7 +25,7 @@ const plans = [
         name: 'White Label',
         price: 1999,
         cycle: 'mês',
-        features: ['Clientes ilimitados', 'Tudo do Profissional', 'Plataforma personalizada', 'Sua marca, seu domínio', 'Gerente de conta dedicado'],
+        features: ['Acesso Total Sistema +', 'Clientes ilimitados', 'White Label Total', 'API Dedicada', 'Gerente de conta'],
         recommended: false
     }
 ];
@@ -210,8 +210,10 @@ const SubscriptionPlans: React.FC = () => {
 
                         <ul className="space-y-4 mb-8 flex-1">
                             {plan.features.map((feature, idx) => (
-                                <li key={idx} className="flex items-center gap-3 text-sm text-slate-300">
-                                    <span className="material-symbols-outlined text-primary text-lg">check_circle</span>
+                                <li key={idx} className={`flex items-center gap-3 text-sm ${feature.includes('Sem Acesso') ? 'text-slate-500 opacity-60' : feature.includes('+') ? 'text-emerald-400 font-bold' : 'text-slate-300'}`}>
+                                    <span className={`material-symbols-outlined text-lg ${feature.includes('Sem Acesso') ? 'text-red-500/50' : feature.includes('+') ? 'text-emerald-400' : 'text-primary'}`}>
+                                        {feature.includes('Sem Acesso') ? 'close' : feature.includes('Tudo do Starter') ? 'add_circle' : feature.includes('Acesso Total') ? 'all_inclusive' : 'check_circle'}
+                                    </span>
                                     {feature}
                                 </li>
                             ))}

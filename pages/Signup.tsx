@@ -8,9 +8,9 @@ import { asaasService } from '../services/asaas';
 const ADMIN_EMAILS = ['fl360travel@gmail.com', 'adriano.moraesnr@gmail.com'];
 
 const plans = [
-    { id: 'starter', name: 'Starter', price: 499.00, features: ['Até 20 clientes', 'Scanner Award', 'Relatórios Padrão'] },
-    { id: 'pro', name: 'Profissional', price: 899.00, features: ['Até 100 clientes', 'AI Advisor Completo', 'Múltiplos Usuários'] },
-    { id: 'enterprise', name: 'White Label', price: 1999.00, features: ['Clientes Ilimitados', 'Sua Marca/Domínio', 'API Dedicada'] }
+    { id: 'starter', name: 'Starter', price: 499.00, features: ['Até 20 clientes', 'Scanner Award', 'Sem Acesso à IA'] },
+    { id: 'pro', name: 'Profissional', price: 899.00, features: ['Tudo do Starter +', 'Até 100 clientes', 'Acesso à Inteligência (IA)'] },
+    { id: 'enterprise', name: 'White Label', price: 1999.00, features: ['Acesso Total Sistema +', 'Clientes Ilimitados', 'White Label Total'] }
 ];
 
 const Signup: React.FC = () => {

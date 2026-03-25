@@ -70,6 +70,7 @@ export interface Client {
   public_token?: string;
   name: string;
   email: string;
+  phone?: string;
   cpf?: string;
   birthDate?: string;
   gender?: string;

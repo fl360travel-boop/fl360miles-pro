@@ -16,6 +16,7 @@ export interface DbClient {
     public_token?: string;
     name: string;
     email: string;
+    phone?: string;
     cpf?: string;
     birth_date?: string;
     gender?: string;

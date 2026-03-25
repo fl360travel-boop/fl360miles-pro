@@ -18,27 +18,142 @@ export interface ChatMessage {
     parts: [{ text: string }];
 }
 
-// Proxy seguro via Netlify Function — a chave fica apenas no servidor
 const GEMINI_PROXY_URL = '/api/gemini';
+const OPENAI_PROXY_URL = '/api/openai';
 
-const SYSTEM_PROMPT = `Você é a Altitude AI, a assistente de inteligência artificial premium e consultora de viagens e milhas da FL360 Miles.
+const SYSTEM_PROMPT = `Você é a ALTITUDE AI, especialista sênior em milhas aéreas, emissões, programas de fidelidade e otimização financeira de viagens.
 
-Seu papel principal:
-- Auxiliar o advisor (usuário) na gestão da carteira de milhas dos clientes.
-- Atuar como Consultora Especialista para criação de Orçamentos (Quotes) de passagens aéreas e venda de milhas.
-- Dar insights proativos sobre mercado, transferências bonificadas e oportunidades.
+Você atua dentro de um SaaS profissional de gestão de milhas e atende gestores, agências e consultores.
 
-Regras de Interação (MUITO IMPORTANTE):
-1. **Orçamentos e Vendas**: 
-   - Se o usuário pedir para gerar um "orçamento de voo" ou "procurar passagem", e não enviar os detalhes completos (Origem, Destino, Datas e Número de Passageiros), você **deve primeiro perguntar os dados faltantes** de forma educada e objetiva.
-   - Quando tiver os dados, forneça o Orçamento usando uma **Tabela em Markdown** (ex: colunas de Cia Aérea, Voo, Horário, Valor em Milhas, Taxas). Como é uma estimativa baseada no seu conhecimento (não temos a API ao vivo, mas você deve simular as médias de mercado de milhas atuais), deixe claro que os valores são estimativas de mercado.
-2. **Formatação Premium**:
-   - NÃO responda em texto plano contínuo.
-   - Use tabelas (\`|\`), tópicos (\`-\`) e negrito (\`**\`) obrigatoriamente para organizar as informações (preços, opções, regras).
-   - Use emojis para deixar o atendimento leve, mas mantenha o tom premium e executivo.
-3. Conhecimento: Conheça profundamente Latam Pass, Smiles, TudoAzul, TAP Miles&Go, Livelo, Esfera, etc.
-4. Responda SEMPRE em português do Brasil e baseie-se nos dados da carteira fornecidos no contexto se for aplicável.
-5. Seja incisiva, vendedora, sem rodeios. Emagreça o texto, vá direto aos números.`;
+Você NÃO é um assistente genérico.
+
+Você é um especialista real de mercado, com conhecimento prático de:
+
+* emissões nacionais e internacionais
+* estratégias de milhas
+* programas como Smiles, LATAM, Azul, Iberia, TAP, AAdvantage, Flying Blue, etc
+* comportamento de preço de passagens
+* oportunidades de emissão e valorização
+
+━━━━━━━━━━━━━━━━━━━━━━━
+🔐 REGRA DE SEGURANÇA
+
+* Analise apenas os dados fornecidos
+* Nunca misture dados entre clientes
+* Cada resposta é isolada
+
+━━━━━━━━━━━━━━━━━━━━━━━
+🧠 COMO VOCÊ PENSA
+
+Você pensa como um gestor de milhas experiente, considerando:
+
+* valor real da passagem em dinheiro
+* custo da milha (milheiro)
+* melhor uso possível da milha
+* eficiência da emissão
+* risco de perda de valor
+* comportamento do mercado
+
+Você não responde superficialmente.
+
+Você analisa, decide e orienta.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+💰 BASE DE CUSTO POR MILHEIRO
+
+Use como referência:
+
+Smiles → R$ 16,00
+LATAM → R$ 26,00
+Azul → R$ 15,50
+Iberia → R$ 57,50
+Qatar → R$ 62,50
+Finnair → R$ 66,00
+American Airlines → R$ 95,00
+TAP → R$ 42,50
+Air Canada → R$ 81,50
+
+━━━━━━━━━━━━━━━━━━━━━━━
+🧠 REGRAS REAIS DO MERCADO
+
+* Milhas NÃO devem ser usadas em passagens baratas
+* Emissões internacionais em executiva tendem a gerar maior valor
+* Smiles e Azul têm maior volatilidade e desvalorização
+* LATAM costuma ter melhor estabilidade
+* Programas internacionais costumam gerar mais valor por milha
+* Milhas paradas representam perda financeira
+* Sempre priorizar economia real em dinheiro
+
+━━━━━━━━━━━━━━━━━━━━━━━
+🧠 CÁLCULO OBRIGATÓRIO
+
+Você deve sempre calcular:
+
+* custo estimado das milhas
+* economia real
+* valor por milha
+
+E comparar com a passagem pagante.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+🔥 OPORTUNIDADE PRINCIPAL (OBRIGATÓRIO)
+
+Sempre comece destacando a melhor oportunidade.
+
+Exemplo:
+"Você pode economizar R$ X utilizando milhas neste cenário."
+
+━━━━━━━━━━━━━━━━━━━━━━━
+💬 FORMATO DE RESPOSTA
+
+🔥 OPORTUNIDADE PRINCIPAL
+Explique a melhor oportunidade em uma frase.
+
+🧠 RESUMO EXECUTIVO
+Explique de forma clara o cenário.
+
+💰 COMPARATIVO FINANCEIRO
+
+Passagem em dinheiro: R$ X
+
+Para cada programa:
+
+[Programa]
+XXX milhas
+Custo por milheiro: R$ X
+Custo estimado: R$ X
+Economia: R$ X
+Classificação: Excelente / Boa / Média / Ruim
+
+🚀 MELHOR OPÇÃO
+Indique o melhor programa e explique.
+
+🎯 RECOMENDAÇÃO FINAL
+Diga exatamente o que fazer (sem dúvida).
+
+📊 PRIORIDADE
+🔴 Alta / 🟡 Média / 🟢 Baixa
+
+━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ COMPORTAMENTO OBRIGATÓRIO
+
+* Nunca ser genérico
+* Nunca listar opções sem decidir
+* Sempre recomendar uma ação
+* Sempre falar em dinheiro
+* Sempre agir como especialista
+
+━━━━━━━━━━━━━━━━━━━━━━━
+🎯 OBJETIVO FINAL
+
+Você deve ajudar o usuário a:
+
+* economizar dinheiro
+* tomar decisão rápida
+* entender o valor das milhas
+* melhorar sua operação
+
+Você é um especialista em milhas que gera resultado real.`;
 
 export class AIAdvisorService {
 
@@ -46,109 +161,174 @@ export class AIAdvisorService {
         return Math.random().toString(36).substr(2, 9);
     }
 
-    // Chat com Gemini API
-    static async chat(userMessage: string, history: ChatMessage[], clientContext?: string): Promise<string> {
+    /**
+     * Chat com suporte a multi-provedor e fallback automático
+     * @param flightContext - Dados reais de voos do Amadeus (opcional)
+     */
+    static async chat(
+        userMessage: string,
+        history: ChatMessage[],
+        clientContext?: string,
+        flightContext?: string
+    ): Promise<string> {
+        // Tentar Gemini primeiro (mais custo-eficiente)
+        try {
+            const result = await this.callGemini(userMessage, history, clientContext, flightContext);
+            if (result) return result;
+        } catch (e) {
+            console.warn('Gemini falhou, tentando OpenAI...', e);
+        }
+
+        // Fallback para OpenAI
+        try {
+            return await this.callOpenAI(userMessage, history, clientContext, flightContext);
+        } catch (e) {
+            console.error('Ambos os provedores de IA falharam:', e);
+            return '❌ Ocorreu um erro temporário em todos os nossos sistemas de IA. Por favor, tente novamente em alguns instantes.';
+        }
+    }
+
+    private static async callGemini(
+        userMessage: string,
+        history: ChatMessage[],
+        clientContext?: string,
+        flightContext?: string
+    ): Promise<string> {
+        let contextText = SYSTEM_PROMPT;
+        if (clientContext) {
+            contextText += `\n\nDados atuais da carteira do advisor:\n${clientContext}`;
+        }
+        if (flightContext) {
+            contextText += `\n\n${flightContext}`;
+        }
+
+        const contents = [
+            { role: 'user', parts: [{ text: contextText }] },
+            { role: 'model', parts: [{ text: 'Entendido! Sou a Altitude AI, pronta para ajudar. Como posso ajudar?' }] },
+            ...history,
+            { role: 'user', parts: [{ text: userMessage }] }
+        ];
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
 
         try {
-            // Build context with system prompt and client data
-            let contextText = SYSTEM_PROMPT;
-            if (clientContext) {
-                contextText += `\n\nDados atuais da carteira do advisor:\n${clientContext}`;
-            }
-
-            const contents = [
-                // System context as first user message
-                { role: 'user', parts: [{ text: contextText }] },
-                { role: 'model', parts: [{ text: 'Entendido! Sou a Altitude AI, pronta para ajudar com a gestão de milhas. Como posso ajudar?' }] },
-                // Chat history
-                ...history,
-                // Current user message
-                { role: 'user', parts: [{ text: userMessage }] }
-            ];
-
             const response = await fetch(GEMINI_PROXY_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents,
-                    generationConfig: {
-                        temperature: 0.7,
-                        topP: 0.95,
-                        topK: 40,
-                        maxOutputTokens: 1024,
-                    }
-                })
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+                }),
+                signal: controller.signal
             });
 
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                console.error('Gemini API error:', error);
-                if (response.status === 429) {
-                    // Auto-retry after 3 seconds for rate limit
-                    await new Promise(r => setTimeout(r, 3000));
-                    const retryResponse = await fetch(GEMINI_PROXY_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents,
-                            generationConfig: {
-                                temperature: 0.7,
-                                topP: 0.95,
-                                topK: 40,
-                                maxOutputTokens: 1024,
-                            }
-                        })
-                    });
-                    if (retryResponse.ok) {
-                        const retryData = await retryResponse.json();
-                        return retryData?.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui gerar uma resposta.';
-                    }
-                    return '⏳ O serviço está ocupado no momento. Tente novamente em 30 segundos.';
-                }
-                return '❌ Erro ao se comunicar com a IA. Tente novamente em instantes.';
-            }
+            clearTimeout(timeoutId);
+            if (!response.ok) throw new Error(`Gemini Error: ${response.status}`);
 
             const data = await response.json();
-            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            return text || 'Desculpe, não consegui gerar uma resposta no momento.';
-
-        } catch (error) {
-            console.error('AI Chat error:', error);
-            return '❌ Erro de conexão com a IA. Verifique sua internet e tente novamente.';
+            return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        } catch (error: any) {
+            clearTimeout(timeoutId);
+            throw error;
         }
     }
 
-    // Gerar insight estratégico real usando Gemini
-    static async getStrategicInsight(clientContext?: string): Promise<string> {
+    private static async callOpenAI(
+        userMessage: string,
+        history: ChatMessage[],
+        clientContext?: string,
+        flightContext?: string
+    ): Promise<string> {
+        let contextText = SYSTEM_PROMPT;
+        if (clientContext) {
+            contextText += `\n\nDados atuais da carteira do advisor:\n${clientContext}`;
+        }
+        if (flightContext) {
+            contextText += `\n\n${flightContext}`;
+        }
+
+        const messages = [
+            { role: 'system', content: contextText },
+            ...history.map(h => ({
+                role: h.role === 'model' ? 'assistant' : 'user',
+                content: h.parts[0].text
+            })),
+            { role: 'user', content: userMessage }
+        ];
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
 
         try {
-            let prompt = `${SYSTEM_PROMPT}\n\nGere UM insight curto e útil (máximo 2 frases) sobre o mercado de milhas aéreas brasileiro hoje. Seja específico e prático. Não use listas, apenas texto corrido.`;
-            if (clientContext) {
-                prompt += `\n\nContexto da carteira:\n${clientContext}`;
-                prompt += `\n\nBaseie o insight nos dados acima se possível.`;
-            }
+            const response = await fetch(OPENAI_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages,
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+                }),
+                signal: controller.signal
+            });
 
+            clearTimeout(timeoutId);
+            if (!response.ok) throw new Error(`OpenAI Error: ${response.status}`);
+
+            const data = await response.json();
+            return data?.choices?.[0]?.message?.content || '';
+        } catch (error: any) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
+    }
+
+    // Gerar insight estratégico com fallback
+    static async getStrategicInsight(clientContext?: string): Promise<string> {
+        const prompt = `Gere UM insight curto e útil (máximo 2 frases) sobre o mercado de milhas aéreas brasileiro hoje. Seja específico e prático.`;
+        
+        try {
+            // Tentar Gemini
             const response = await fetch(GEMINI_PROXY_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        temperature: 0.9,
-                        maxOutputTokens: 256,
-                    }
+                    contents: [{ role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\n${prompt}` }] }],
+                    generationConfig: { temperature: 0.9, maxOutputTokens: 256 }
                 })
             });
+            if (response.ok) {
+                const data = await response.json();
+                return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Mercado de milhas em movimento.';
+            }
+        } catch (e) {
+            console.warn('Insight Gemini falhou, tentando OpenAI...');
+        }
 
-            if (!response.ok) throw new Error('API Error');
-            const data = await response.json();
-            return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Mercado de milhas em movimento. Fique atento às oportunidades.';
-        } catch {
+        try {
+            // Fallback OpenAI
+            const response = await fetch(OPENAI_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [
+                        { role: 'system', content: SYSTEM_PROMPT },
+                        { role: 'user', content: prompt }
+                    ],
+                    generationConfig: { temperature: 0.9, maxOutputTokens: 256 }
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                return data?.choices?.[0]?.message?.content || 'Mercado de milhas em movimento.';
+            }
+        } catch (e) {
             return '📊 Mercado de milhas em movimento. Conecte a IA para insights em tempo real.';
         }
+
+        return '📊 Mercado de milhas em movimento.';
     }
 
-    // Análise local de portfólio (não precisa de API - roda no browser)
+    // Análise local de portfólio (mantida igual)
     static analyzePortfolio(clients: Client[]): Opportunity[] {
         const opportunities: Opportunity[] = [];
         const today = new Date();
@@ -215,7 +395,6 @@ export class AIAdvisorService {
         });
     }
 
-    // Gerar resumo de clientes para contexto da IA
     static buildClientContext(clients: Client[]): string {
         if (!clients.length) return 'Nenhum cliente cadastrado ainda.';
 

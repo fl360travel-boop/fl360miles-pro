@@ -5,6 +5,7 @@ export interface Client {
     public_token?: string;
     name: string;
     email: string;
+    phone?: string;
     cpf?: string;
     birthDate?: string;
     gender?: string;
@@ -50,6 +51,7 @@ function dbToClient(db: DbClient, programs: any[], cards: any[], movements: any[
         public_token: db.public_token,
         name: db.name,
         email: db.email,
+        phone: db.phone,
         cpf: db.cpf,
         birthDate: db.birth_date,
         gender: db.gender,
@@ -165,6 +167,7 @@ export async function createClient(clientData: Omit<Client, 'id'>): Promise<Clie
         .insert({
             name: clientData.name,
             email: clientData.email,
+            phone: clientData.phone,
             cpf: clientData.cpf,
             birth_date: clientData.birthDate,
             gender: clientData.gender,
@@ -254,6 +257,7 @@ export async function updateClient(id: string, clientData: Partial<Client>): Pro
 
     if (clientData.name !== undefined) updateData.name = clientData.name;
     if (clientData.email !== undefined) updateData.email = clientData.email;
+    if (clientData.phone !== undefined) updateData.phone = clientData.phone;
     if (clientData.cpf !== undefined) updateData.cpf = clientData.cpf;
     if (clientData.birthDate !== undefined) updateData.birth_date = clientData.birthDate;
     if (clientData.gender !== undefined) updateData.gender = clientData.gender;

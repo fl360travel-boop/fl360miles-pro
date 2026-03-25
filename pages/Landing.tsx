@@ -576,6 +576,7 @@ const Landing: React.FC = () => {
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Até 20 Clientes</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Scanner Award</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Relatórios Padrão</li>
+                                    <li className="flex items-center gap-3 text-sm text-slate-500 opacity-60"><span className="material-symbols-outlined text-red-500/50 text-sm">close</span>Sem Acesso à IA</li>
                                 </ul>
                                 <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl bg-white/5 text-white hover:bg-white/10 font-bold uppercase text-xs transition-all">Começar Agora</button>
                             </div>
@@ -597,8 +598,9 @@ const Landing: React.FC = () => {
                                     Recuperação média: 1 a 2 clientes ativos
                                 </p>
                                 <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
+                                    <li className="flex items-center gap-3 text-sm text-emerald-400 font-bold"><span className="material-symbols-outlined text-emerald-400 text-sm">add_circle</span>Tudo do Starter +</li>
                                     <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Até 100 Clientes</li>
-                                    <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>AI Advisor Completo</li>
+                                    <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Acesso à Inteligência (IA)</li>
                                     <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Múltiplos Usuários</li>
                                 </ul>
                                 <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl bg-primary text-bg-dark font-bold uppercase text-xs hover:bg-white transition-all shadow-lg shadow-primary/20">Acessar Sistema</button>
@@ -617,6 +619,7 @@ const Landing: React.FC = () => {
                                     <span className="text-sm text-slate-400">/mês</span>
                                 </div>
                                 <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
+                                    <li className="flex items-center gap-3 text-sm text-emerald-400 font-bold"><span className="material-symbols-outlined text-emerald-400 text-sm">all_inclusive</span>Acesso Total Sistema +</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Clientes Ilimitados</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>White Label Total</li>
                                     <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>API Dedicada</li>
