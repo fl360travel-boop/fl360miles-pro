@@ -3,10 +3,11 @@
 // Usa fallback entre modelos para maximizar quota diária
 
 const MODELS = [
+    'gemini-2.5-flash-lite',
+    'gemini-1.5-flash-8b',
     'gemini-2.0-flash',
     'gemini-2.5-flash',
     'gemini-flash-latest',
-    'gemini-1.5-flash-8b',
 ];
 
 async function callGemini(apiKey: string, model: string, contents: any, generationConfig: any, system_instruction?: any) {
