@@ -48,13 +48,6 @@ export default async (request: Request) => {
     try {
         const body = await request.json();
         const { contents, generationConfig, system_instruction } = body;
-        
-        console.log('Gemini Proxy Request received:', { 
-            hasContents: !!contents, 
-            contentLength: contents?.length,
-            hasSystemInstruction: !!system_instruction,
-            systemInstructionLength: system_instruction?.parts?.[0]?.text?.length 
-        });
 
         // Tentar cada modelo até um funcionar
         for (const model of MODELS) {
