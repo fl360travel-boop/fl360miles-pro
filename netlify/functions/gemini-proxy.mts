@@ -9,13 +9,13 @@ const MODELS = [
     'gemini-1.5-flash-8b',
 ];
 
-async function callGemini(apiKey: string, model: string, contents: any, generationConfig: any) {
+async function callGemini(apiKey: string, model: string, contents: any, generationConfig: any, system_instruction?: any) {
     const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
         {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents, generationConfig })
+            body: JSON.stringify({ contents, generationConfig, system_instruction })
         }
     );
     return response;
@@ -46,12 +46,12 @@ export default async (request: Request) => {
 
     try {
         const body = await request.json();
-        const { contents, generationConfig } = body;
+        const { contents, generationConfig, system_instruction } = body;
 
         // Tentar cada modelo até um funcionar
         for (const model of MODELS) {
             try {
-                const response = await callGemini(GEMINI_API_KEY, model, contents, generationConfig);
+                const response = await callGemini(GEMINI_API_KEY, model, contents, generationConfig, system_instruction);
 
                 if (response.ok) {
                     const data = await response.json();

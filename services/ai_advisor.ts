@@ -150,17 +150,15 @@ export class AIAdvisorService {
         clientContext?: string,
         flightContext?: string
     ): Promise<string> {
-        let contextText = SYSTEM_PROMPT;
+        let fullSystemPrompt = SYSTEM_PROMPT;
         if (clientContext) {
-            contextText += `\n\nDados atuais da carteira do advisor:\n${clientContext}`;
+            fullSystemPrompt += `\n\n[CONTEXTO DO CLIENTE]:\n${clientContext}`;
         }
         if (flightContext) {
-            contextText += `\n\n${flightContext}`;
+            fullSystemPrompt += `\n\n[DADOS REAIS DE VOOS AMADEUS]:\n${flightContext}`;
         }
 
         const contents = [
-            { role: 'user', parts: [{ text: contextText }] },
-            { role: 'model', parts: [{ text: 'Entendido! Sou a Altitude AI, pronta para ajudar. Como posso ajudar?' }] },
             ...history,
             { role: 'user', parts: [{ text: userMessage }] }
         ];
@@ -174,7 +172,10 @@ export class AIAdvisorService {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents,
-                    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+                    system_instruction: {
+                        parts: [{ text: fullSystemPrompt }]
+                    },
+                    generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
                 }),
                 signal: controller.signal
             });
@@ -196,16 +197,16 @@ export class AIAdvisorService {
         clientContext?: string,
         flightContext?: string
     ): Promise<string> {
-        let contextText = SYSTEM_PROMPT;
+        let fullSystemPrompt = SYSTEM_PROMPT;
         if (clientContext) {
-            contextText += `\n\nDados atuais da carteira do advisor:\n${clientContext}`;
+            fullSystemPrompt += `\n\n[CONTEXTO DO CLIENTE]:\n${clientContext}`;
         }
         if (flightContext) {
-            contextText += `\n\n${flightContext}`;
+            fullSystemPrompt += `\n\n[DADOS REAIS DE VOOS AMADEUS]:\n${flightContext}`;
         }
 
         const messages = [
-            { role: 'system', content: contextText },
+            { role: 'system', content: fullSystemPrompt },
             ...history.map(h => ({
                 role: h.role === 'model' ? 'assistant' : 'user',
                 content: h.parts[0].text
@@ -248,7 +249,10 @@ export class AIAdvisorService {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\n${prompt}` }] }],
+                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                    system_instruction: {
+                        parts: [{ text: SYSTEM_PROMPT }]
+                    },
                     generationConfig: { temperature: 0.9, maxOutputTokens: 256 }
                 })
             });
