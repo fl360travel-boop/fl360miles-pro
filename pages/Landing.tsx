@@ -145,20 +145,20 @@ const Landing: React.FC = () => {
 
                 <div className="max-w-5xl mx-auto text-center relative z-10">
                     <RevealOnScroll delay={100}>
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-500/20 bg-red-500/5 mb-10">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/5 mb-10">
                             <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                             </span>
-                            <span className="text-[11px] font-bold text-red-400 uppercase tracking-widest">Atenção: sua operação está vazando dinheiro</span>
+                            <span className="text-[11px] font-bold text-primary uppercase tracking-widest">Gestores de elite já estão usando</span>
                         </div>
                     </RevealOnScroll>
 
                     <RevealOnScroll delay={300}>
                         <h1 className="text-[2.5rem] md:text-[3.5rem] lg:text-[4.2rem] font-black text-white mb-8 leading-[1.08] tracking-tight">
-                            Você está perdendo dinheiro<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">todos os dias</span> na sua<br />
-                            operação de milhas
+                            Sua operação de milhas merece<br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#D4AF37]">tecnologia de elite</span> — não<br />
+                            planilhas e improviso
                         </h1>
                     </RevealOnScroll>
 
@@ -279,8 +279,8 @@ const Landing: React.FC = () => {
                             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
                             <span className="material-symbols-outlined text-red-400/50 text-6xl mb-6 block">warning</span>
                             <h2 className="text-2xl md:text-4xl font-black text-white mb-6 leading-tight">
-                                Enquanto você não resolve isso,<br />
-                                sua operação <span className="text-red-400">continua vazando dinheiro.</span>
+                                Quem não profissionaliza agora,<br />
+                                perde espaço para quem <span className="text-primary">já escalou.</span>
                             </h2>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
                                 {[
