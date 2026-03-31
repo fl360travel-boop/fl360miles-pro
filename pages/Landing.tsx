@@ -489,7 +489,7 @@ const Landing: React.FC = () => {
                                 {/* Benefits */}
                                 <ul className="space-y-3 relative z-10">
                                     {[
-                                        { icon: "compare_arrows", label: "Comparação entre programas de milhas" },
+                                        { icon: "flight_search", label: "Pesquisas de voos otimizadas" },
                                         { icon: "analytics", label: "Análise inteligente de oportunidades" },
                                         { icon: "rocket_launch", label: "Emissão mais rápida e eficiente" },
                                         { icon: "trending_up", label: "Aumento real do seu faturamento" },
