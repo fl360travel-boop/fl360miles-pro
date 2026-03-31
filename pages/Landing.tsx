@@ -106,8 +106,8 @@ const Landing: React.FC = () => {
             <nav className="fixed top-[40px] left-0 right-0 z-50 bg-[#060911]/90 backdrop-blur-2xl border-b border-white/[0.04]">
                 <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-                        <div className="h-9 w-9 rounded-lg overflow-hidden shrink-0 border border-white/5 shadow-lg">
-                            <img src="/login-logo.png" alt="FL360 MILES" className="h-full w-full object-cover" />
+                        <div className="h-9 w-9 rounded-lg overflow-hidden shrink-0 border border-white/10 bg-white/5 shadow-lg flex items-center justify-center p-0.5">
+                            <img src="/login-logo.png" alt="FL360 MILES" className="h-full w-full object-contain" />
                         </div>
                         <span className="text-sm font-bold text-white/80 tracking-wider hidden md:block">FL360<span className="text-primary">MILES</span></span>
                     </div>
