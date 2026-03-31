@@ -106,6 +106,37 @@ export default async (request: Request) => {
       html = getPaymentSuccessHtml(props.userName, props.planName);
     } else if (template === 'credentials') {
       html = getCredentialsHtml(props.userName, props.userEmail, props.tempPassword, props.loginUrl);
+    } else if (template === 'lead_demo') {
+      const { nome, whatsapp, email: leadEmail, agencia, dificuldade } = props;
+      html = `
+<div style="font-family: sans-serif; background-color: #0A0A0B; padding: 40px 20px;">
+  <div style="max-width: 560px; margin: 0 auto; background-color: #111113; border: 1px solid rgba(226,190,106,0.3); border-radius: 12px; overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #E2BE6A, #D4AF37); padding: 24px 32px;">
+      <p style="color: #060911; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 4px 0;">🎯 NOVO LEAD — DEMONSTRAÇÃO</p>
+      <h1 style="color: #060911; font-size: 22px; font-weight: 900; margin: 0;">FL360 Miles</h1>
+    </div>
+    <div style="padding: 32px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr><td style="color: #71717A; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; padding: 8px 0 2px 0; border-bottom: 1px solid #27272A;">Nome</td></tr>
+        <tr><td style="color: #FFFFFF; font-size: 16px; font-weight: 700; padding: 6px 0 14px 0; border-bottom: 1px solid #1a1a1e;">${nome}</td></tr>
+        <tr><td style="color: #71717A; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; padding: 14px 0 2px 0;">WhatsApp</td></tr>
+        <tr><td style="color: #10B981; font-size: 18px; font-weight: 800; padding: 6px 0 14px 0; border-bottom: 1px solid #1a1a1e;">${whatsapp}</td></tr>
+        <tr><td style="color: #71717A; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; padding: 14px 0 2px 0;">E-mail</td></tr>
+        <tr><td style="color: #FFFFFF; font-size: 15px; padding: 6px 0 14px 0; border-bottom: 1px solid #1a1a1e;">${leadEmail}</td></tr>
+        <tr><td style="color: #71717A; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; padding: 14px 0 2px 0;">Empresa / Agência</td></tr>
+        <tr><td style="color: #FFFFFF; font-size: 15px; padding: 6px 0 14px 0; border-bottom: 1px solid #1a1a1e;">${agencia}</td></tr>
+        <tr><td style="color: #71717A; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; padding: 14px 0 2px 0;">Principal Dificuldade</td></tr>
+        <tr><td style="color: #F59E0B; font-size: 15px; font-weight: 600; padding: 6px 0 0 0;">${dificuldade}</td></tr>
+      </table>
+      <div style="margin-top: 28px; text-align: center;">
+        <a href="https://wa.me/5511911988279?text=Ol%C3%A1+${encodeURIComponent(nome)}%2C+vi+seu+interesse+no+FL360+Miles!" style="display:inline-block; background: linear-gradient(135deg, #E2BE6A, #D4AF37); color: #060911; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 2px;">Responder via WhatsApp</a>
+      </div>
+    </div>
+    <div style="padding: 16px 32px; border-top: 1px solid #27272A; text-align: center;">
+      <p style="color: #52525B; font-size: 11px; margin: 0;">Lead recebido em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} — FL360 Miles CRM</p>
+    </div>
+  </div>
+</div>`;
     } else {
       return new Response(JSON.stringify({ error: 'Template not found' }), { status: 400, headers });
     }

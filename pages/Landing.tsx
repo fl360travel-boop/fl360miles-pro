@@ -25,12 +25,36 @@ const Landing: React.FC = () => {
     });
     const [demoEnviada, setDemoEnviada] = useState(false);
 
-    const handleDemoSubmit = (e: React.FormEvent) => {
+    const handleDemoSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // 1. Send email notification automatically to fl360travel@gmail.com
+        try {
+            await fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: 'fl360travel@gmail.com',
+                    subject: `🎯 Novo Lead: ${demoForm.nome} — ${demoForm.agencia}`,
+                    template: 'lead_demo',
+                    props: {
+                        nome: demoForm.nome,
+                        whatsapp: demoForm.whatsapp,
+                        email: demoForm.email,
+                        agencia: demoForm.agencia,
+                        dificuldade: demoForm.dificuldade
+                    }
+                })
+            });
+        } catch (err) {
+            console.warn('Email send failed, continuing with WhatsApp fallback', err);
+        }
+
+        // 2. Also open WhatsApp as fallback (visitor sends message directly)
         const texto = `Olá, me chamo ${demoForm.nome} da empresa ${demoForm.agencia}. Gostaria de agendar uma demonstração do FL360 Miles. Minha principal dor hoje é: ${demoForm.dificuldade}. Email: ${demoForm.email}`;
-        const wppNum = "5511911988279";
-        const url = `https://wa.me/${wppNum}?text=${encodeURIComponent(texto)}`;
+        const url = `https://wa.me/5511911988279?text=${encodeURIComponent(texto)}`;
         window.open(url, '_blank');
+
         setDemoEnviada(true);
     };
 
