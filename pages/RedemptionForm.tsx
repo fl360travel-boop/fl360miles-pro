@@ -70,10 +70,10 @@ const RedemptionForm: React.FC = () => {
         description: `Emissão VIP: ${airline || 'Cia Aérea'}`,
         airline: airline,
         ticketValue: Number(ticketValue),
-        economyGenerated: economy,
+        economyGenerated: Math.max(0, economy),
         passengers: Number(passengers),
         flightClass: flightClass,
-        observation: `Resgate de ${milesUsed} mi via ${program}. Economia: R$ ${economy.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${economyPercentage.toFixed(1)}%). ${Number(passengers)} Pax • ${flightClass}.`
+        observation: `Resgate de ${milesUsed} mi via ${program}. Economia: R$ ${Math.max(0, economy).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${Math.max(0, economyPercentage).toFixed(1)}%). ${Number(passengers)} Pax • ${flightClass}.`
       };
 
       const updatedPrograms = [...client.programs];

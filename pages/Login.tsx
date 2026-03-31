@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { useBranding } from '../contexts/BrandingContext';
+import { DemoBanner } from '../components/DemoBanner';
 
 interface LoginProps {
   onLogin: () => void;
@@ -88,8 +89,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[500] bg-bg-dark flex items-center justify-center p-6 overflow-hidden">
-      {/* Background Image */}
+    <>
+      <DemoBanner />
+      <div className="fixed top-[40px] left-0 right-0 bottom-0 z-[500] bg-bg-dark flex items-center justify-center p-6 overflow-hidden">
+        {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url(/login-bg.png)' }}
@@ -250,6 +253,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </p>
       </div>
     </div>
+    </>
   );
 };
 

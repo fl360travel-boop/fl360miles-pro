@@ -5,6 +5,7 @@
 const MODELS = [
     'gpt-4o-mini',
     'gpt-3.5-turbo',
+    'gpt-4o'
 ];
 
 async function callOpenAI(apiKey: string, model: string, messages: any[], generationConfig: any) {
@@ -53,6 +54,9 @@ export default async (request: Request) => {
             return new Response(JSON.stringify({ error: 'messages array is required' }), { status: 400, headers });
         }
 
+        let lastErrorDetails = null;
+        let lastErrorStatus = 500;
+
         // Tentar cada modelo até um funcionar
         for (const model of MODELS) {
             try {
@@ -63,23 +67,32 @@ export default async (request: Request) => {
                     return new Response(JSON.stringify(data), { status: 200, headers });
                 }
 
-                // Se não for rate limit, retornar o erro
-                if (response.status !== 429) {
-                    const data = await response.json();
-                    return new Response(JSON.stringify({ error: 'OpenAI API error', details: data }), { status: response.status, headers });
+                // Ler o erro
+                let data = {};
+                try { data = await response.json(); } catch(e) { data = { text: await response.text() }; }
+                
+                lastErrorDetails = data;
+                lastErrorStatus = response.status;
+                console.warn(`[Proxy OpenAI] Model ${model} failed with status ${response.status}`, data);
+
+                // Se o erro for do payload (ex: 400 Bad Request), não adianta tentar outro modelo
+                if (response.status === 400) {
+                    return new Response(JSON.stringify({ error: 'OpenAI API Bad Request', details: data }), { status: 400, headers });
                 }
 
-                // Se for 429, tentar o próximo modelo
-                console.log(`Model ${model} rate limited, trying next...`);
-            } catch (e) {
-                console.log(`Model ${model} failed, trying next...`);
+                await new Promise(r => setTimeout(r, 600));
+            } catch (e: any) {
+                console.warn(`[Proxy OpenAI] Network error on model ${model}:`, e?.message);
+                lastErrorDetails = { message: e?.message };
+                await new Promise(r => setTimeout(r, 600));
             }
         }
 
         // Todos os modelos falharam
-        return new Response(JSON.stringify({ error: 'All OpenAI models rate limited. Please try again.' }), { status: 429, headers });
-    } catch (error) {
-        return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
+        console.error('[Proxy OpenAI] All models exhausted. Last error:', lastErrorDetails);
+        return new Response(JSON.stringify({ error: 'All OpenAI models exhausted.', details: lastErrorDetails }), { status: lastErrorStatus, headers });
+    } catch (error: any) {
+        return new Response(JSON.stringify({ error: 'Internal proxy error', details: error?.message }), { status: 500, headers });
     }
 };
 

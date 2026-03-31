@@ -21,55 +21,53 @@ export interface ChatMessage {
 const GEMINI_PROXY_URL = '/api/gemini';
 const OPENAI_PROXY_URL = '/api/openai';
 
-const SYSTEM_PROMPT = `Você é um especialista sênior em gestão de milhas aéreas e emissão estratégica da FL360 Travel. MODO ESPECIALISTA ATIVO: Você não apenas responde, você melhora a decisão do cliente.
+// ── Configuração de Resiliência ──
+const MAX_RETRIES = 3;
+const BASE_TIMEOUT_MS = 25000;  // 25s (aumentado de 15s)
+const RETRY_DELAY_BASE_MS = 1500; // 1.5s → 3s → 4.5s
+
+const SYSTEM_PROMPT = `Você é um ESPECIALISTA DE ELITE em milhas aéreas, consultor profissional de emissão e gestor de mercado da FL360 Travel. MODO ESPECIALISTA RIGOROSO ATIVO.
+Sua missão é auxiliar clientes e gestores em tempo real com orçamentos, emissões e estratégias de economia, transmitindo segurança, clareza, precisão e autoridade. Você NÃO é um assistente genérico.
 
 ━━━━━━━━━━━━━━━━━━━━━━━
-🔥 MISSÃO:
-Transformar qualquer dado em análise inteligente, economia clara e recomendação direta. Você é um consultor estratégico, não um assistente de busca.
+1. REGRA ZERO (CRÍTICA E INEGOCIÁVEL):
+- NUNCA invente dados, rotas inexistentes, valores irreais ou disponibilidade de assentos.
+- NUNCA assuma disponibilidade garantida sem alertar que é uma estimativa sujeita a validação.
+- NUNCA dê respostas vagas, genéricas, suposições sem base ou recomendações sem lógica.
+- EVITE "talvez" ou "depende". Se não tiver certeza absoluta de um valor, informe CLARAMENTE que é uma estimativa e sugira validação antes da emissão.
 
 ━━━━━━━━━━━━━━━━━━━━━━━
-✈️ EXTRAÇÃO E LEITURA:
-Interprete textos, prints ou dados soltos. Identifique: Origem/Destino, Data, Companhia e Valor Cia. Se faltar algo, assuma o cenário mais provável e sinalize.
+2. FOCO ESTRATÉGICO:
+- Priorize SEMPRE a economia real para o cliente ("Qual é a melhor forma desse cliente economizar e viajar melhor?").
+- Sugira a melhor emissão possível e apresente raciocínio claro.
+- Compare diretamente as opções (milhas vs dinheiro).
+- Considere o tempo real: variação de disponibilidade, mudança de preços e necessidade de agir rápido.
 
 ━━━━━━━━━━━━━━━━━━━━━━━
-💰 CÁLCULO E OTIMIZAÇÃO:
-- Calcule Economia R$ e Economia %.
-- ANALISE SEMPRE: Existe rota melhor? Aeroporto alternativo? Horário mais barato?
-- Sugira pelo menos 1 alternativa mais inteligente (ou afirme se a atual for a melhor).
+3. CONHECIMENTO APLICADO E INTELIGÊNCIA:
+Aja demonstrando domínio profundo sobre:
+- Programas de milhas (Smiles, LATAM Pass, TudoAzul, etc.) e emissões nacionais/internacionais.
+- Parceiros globais (Star Alliance, SkyTeam, OneWorld).
+- Táticas avançadas: Stopover, otimização de conexões, fuga de sobretaxas, regras de tarifação, classes de cabines.
+- Custos de referência FL360 (para cálculo): Smiles ~R$16 | LATAM ~R$26 | Azul ~R$15,5 | TAP ~R$42,5 | Iberia ~R$57,5 | AAdvantage ~R$95.
+- Regra de ouro: Milhas em executiva internacional = maior ROI. Sempre busque maximizar o valor dos pontos.
 
 ━━━━━━━━━━━━━━━━━━━━━━━
-📊 FORMATO DE RESPOSTA (ESTRUTURA OBRIGATÓRIA):
+4. FORMATO DE RESPOSTA OBRIGATÓRIO:
+Para qualquer solicitação de pesquisa, orçamento ou análise, você DEVE estruturar a sua resposta exatamente neste formato estruturado:
 
-✈️ Trecho: [Origem] -> [Destino]
-📅 Data: [Data]
-🕒 Horário: [Horário]
-⏱️ Duração: [Conexões]
-
-💰 Valor companhia aérea: R$ [Valor]
-💳 Valor estratégia FL360: R$ [Custo total]
-💸 Economia gerada: R$ [Valor]
-📉 Economia percentual: [X]%
-
-🚀 Análise estratégica:
-(Explique a economia via Smiles, LATAM, Inter, etc. Use: "Neste cenário, a estratégia mais eficiente é...")
-
-🔥 Oportunidade / Alternativa:
-(Sugira 1 rota/opção melhor. Use: "O melhor caminho, considerando custo e disponibilidade, é...")
-
-⚠️ Observação estratégica:
-(Ex: "Tarifa instável", "Disponibilidade muda rápido", "O erro mais comum aqui seria...")
-
-📌 Recomendação direta:
-(Vale emitir agora / Vale aguardar / Melhor pagar em dinheiro / Melhor usar milhas)
+1. Melhor opção sugerida: [Detalhe a emissão, programa, rota, cia aérea e valor estimado]
+2. Alternativa (se houver): [Detalhe uma 2ª opção, ex: via conexão ou outro programa]
+3. Economia estimada: [X% ou R$ Y em relação ao custo em dinheiro vivo]
+4. Estratégia utilizada: [Ex: uso de tabela fixa com parceiro internacional, técnica adotada]
+5. Observações importantes: [Avisos de disponibilidade, taxas extras, variação de preços, urgência de compra]
 
 ━━━━━━━━━━━━━━━━━━━━━━━
-🧠 INTELIGÊNCIA DE EMISSÃO (REFERÊNCIA):
-Smiles: 16 | LATAM: 26 | Azul: 15,5 | TAP: 42,5 | Iberia: 57,5 | AAdvantage: 95.
-Regras: Milhas em executiva internacional = maior ROI. Sempre busque maximizar o valor.
-
-━━━━━━━━━━━━━━━━━━━━━━━
-🔐 SEGURANÇA:
-Analise apenas dados contextuais fornecidos. Respostas isoladas por sessão.`;
+5. LINGUAGEM E TOM:
+- Tom profissional, claro e objetivo.
+- Sem jargões técnicos desnecessários para o cliente.
+- Sem informalidade excessiva.
+- Focado na tomada de decisão imediata e segura.`;
 
 export class AIAdvisorService {
 
@@ -78,8 +76,35 @@ export class AIAdvisorService {
     }
 
     /**
-     * Chat com suporte a multi-provedor e fallback automático
-     * @param flightContext - Dados reais de voos do Amadeus (opcional)
+     * Delay helper for retry backoff
+     */
+    private static delay(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    /**
+     * Single fetch with timeout — reusable helper
+     */
+    private static async fetchWithTimeout(
+        url: string,
+        options: RequestInit,
+        timeoutMs: number = BASE_TIMEOUT_MS
+    ): Promise<Response> {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const response = await fetch(url, { ...options, signal: controller.signal });
+            clearTimeout(timeoutId);
+            return response;
+        } catch (error: any) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
+    }
+
+    /**
+     * Chat com suporte a multi-provedor, fallback automático e retry com backoff
+     * NUNCA retorna mensagem de erro fatal — sempre tenta degradar graciosamente
      */
     static async chat(
         userMessage: string,
@@ -87,21 +112,95 @@ export class AIAdvisorService {
         clientContext?: string,
         flightContext?: string
     ): Promise<string> {
-        // Tentar Gemini primeiro (mais custo-eficiente)
-        try {
-            const result = await this.callGemini(userMessage, history, clientContext, flightContext);
-            if (result) return result;
-        } catch (e) {
-            console.warn('Gemini falhou, tentando OpenAI...', e);
+        const errors: string[] = [];
+
+        // ── Tentativa 1: Gemini (com retries) ──
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const result = await this.callGemini(userMessage, history, clientContext, flightContext);
+                if (result) return result;
+            } catch (e: any) {
+                const errorMsg = e?.message || 'unknown';
+                errors.push(`Gemini attempt ${attempt}: ${errorMsg}`);
+                console.warn(`[Altitude AI] Gemini tentativa ${attempt}/${MAX_RETRIES} falhou: ${errorMsg}`);
+
+                // Se for timeout ou rate limit, esperar antes de tentar novamente
+                if (attempt < MAX_RETRIES) {
+                    const delayMs = RETRY_DELAY_BASE_MS * attempt;
+                    console.log(`[Altitude AI] Aguardando ${delayMs}ms antes de tentar novamente...`);
+                    await this.delay(delayMs);
+                }
+            }
         }
 
-        // Fallback para OpenAI
-        try {
-            return await this.callOpenAI(userMessage, history, clientContext, flightContext);
-        } catch (e) {
-            console.error('Ambos os provedores de IA falharam:', e);
-            return '❌ Ocorreu um erro temporário em todos os nossos sistemas de IA. Por favor, tente novamente em alguns instantes.';
+        // ── Tentativa 2: OpenAI fallback (com retries) ──
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const result = await this.callOpenAI(userMessage, history, clientContext, flightContext);
+                if (result) return result;
+            } catch (e: any) {
+                const errorMsg = e?.message || 'unknown';
+                errors.push(`OpenAI attempt ${attempt}: ${errorMsg}`);
+                console.warn(`[Altitude AI] OpenAI tentativa ${attempt}/${MAX_RETRIES} falhou: ${errorMsg}`);
+
+                if (attempt < MAX_RETRIES) {
+                    const delayMs = RETRY_DELAY_BASE_MS * attempt;
+                    await this.delay(delayMs);
+                }
+            }
         }
+
+        // ── Degradação graciosa — NUNCA mostrar erro genérico ──
+        console.error('[Altitude AI] Todas as tentativas falharam:', errors);
+
+        // Retornar resposta contextual de fallback em vez de erro
+        return this.buildGracefulFallback(userMessage, clientContext);
+    }
+
+    /**
+     * Gera uma resposta de fallback inteligente quando a IA está indisponível
+     * Ao invés de mostrar erro, dá orientação útil ao usuário
+     */
+    private static buildGracefulFallback(userMessage: string, clientContext?: string): string {
+        const lowerMsg = userMessage.toLowerCase();
+
+        // Detectar tipo de pergunta para dar resposta contextual
+        if (lowerMsg.includes('voo') || lowerMsg.includes('passagem') || lowerMsg.includes('gru') || lowerMsg.includes('emiss')) {
+            return `⚠️ **Conexão instável — modo offline temporário**
+
+Não consegui acessar os dados em tempo real para esta análise, mas aqui está minha orientação rápida:
+
+📌 **Para emissões com milhas**, lembre-se:
+- Smiles: ~R$16/1000 milhas (melhor custo nacional)
+- LATAM: ~R$26/1000 milhas
+- Azul: ~R$15,50/1000 milhas
+
+💡 **Dica:** Compare o valor da passagem normal com a quantidade de milhas × custo/1000 para ver se vale emitir por milhas ou comprar direto.
+
+🔄 _Envie sua pergunta novamente em alguns instantes para análise completa com dados reais._`;
+        }
+
+        if (lowerMsg.includes('client') || lowerMsg.includes('carteira') || lowerMsg.includes('portf')) {
+            return `⚠️ **Conexão instável — modo offline temporário**
+
+Não consegui processar a análise completa da sua carteira agora, mas aqui estão ações rápidas:
+
+📌 **Checklist de gestão de carteira:**
+1. Verifique milhas próximas ao vencimento (urgência alta)
+2. Identifique clientes com saldo alto e sem movimentação (oportunidade)
+3. Avalie emissões estratégicas para clientes de aniversário
+
+🔄 _Envie sua pergunta novamente em alguns instantes para análise detalhada com IA._`;
+        }
+
+        // Fallback genérico — mas NUNCA dizendo "erro na IA"
+        return `⚠️ **Conexão instável — modo offline temporário**
+
+Estou com dificuldade de conexão agora, mas continuo aqui para ajudar.
+
+📌 _Tente enviar sua pergunta novamente em alguns instantes._ A análise completa será processada assim que a conexão estabilizar.
+
+💡 Enquanto isso, você pode consultar seus clientes e movimentações diretamente no painel.`;
     }
 
     private static async callGemini(
@@ -123,32 +222,22 @@ export class AIAdvisorService {
             { role: 'user', parts: [{ text: userMessage }] }
         ];
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+        const response = await this.fetchWithTimeout(GEMINI_PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents,
+                system_instruction: {
+                    parts: [{ text: fullSystemPrompt }]
+                },
+                generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+            })
+        });
 
-        try {
-            const response = await fetch(GEMINI_PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents,
-                    system_instruction: {
-                        parts: [{ text: fullSystemPrompt }]
-                    },
-                    generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
-                }),
-                signal: controller.signal
-            });
+        if (!response.ok) throw new Error(`Gemini HTTP ${response.status}`);
 
-            clearTimeout(timeoutId);
-            if (!response.ok) throw new Error(`Gemini Error: ${response.status}`);
-
-            const data = await response.json();
-            return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        } catch (error: any) {
-            clearTimeout(timeoutId);
-            throw error;
-        }
+        const data = await response.json();
+        return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     }
 
     private static async callOpenAI(
@@ -174,81 +263,80 @@ export class AIAdvisorService {
             { role: 'user', content: userMessage }
         ];
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+        const response = await this.fetchWithTimeout(OPENAI_PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messages,
+                generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+            })
+        });
 
-        try {
-            const response = await fetch(OPENAI_PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages,
-                    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
-                }),
-                signal: controller.signal
-            });
+        if (!response.ok) throw new Error(`OpenAI HTTP ${response.status}`);
 
-            clearTimeout(timeoutId);
-            if (!response.ok) throw new Error(`OpenAI Error: ${response.status}`);
-
-            const data = await response.json();
-            return data?.choices?.[0]?.message?.content || '';
-        } catch (error: any) {
-            clearTimeout(timeoutId);
-            throw error;
-        }
+        const data = await response.json();
+        return data?.choices?.[0]?.message?.content || '';
     }
 
-    // Gerar insight estratégico com fallback
+    // Gerar insight estratégico com fallback e retries
     static async getStrategicInsight(clientContext?: string): Promise<string> {
         const prompt = `Gere UM insight curto e útil (máximo 2 frases) sobre o mercado de milhas aéreas brasileiro hoje. Seja específico e prático.`;
-        
-        try {
-            // Tentar Gemini
-            const response = await fetch(GEMINI_PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                    system_instruction: {
-                        parts: [{ text: SYSTEM_PROMPT }]
-                    },
-                    generationConfig: { temperature: 0.9, maxOutputTokens: 256 }
-                })
-            });
-            if (response.ok) {
-                const data = await response.json();
-                return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Mercado de milhas em movimento.';
+        const fallback = '📊 Mercado de milhas em movimento. Monitore vencimentos e oportunidades de emissão.';
+
+        // Tentar Gemini com retries
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            try {
+                const response = await this.fetchWithTimeout(GEMINI_PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                        system_instruction: {
+                            parts: [{ text: SYSTEM_PROMPT }]
+                        },
+                        generationConfig: { temperature: 0.9, maxOutputTokens: 256 }
+                    })
+                }, 15000);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data?.candidates?.[0]?.content?.parts?.[0]?.text || fallback;
+                }
+            } catch (e) {
+                console.warn(`[Altitude AI] Insight Gemini tentativa ${attempt} falhou`);
+                if (attempt < 2) await this.delay(1000);
             }
-        } catch (e) {
-            console.warn('Insight Gemini falhou, tentando OpenAI...');
         }
 
-        try {
-            // Fallback OpenAI
-            const response = await fetch(OPENAI_PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [
-                        { role: 'system', content: SYSTEM_PROMPT },
-                        { role: 'user', content: prompt }
-                    ],
-                    generationConfig: { temperature: 0.9, maxOutputTokens: 256 }
-                })
-            });
-            if (response.ok) {
-                const data = await response.json();
-                return data?.choices?.[0]?.message?.content || 'Mercado de milhas em movimento.';
+        // Fallback OpenAI com retries
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            try {
+                const response = await this.fetchWithTimeout(OPENAI_PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: 'system', content: SYSTEM_PROMPT },
+                            { role: 'user', content: prompt }
+                        ],
+                        generationConfig: { temperature: 0.9, maxOutputTokens: 256 }
+                    })
+                }, 15000);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data?.choices?.[0]?.message?.content || fallback;
+                }
+            } catch (e) {
+                console.warn(`[Altitude AI] Insight OpenAI tentativa ${attempt} falhou`);
+                if (attempt < 2) await this.delay(1000);
             }
-        } catch (e) {
-            return '📊 Mercado de milhas em movimento. Conecte a IA para insights em tempo real.';
         }
 
-        return '📊 Mercado de milhas em movimento.';
+        return fallback;
     }
 
-    // Análise local de portfólio (mantida igual)
+    // Análise local de portfólio (sem dependência de API)
     static analyzePortfolio(clients: Client[]): Opportunity[] {
         const opportunities: Opportunity[] = [];
         const today = new Date();

@@ -328,7 +328,7 @@ const Clients: React.FC = () => {
         description: newMove.desc || `${newMove.type} de milhas`,
         observation: newMove.obs,
         negotiatedValue: ['Venda', 'Compra', 'Inclusão'].includes(newMove.type) ? Number(newMove.val) : undefined,
-        economyGenerated: ['Inclusão', 'Resgate', 'Transferência'].includes(newMove.type) ? Number(newMove.val) : undefined,
+        economyGenerated: ['Inclusão', 'Resgate', 'Transferência'].includes(newMove.type) ? Math.max(0, Number(newMove.val)) : undefined,
         expirationDate: newMove.expirationDate || undefined,
       } as any;
       const factor = ['Venda', 'Resgate'].includes(m.type) ? -1 : 1;
@@ -444,7 +444,7 @@ const Clients: React.FC = () => {
           ? `${newMove.obs || 'Resgate Manual'}. ${newMove.passengers} Pax • ${newMove.flightClass}.`
           : newMove.obs,
         negotiatedValue: ['Venda', 'Compra', 'Inclusão'].includes(newMove.type) ? Number(newMove.val) : undefined,
-        economyGenerated: ['Inclusão', 'Resgate', 'Transferência'].includes(newMove.type) ? Number(newMove.val) : undefined,
+        economyGenerated: ['Inclusão', 'Resgate', 'Transferência'].includes(newMove.type) ? Math.max(0, Number(newMove.val)) : undefined,
         passengers: newMove.type === 'Resgate' ? Number(newMove.passengers) : undefined,
         flightClass: newMove.type === 'Resgate' ? newMove.flightClass : undefined,
         ticketValue: newMove.type === 'Resgate' ? Number(newMove.ticketVal) : undefined,
@@ -549,7 +549,7 @@ const Clients: React.FC = () => {
       .filter(h => h.type === 'Compra')
       .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
-    const lifetimeSaving = lifetimeHistory.reduce((acc, h) => {
+    const lifetimeSaving = Math.max(0, lifetimeHistory.reduce((acc, h) => {
       // Inclusão = milhas do próprio cliente, não conta no financeiro
       if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc;
       let profit = Number(h.profit || 0);
@@ -557,8 +557,10 @@ const Clients: React.FC = () => {
         const estimatedCpm = Number(h.cpm || 15.00);
         profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
       }
-      return acc + Number(h.economyGenerated || 0) + profit;
-    }, 0);
+      // Venda: usar apenas profit para evitar contagem dupla (alguns registros têm economyGenerated E profit)
+      if (h.type === 'Venda') return acc + profit;
+      return acc + Math.max(0, Number(h.economyGenerated || 0)) + profit;
+    }, 0));
 
     const lifetimeRoi = lifetimeHistory
       .filter(h => h.type === 'Venda')
@@ -600,15 +602,16 @@ const Clients: React.FC = () => {
         .filter(h => h.type === 'Venda')
         .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
-      saving = fHistory.reduce((acc, h) => {
+      saving = Math.max(0, fHistory.reduce((acc, h) => {
         if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc;
         let profit = Number(h.profit || 0);
         if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
           const estimatedCpm = Number(h.cpm || 15.00);
           profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
         }
-        return acc + Number(h.economyGenerated || 0) + profit;
-      }, 0);
+        if (h.type === 'Venda') return acc + profit;
+        return acc + Math.max(0, Number(h.economyGenerated || 0)) + profit;
+      }, 0));
 
     } else {
       let months = 1;
@@ -625,15 +628,16 @@ const Clients: React.FC = () => {
         .filter(h => h.type === 'Venda')
         .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
-      saving = fHistory.reduce((acc, h) => {
+      saving = Math.max(0, fHistory.reduce((acc, h) => {
         if (h.type === 'Inclusão' || h.type === 'Inclusao') return acc;
         let profit = Number(h.profit || 0);
         if (!profit && h.type === 'Venda' && h.negotiatedValue && h.amount) {
           const estimatedCpm = Number(h.cpm || 15.00);
           profit = Number(h.negotiatedValue) - ((Number(h.amount) / 1000) * estimatedCpm);
         }
-        return acc + Number(h.economyGenerated || 0) + profit;
-      }, 0);
+        if (h.type === 'Venda') return acc + profit;
+        return acc + Math.max(0, Number(h.economyGenerated || 0)) + profit;
+      }, 0));
     }
 
     // 3. PERIOD INVESTED (Dependent on fHistory)
@@ -842,7 +846,7 @@ const Clients: React.FC = () => {
             .filter(h => h.type === 'Compra')
             .reduce((acc, h) => acc + (h.negotiatedValue || 0), 0);
 
-          const totalEconomy = client.history.reduce((acc, h) => {
+          const totalEconomy = Math.max(0, client.history.reduce((acc, h) => {
             // Inclusão = milhas do próprio cliente, não conta no financeiro
             if (h.type === 'Inclusão') return acc;
             // Fallback Logic: If profit is missing but it's a Sale, calculate it
@@ -851,8 +855,10 @@ const Clients: React.FC = () => {
               const estimatedCpm = h.cpm || 15.00; // Legacy Fallback
               profit = h.negotiatedValue - ((h.amount / 1000) * estimatedCpm);
             }
-            return acc + (h.economyGenerated || 0) + profit;
-          }, 0);
+            // Venda: usar apenas profit para evitar contagem dupla
+            if (h.type === 'Venda') return acc + profit;
+            return acc + Math.max(0, (h.economyGenerated || 0)) + profit;
+          }, 0));
 
           let evolutionPercent = 0;
           if (totalInvested && totalInvested > 0) {

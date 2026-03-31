@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { asaasService } from '../services/asaas';
+import { DemoBanner } from '../components/DemoBanner';
 
 const ADMIN_EMAILS = ['fl360travel@gmail.com', 'adriano.moraesnr@gmail.com'];
 
@@ -211,8 +212,10 @@ const Signup: React.FC = () => {
     };
 
     return (
-        <div className="fixed inset-0 z-[500] bg-bg-dark flex items-center justify-center p-6 overflow-y-auto">
-            {/* Background */}
+        <>
+            <DemoBanner />
+            <div className="fixed top-[40px] left-0 right-0 bottom-0 z-[500] bg-bg-dark flex items-center justify-center p-6 overflow-y-auto">
+                {/* Background */}
             <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/login-bg.png)' }} />
             <div className="absolute inset-0 bg-gradient-to-br from-bg-dark/95 via-bg-dark/80 to-bg-dark/95" />
             <div className="absolute top-0 right-0 size-[800px] bg-primary/10 rounded-full -mr-96 -mt-96 blur-[150px]" />
@@ -462,6 +465,7 @@ const Signup: React.FC = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

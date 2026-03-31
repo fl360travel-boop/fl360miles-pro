@@ -13,6 +13,7 @@ const AIConciergeWidget: React.FC = () => {
     const [hasUnread, setHasUnread] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isSearchingFlights, setIsSearchingFlights] = useState(false);
+    const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
     const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
     const [clientContext, setClientContext] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -82,6 +83,7 @@ const AIConciergeWidget: React.FC = () => {
         setInput('');
         setMessages(prev => [...prev, { id: Date.now().toString(), text: userMsg, sender: 'user' }]);
         setIsTyping(true);
+        setLastFailedMessage(null);
 
         let flightContext: string | undefined;
 
@@ -132,12 +134,19 @@ const AIConciergeWidget: React.FC = () => {
                 { role: 'model', parts: [{ text: response }] }
             ]);
 
+            // Detectar se a resposta é um fallback offline
+            const isOfflineResponse = response.includes('modo offline temporário');
+            if (isOfflineResponse) {
+                setLastFailedMessage(userMsg);
+            }
+
             setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: response, sender: 'ai' }]);
         } catch (error) {
             console.error('Erro no fluxo de chat:', error);
+            setLastFailedMessage(userMsg);
             setMessages(prev => [...prev, {
                 id: (Date.now() + 1).toString(),
-                text: '❌ Desculpe, a Altitude AI encontrou uma turbulência técnica. Por favor, tente enviar sua mensagem novamente em instantes.',
+                text: '⚠️ Conexão instável — tente novamente em instantes. Use o botão abaixo para repetir a última pergunta.',
                 sender: 'ai'
             }]);
         } finally {
@@ -235,6 +244,27 @@ const AIConciergeWidget: React.FC = () => {
                                 </div>
                             </div>
                         ))}
+
+                        {/* Retry Button */}
+                        {lastFailedMessage && !isTyping && !isSearchingFlights && (
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={() => {
+                                        const msg = lastFailedMessage;
+                                        setLastFailedMessage(null);
+                                        setInput(msg);
+                                        setTimeout(() => {
+                                            const btn = document.getElementById('btn-send-chat');
+                                            if (btn) btn.click();
+                                        }, 100);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider hover:bg-emerald-500/20 transition-all"
+                                >
+                                    <span className="material-symbols-outlined text-sm">refresh</span>
+                                    Tentar novamente
+                                </button>
+                            </div>
+                        )}
 
                         {/* Typing / Searching indicator */}
                         {(isTyping || isSearchingFlights) && (

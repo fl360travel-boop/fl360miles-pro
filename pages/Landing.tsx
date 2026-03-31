@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { DemoBanner } from '../components/DemoBanner';
 import { BrandLogo } from '../components/BrandAssets';
 import { useSEO } from '../hooks/useSEO';
 import { RevealOnScroll } from '../components/RevealOnScroll';
@@ -8,117 +9,191 @@ import { RevealOnScroll } from '../components/RevealOnScroll';
 import { useAuth } from '../contexts/AuthContext';
 
 const Landing: React.FC = () => {
-    useSEO('Gestão de Milhas para Agências', 'O Sistema Operacional que transforma milhas em margem de lucro real.');
+    useSEO('Gestão de Milhas para Agências | FL360 Miles', 'Pare de perder dinheiro com planilhas. Automatize sua operação de milhas, controle clientes e escale seu faturamento com o sistema usado por gestores de elite.');
     const navigate = useNavigate();
+    const location = useLocation();
     const { session } = useAuth();
     const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-    // Tension Calculator State
-    const [clients, setClients] = useState(10);
-    const [lostOpportunity, setLostOpportunity] = useState(1500); // Perda média por cliente
-    const [totalLoss, setTotalLoss] = useState(0);
+    // Form Demo
+    const [demoForm, setDemoForm] = useState({
+        nome: '',
+        whatsapp: '',
+        email: '',
+        agencia: '',
+        dificuldade: ''
+    });
+    const [demoEnviada, setDemoEnviada] = useState(false);
+
+    const handleDemoSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const texto = `Olá, me chamo ${demoForm.nome} da empresa ${demoForm.agencia}. Gostaria de agendar uma demonstração do FL360 Miles. Minha principal dor hoje é: ${demoForm.dificuldade}. Email: ${demoForm.email}`;
+        const wppNum = "5511911988279";
+        const url = `https://wa.me/${wppNum}?text=${encodeURIComponent(texto)}`;
+        window.open(url, '_blank');
+        setDemoEnviada(true);
+    };
 
     useEffect(() => {
-        setTotalLoss(clients * lostOpportunity);
-    }, [clients, lostOpportunity]);
+        if (location.hash === '#demo') {
+            setTimeout(() => {
+                document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    }, [location]);
 
-    const toggleFaq = (index: number) => {
-        setOpenFaq(openFaq === index ? null : index);
-    };
+    // Loss Calculator
+    const [clients, setClients] = useState(15);
+    const [avgLossPerClient] = useState(800);
+    const [totalLoss, setTotalLoss] = useState(0);
+    const [countUp, setCountUp] = useState(0);
+
+    useEffect(() => {
+        setTotalLoss(clients * avgLossPerClient);
+    }, [clients, avgLossPerClient]);
+
+    // Animated counter for hero stats
+    useEffect(() => {
+        const target = 216;
+        const duration = 2000;
+        const step = target / (duration / 16);
+        let current = 0;
+        const timer = setInterval(() => {
+            current += step;
+            if (current >= target) {
+                setCountUp(target);
+                clearInterval(timer);
+            } else {
+                setCountUp(Math.floor(current));
+            }
+        }, 16);
+        return () => clearInterval(timer);
+    }, []);
 
     const scrollToSection = (id: string) => {
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     };
 
     return (
-        <div className="min-h-screen bg-bg-dark text-white selection:bg-primary selection:text-bg-dark overflow-x-hidden font-sans">
-            {/* Navbar Minimalista */}
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-dark/80 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3 opacity-90 hover:opacity-100 transition-opacity cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-                        <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0 border border-white/5">
+        <div className="min-h-screen bg-[#060911] text-white selection:bg-primary selection:text-bg-dark overflow-x-hidden font-sans">
+
+            {/* ─── NAVBAR ──────────────────────────────────────────── */}
+            <DemoBanner />
+            <nav className="fixed top-[40px] left-0 right-0 z-50 bg-[#060911]/90 backdrop-blur-2xl border-b border-white/[0.04]">
+                <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
+                        <div className="h-9 w-9 rounded-lg overflow-hidden shrink-0 border border-white/5 shadow-lg">
                             <img src="/login-logo.png" alt="FL360 MILES" className="h-full w-full object-cover" />
                         </div>
+                        <span className="text-sm font-bold text-white/80 tracking-wider hidden md:block">FL360<span className="text-primary">MILES</span></span>
                     </div>
 
                     <div className="hidden md:flex items-center gap-8">
-                        <button onClick={() => scrollToSection('levels')} className="text-xs font-medium text-slate-400 hover:text-white transition-colors uppercase tracking-widest">Níveis</button>
-                        <button onClick={() => scrollToSection('calculator')} className="text-xs font-medium text-slate-400 hover:text-white transition-colors uppercase tracking-widest">Custo da Não-Gestão</button>
-                        <button onClick={() => scrollToSection('os')} className="text-xs font-medium text-slate-400 hover:text-white transition-colors uppercase tracking-widest">Sistema</button>
+                        <button onClick={() => scrollToSection('dor')} className="text-[11px] font-semibold text-slate-500 hover:text-white transition-colors uppercase tracking-widest">O Problema</button>
+                        <button onClick={() => scrollToSection('solucao')} className="text-[11px] font-semibold text-slate-500 hover:text-white transition-colors uppercase tracking-widest">Solução</button>
+                        <button onClick={() => scrollToSection('demo')} className="text-[11px] font-semibold text-slate-500 hover:text-white transition-colors uppercase tracking-widest">Demonstração</button>
                     </div>
 
-                    <button
-                        onClick={() => session ? navigate('/dashboard') : navigate('/login')}
-                        className="bg-primary/10 text-primary border border-primary/20 text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-lg hover:bg-primary hover:text-bg-dark transition-all"
-                    >
-                        {session ? 'Dashboard' : 'Login'}
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => session ? navigate('/') : navigate('/login')}
+                            className="text-[11px] font-bold text-slate-400 hover:text-white transition-colors uppercase tracking-widest hidden md:block"
+                        >
+                            {session ? 'Dashboard' : 'Login'}
+                        </button>
+                        <button
+                            onClick={() => scrollToSection('demo')}
+                            className="bg-primary text-[#060911] text-[11px] font-black uppercase tracking-widest px-6 py-2.5 rounded-lg hover:bg-white transition-all shadow-[0_0_20px_rgba(226,190,106,0.15)]"
+                        >
+                            Agendar Agora
+                        </button>
+                    </div>
                 </div>
             </nav>
 
-            {/* 1. HERO - QUEBRA DE PADRÃO (Minimalista & Tensão) */}
-            <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/5 via-bg-dark to-bg-dark opacity-40"></div>
+            {/* ─── HERO — DOR + DINHEIRO + ESCALA ──────────────────── */}
+            <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden pt-20">
+                {/* Background Effects */}
+                <div className="absolute inset-0">
+                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/[0.04] rounded-full blur-[120px]"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+                </div>
 
-                <div className="max-w-4xl mx-auto text-center relative z-10 pt-20">
-                    <RevealOnScroll delay={200}>
-                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-sans font-black text-white mb-10 leading-[1.1] tracking-tight">
-                            Enquanto você vende passagens, <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-200">alguém está vendendo margem.</span>
+                <div className="max-w-5xl mx-auto text-center relative z-10">
+                    <RevealOnScroll delay={100}>
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-500/20 bg-red-500/5 mb-10">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </span>
+                            <span className="text-[11px] font-bold text-red-400 uppercase tracking-widest">Atenção: sua operação está vazando dinheiro</span>
+                        </div>
+                    </RevealOnScroll>
+
+                    <RevealOnScroll delay={300}>
+                        <h1 className="text-[2.5rem] md:text-[3.5rem] lg:text-[4.2rem] font-black text-white mb-8 leading-[1.08] tracking-tight">
+                            Você está perdendo dinheiro<br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">todos os dias</span> na sua<br />
+                            operação de milhas
                         </h1>
                     </RevealOnScroll>
 
                     <RevealOnScroll delay={500}>
-                        <p className="text-xl md:text-2xl text-slate-400 mb-16 font-light leading-relaxed max-w-3xl mx-auto flex flex-col items-center justify-center text-center">
-                            <span>O mercado de milhas não é tendência.</span>
-                            <span className="text-white font-medium mt-1">É reposicionamento estratégico.</span>
+                        <p className="text-lg md:text-xl text-slate-400 mb-12 font-normal leading-relaxed max-w-2xl mx-auto">
+                            Automatize atendimento, organize clientes e aumente seu lucro<br className="hidden md:block" />
+                            <span className="text-white font-semibold"> sem depender de planilhas e WhatsApp.</span>
                         </p>
                     </RevealOnScroll>
 
-                    <RevealOnScroll delay={800}>
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+                    <RevealOnScroll delay={700}>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
                             <button
-                                onClick={() => scrollToSection('pricing')}
-                                className="group relative inline-flex items-center gap-4 px-8 py-4 bg-primary text-bg-dark rounded-full text-xs font-bold uppercase tracking-[0.2em] hover:bg-white transition-all duration-300 shadow-[0_0_30px_rgba(226,190,106,0.3)] hover:shadow-[0_0_40px_rgba(255,255,255,0.4)]"
+                                onClick={() => scrollToSection('demo')}
+                                className="group relative inline-flex items-center gap-3 px-10 py-5 bg-primary text-[#060911] rounded-xl text-sm font-black uppercase tracking-widest hover:bg-white transition-all duration-300 shadow-[0_0_40px_rgba(226,190,106,0.25)] hover:shadow-[0_0_60px_rgba(255,255,255,0.3)] hover:scale-[1.02]"
                             >
-                                <span className="relative z-10">Ver Planos e Preços</span>
-                                <span className="material-symbols-outlined text-bg-dark group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                Solicitar demonstração
+                                <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
                             </button>
                             <button
-                                onClick={() => scrollToSection('calculator')}
-                                className="group relative inline-flex items-center gap-4 px-8 py-4 bg-transparent border border-white/20 text-white rounded-full text-xs font-bold uppercase tracking-[0.2em] hover:border-primary/50 hover:bg-primary/5 transition-all duration-500 overflow-hidden"
+                                onClick={() => scrollToSection('dor')}
+                                className="inline-flex items-center gap-3 px-8 py-5 text-slate-400 hover:text-white text-sm font-semibold transition-colors"
                             >
-                                <span className="relative z-10">Entender o Impacto</span>
-                                <span className="material-symbols-outlined text-primary group-hover:translate-y-1 transition-transform">arrow_downward</span>
+                                Ver como funciona
+                                <span className="material-symbols-outlined text-sm animate-bounce">arrow_downward</span>
                             </button>
                         </div>
                     </RevealOnScroll>
-                    <RevealOnScroll delay={1000}>
-                        <div className="mt-20 max-w-7xl mx-auto px-6 flex flex-col items-center">
-                            <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 text-center bg-primary/10 text-primary px-4 py-2 rounded-full font-bold border border-primary/20">Integrado e otimizado para os maiores players</p>
-                            <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-40 grayscale hover:grayscale-0 transition-all duration-700 w-full max-w-4xl mx-auto">
-                                {['livelo', 'latam', 'smiles', 'azul', 'esfera'].map((brand, i) => (
-                                    <BrandLogo key={brand} name={brand} className="h-6 md:h-8 w-auto text-white transition-transform hover:scale-110" />
-                                ))}
+
+                    {/* Social Proof Metrics */}
+                    <RevealOnScroll delay={900}>
+                        <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto pt-8 border-t border-white/5">
+                            <div className="text-center">
+                                <p className="text-2xl md:text-3xl font-black text-white">{countUp}M+</p>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mt-1">Milhas Gerenciadas</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-2xl md:text-3xl font-black text-emerald-400">+47%</p>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mt-1">Aumento Médio Lucro</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-2xl md:text-3xl font-black text-primary">3x</p>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mt-1">Mais Eficiência</p>
                             </div>
                         </div>
                     </RevealOnScroll>
                 </div>
             </section>
 
-            {/* Mockup do Sistema (Plataforma Tátil) */}
-            <section className="relative z-20 pt-12 pb-32 px-6">
+            {/* ─── MOCKUP DO SISTEMA ──────────────────────────────── */}
+            <section className="relative z-20 pb-24 px-6 -mt-8">
                 <div className="max-w-6xl mx-auto">
                     <RevealOnScroll delay={300}>
-                        <div className="rounded-2xl border border-white/10 bg-bg-card/90 backdrop-blur-xl p-2 md:p-4 shadow-2xl shadow-primary/5 relative group overflow-hidden">
-                            {/* Reflexo na borda superior */}
-                            <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-xl z-20"></div>
-                            
-                            <div className="w-full bg-[#0B0F19] rounded-xl border border-white/5 relative overflow-hidden flex items-center justify-center">
-                                {/* Imagem Real do Sistema (Dashboard) */}
-                                <img 
-                                    src="/dashboard-real.png" 
-                                    alt="Painel de Controle FL360 MOCKUP" 
+                        <div className="rounded-2xl border border-white/[0.06] bg-[#0B0F19]/90 backdrop-blur-xl p-1.5 md:p-3 shadow-[0_20px_80px_-20px_rgba(226,190,106,0.08)] relative group overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none rounded-t-xl z-20"></div>
+                            <div className="w-full bg-[#0B0F19] rounded-xl border border-white/[0.04] relative overflow-hidden">
+                                <img
+                                    src="/dashboard-real.png"
+                                    alt="Painel FL360 Miles — Sistema de Gestão de Milhas"
                                     className="w-full h-auto object-contain relative z-10"
                                 />
                             </div>
@@ -127,565 +202,504 @@ const Landing: React.FC = () => {
                 </div>
             </section>
 
-            {/* 2. MOVIMENTO DE CONSCIÊNCIA (3 NÍVEIS) */}
-            <section id="levels" className="py-32 px-6 bg-bg-surface relative border-t border-white/5">
-                <div className="max-w-7xl mx-auto">
-                    <RevealOnScroll width="100%">
-                        <div className="w-full flex flex-col items-center justify-center text-center mb-24">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Evolução do Mercado</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white text-center">Qual jogo você está jogando?</h2>
+            {/* ─── BLOCO DE DOR REAL ──────────────────────────────── */}
+            <section id="dor" className="py-28 px-6 relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#060911] via-red-950/[0.04] to-[#060911]"></div>
+                <div className="max-w-5xl mx-auto relative z-10">
+                    <RevealOnScroll>
+                        <div className="text-center mb-16">
+                            <span className="text-red-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-4 block">Isso é sobre você</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">
+                                Se <span className="text-red-400">alguma</span> dessas frases<br />te incomoda — preste atenção.
+                            </h2>
                         </div>
                     </RevealOnScroll>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                        {/* Nível 1 */}
-                        <RevealOnScroll delay={200} direction="up">
-                            <div className="group h-full p-10 rounded-3xl bg-bg-card border border-white/5 hover:border-white/10 transition-all duration-500 opacity-60 hover:opacity-100 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-100 transition-opacity">
-                                    <span className="text-6xl font-black text-slate-700">01</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                        {[
+                            { pain: "Você perde clientes porque demora para responder", icon: "schedule" },
+                            { pain: "Você esquece follow-up e oportunidades passam", icon: "notification_important" },
+                            { pain: "Você calcula emissão manualmente e já errou", icon: "calculate" },
+                            { pain: "Você não sabe quanto lucra por cliente", icon: "money_off" },
+                            { pain: "Sua operação depende de você o tempo todo", icon: "person_off" },
+                            { pain: "Você está travado e não consegue escalar", icon: "block" },
+                        ].map((item, i) => (
+                            <RevealOnScroll key={i} delay={i * 80}>
+                                <div className="flex items-center gap-5 p-5 rounded-2xl bg-white/[0.02] border border-red-500/10 hover:border-red-500/30 transition-all duration-300 group cursor-default">
+                                    <div className="w-11 h-11 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 group-hover:bg-red-500/20 transition-colors">
+                                        <span className="material-symbols-outlined text-red-400 text-xl">{item.icon}</span>
+                                    </div>
+                                    <p className="text-slate-300 text-[15px] font-medium leading-relaxed">{item.pain}</p>
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-300 mb-6 text-center">Agência Tradicional</h3>
-                                <div className="space-y-4">
-                                    <p className="text-sm text-slate-500 border-l-2 border-slate-700 pl-4">Margem limitada pela Cia Aérea</p>
-                                    <p className="text-sm text-slate-500 border-l-2 border-slate-700 pl-4">Dependência de comissão fixa</p>
-                                    <p className="text-sm text-slate-500 border-l-2 border-slate-700 pl-4">Cliente "leiloeiro" de preço</p>
-                                </div>
-                                <div className="mt-10 pt-6 border-t border-white/5 text-xs text-red-400 uppercase tracking-widest font-bold flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-sm">warning</span>
-                                    Risco de Extinção
-                                </div>
-                            </div>
-                        </RevealOnScroll>
-
-                        {/* Nível 2 */}
-                        <RevealOnScroll delay={400} direction="up">
-                            <div className="group h-full p-10 rounded-3xl bg-bg-card border border-primary/20 hover:border-primary/50 transition-all duration-500 relative overflow-hidden shadow-2xl shadow-black/50 hover:shadow-primary/5">
-                                <div className="absolute top-0 right-0 p-6 opacity-30 group-hover:opacity-100 transition-opacity">
-                                    <span className="text-6xl font-black text-primary/20">02</span>
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-6 text-center">Agência Estratégica</h3>
-                                <div className="space-y-4">
-                                    <p className="text-sm text-slate-300 border-l-2 border-primary/50 pl-4">Monetiza milhas do cliente</p>
-                                    <p className="text-sm text-slate-300 border-l-2 border-primary/50 pl-4">Aumenta ticket médio</p>
-                                    <p className="text-sm text-slate-300 border-l-2 border-primary/50 pl-4">Começa a fidelizar</p>
-                                </div>
-                                <div className="mt-10 pt-6 border-t border-white/5 text-xs text-primary uppercase tracking-widest font-bold flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-sm">trending_up</span>
-                                    Zona de Crescimento
-                                </div>
-                            </div>
-                        </RevealOnScroll>
-
-                        {/* Nível 3 */}
-                        <RevealOnScroll delay={600} direction="up">
-                            <div className="group h-full p-10 rounded-3xl bg-gradient-to-br from-bg-card to-bg-dark border border-primary/40 hover:border-primary transition-all duration-500 relative overflow-hidden ring-1 ring-primary/20 hover:ring-primary/50 transform hover:-translate-y-2">
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                                <div className="absolute top-0 right-0 p-6">
-                                    <span className="text-6xl font-black text-primary/40 group-hover:text-primary transition-colors duration-500">03</span>
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-6 flex items-center justify-center gap-2 text-center">
-                                    Agência Estruturada
-                                </h3>
-                                <div className="space-y-4 relative z-10">
-                                    <p className="text-sm text-white font-medium border-l-2 border-primary pl-4">Escala com sistema próprio</p>
-                                    <p className="text-sm text-white font-medium border-l-2 border-primary pl-4">Automatiza processos manuais</p>
-                                    <p className="text-sm text-white font-medium border-l-2 border-primary pl-4">Receita Recorrente Previsível</p>
-                                </div>
-                                <div className="mt-10 pt-6 border-t border-white/10 text-xs text-emerald-400 uppercase tracking-widest font-bold flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-sm">verified</span>
-                                    Domínio de Mercado
-                                </div>
-                                <button onClick={() => navigate('/signup')} className="mt-8 w-full py-4 rounded-xl bg-primary text-bg-dark font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors">
-                                    Quero estar aqui
-                                </button>
-                            </div>
-                        </RevealOnScroll>
+                            </RevealOnScroll>
+                        ))}
                     </div>
+
+                    <RevealOnScroll delay={500}>
+                        <div className="text-center">
+                            <p className="text-xl md:text-2xl text-white font-bold mb-2">
+                                Se você marcou <span className="text-red-400">2 ou mais</span> — sua operação tem um problema sério.
+                            </p>
+                            <p className="text-slate-500 text-sm">E o pior: cada dia que passa, você perde mais dinheiro.</p>
+                        </div>
+                    </RevealOnScroll>
                 </div>
             </section>
 
-            {/* 3. TENSÃO FINANCEIRA (Perda Evitada) */}
-            <section id="calculator" className="py-32 px-6 bg-bg-dark relative overflow-hidden">
-                <div className="max-w-6xl mx-auto">
+            {/* ─── CONSEQUÊNCIA / MEDO / PERDA ────────────────────── */}
+            <section className="py-24 px-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#060911] to-red-950/[0.06]"></div>
+                <div className="max-w-4xl mx-auto text-center relative z-10">
                     <RevealOnScroll>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
-                            <div className="flex flex-col items-center justify-center text-center w-full">
-                                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight text-center w-full">
-                                    Quanto custa <span className="text-red-500">não estruturar</span> sua gestão de milhas?
+                        <div className="p-10 md:p-16 rounded-3xl border border-red-500/15 bg-red-500/[0.03] relative overflow-hidden">
+                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
+                            <span className="material-symbols-outlined text-red-400/50 text-6xl mb-6 block">warning</span>
+                            <h2 className="text-2xl md:text-4xl font-black text-white mb-6 leading-tight">
+                                Enquanto você não resolve isso,<br />
+                                sua operação <span className="text-red-400">continua vazando dinheiro.</span>
+                            </h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+                                {[
+                                    { stat: "Clientes", desc: "indo para concorrentes" },
+                                    { stat: "Lucro", desc: "escorrendo pelo ralo" },
+                                    { stat: "Crescimento", desc: "completamente travado" },
+                                    { stat: "Operação", desc: "caótica e manual" },
+                                ].map((item, i) => (
+                                    <div key={i} className="p-4 rounded-xl bg-red-500/[0.06] border border-red-500/10">
+                                        <p className="text-lg font-black text-red-400 mb-1">{item.stat}</p>
+                                        <p className="text-[11px] text-slate-500 font-medium">{item.desc}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </RevealOnScroll>
+                </div>
+            </section>
+
+            {/* ─── CALCULADORA DE PERDA ────────────────────────────── */}
+            <section className="py-24 px-6 relative">
+                <div className="max-w-5xl mx-auto">
+                    <RevealOnScroll>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                            <div>
+                                <span className="text-red-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-4 block">Calculadora de Perda</span>
+                                <h2 className="text-3xl md:text-4xl font-black text-white mb-6 leading-tight">
+                                    Quanto dinheiro você <span className="text-red-400">deixa na mesa</span> todo mês?
                                 </h2>
-                                <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-xl text-center">
-                                    Não estamos falando do custo do sistema. Estamos falando do dinheiro que você deixa na mesa todos os meses por não ter a infraestrutura para capturar essa margem.
+                                <p className="text-slate-400 text-base leading-relaxed mb-8">
+                                    Não estamos falando do custo do sistema. Estamos falando do dinheiro que escorre da sua mão por falta de organização, automação e controle.
                                 </p>
-                                <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20 flex flex-col items-center justify-center">
-                                    <div className="flex items-center justify-center gap-3 text-red-400 font-bold uppercase tracking-widest text-xs mb-2">
-                                        <span className="material-symbols-outlined text-lg">money_off</span>
-                                        Dinheiro Perdido / Mês
+                                <div className="p-6 rounded-2xl bg-red-500/[0.06] border border-red-500/20">
+                                    <div className="text-[11px] text-red-400 font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-sm">trending_down</span>
+                                        Sua perda mensal estimada
                                     </div>
-                                    <div className="text-3xl md:text-4xl font-black text-white text-center">
+                                    <div className="text-4xl md:text-5xl font-black text-white">
                                         R$ {totalLoss.toLocaleString('pt-BR')}
+                                        <span className="text-lg text-red-400 ml-2">/mês</span>
                                     </div>
+                                    <p className="text-[11px] text-slate-600 mt-3">*Baseado na margem média que gestores FL360 capturam por cliente ativo.</p>
                                 </div>
                             </div>
 
-                            <div className="bg-bg-surface p-10 rounded-3xl border border-white/10 shadow-2xl">
+                            <div className="bg-white/[0.02] p-8 rounded-3xl border border-white/[0.06]">
                                 <div className="space-y-10">
                                     <div>
                                         <div className="flex justify-between mb-4">
-                                            <label className="text-slate-500 font-bold text-xs uppercase tracking-widest">Sua Base de Clientes (Ativos)</label>
-                                            <span className="text-white font-black text-xl">{clients}</span>
+                                            <label className="text-slate-400 font-semibold text-xs uppercase tracking-widest">Quantos clientes você tem?</label>
+                                            <span className="text-white font-black text-2xl">{clients}</span>
                                         </div>
                                         <input
                                             type="range"
                                             min="1" max="100"
                                             value={clients}
                                             onChange={(e) => setClients(parseInt(e.target.value))}
-                                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-red-500 hover:accent-red-400"
+                                            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-red-500"
                                         />
-                                    </div>
-
-                                    <div>
-                                        <div className="flex justify-between mb-4">
-                                            <label className="text-slate-500 font-bold text-xs uppercase tracking-widest">Oportunidade Perdida / Cliente</label>
-                                            <span className="text-white font-black text-xl">R$ {lostOpportunity.toLocaleString('pt-BR')}</span>
+                                        <div className="flex justify-between mt-2">
+                                            <span className="text-[10px] text-slate-600">1 cliente</span>
+                                            <span className="text-[10px] text-slate-600">100 clientes</span>
                                         </div>
-                                        <input
-                                            type="range"
-                                            min="500" max="5000" step="100"
-                                            value={lostOpportunity}
-                                            onChange={(e) => setLostOpportunity(parseInt(e.target.value))}
-                                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-red-500 hover:accent-red-400"
-                                        />
-                                        <p className="text-[10px] text-slate-600 mt-3">*Baseado na média de lucro que agências FL360 geram por cliente.</p>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </RevealOnScroll>
-                </div>
-            </section>
 
-            {/* 4. DIAGNÓSTICO ESTRATÉGICO (Inevitabilidade) */}
-            <section className="py-24 px-6 bg-bg-dark relative border-t border-white/5">
-                <div className="max-w-5xl mx-auto text-center flex flex-col items-center w-full">
-                    <RevealOnScroll width="100%">
-                        <div className="w-full flex flex-col items-center justify-center text-center">
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-8 leading-tight text-center w-full">
-                                "Milhas não são produto.<br />
-                                <span className="text-primary">São alavancagem.</span>"
-                            </h2>
-                        </div>
-                    </RevealOnScroll>
-
-                    <RevealOnScroll delay={200} width="100%">
-                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 md:p-12 text-center mb-12 flex flex-col items-center w-full">
-                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 border-b border-white/5 pb-4 text-center w-full">Diagnóstico Estratégico</h3>
-
-                            <div className="space-y-6 w-full flex flex-col items-center">
-                                <div className="flex flex-col items-center justify-center gap-4 text-center w-full">
-                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
-                                        <span className="text-[10px] text-slate-400">1</span>
+                                    <div className="pt-6 border-t border-white/5">
+                                        <p className="text-sm text-slate-400 mb-4">Margem média perdida por cliente sem sistema:</p>
+                                        <div className="text-3xl font-black text-red-400">R$ {avgLossPerClient.toLocaleString('pt-BR')}/mês</div>
                                     </div>
-                                    <div className="w-full">
-                                        <p className="text-lg text-white font-medium text-center">Sua agência tem receita recorrente previsível?</p>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col items-center justify-center gap-4 text-center w-full">
-                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
-                                        <span className="text-[10px] text-slate-400">2</span>
-                                    </div>
-                                    <div className="w-full">
-                                        <p className="text-lg text-white font-medium text-center">Você controla sua margem ou depende de comissão?</p>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col items-center justify-center gap-3 text-center w-full">
-                                    <div className="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
-                                        <span className="text-[10px] text-slate-400">3</span>
-                                    </div>
-                                    <div className="w-full">
-                                        <p className="text-lg text-white font-medium text-center">Sua operação de milhas é automatizada ou manual?</p>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="mt-8 pt-8 border-t border-white/5 w-full flex justify-center">
-                                <p className="text-slate-400 text-sm italic text-center">
-                                    <span className="text-red-400 font-bold not-italic">⚠️ Alerta:</span> Se respondeu <strong className="text-white">"não"</strong> para 2 ou mais, você está operando no <strong className="text-white">Modelo Antigo</strong>.
-                                </p>
-                            </div>
-                        </div>
-                    </RevealOnScroll>
-
-                    <RevealOnScroll delay={400} width="100%">
-                        <p className="text-xl text-slate-300 font-light max-w-2xl mx-auto text-center">
-                            Se você ainda não estruturou milhas, <strong className="text-white font-bold">está competindo errado.</strong>
-                        </p>
-                    </RevealOnScroll>
-                </div>
-            </section>
-
-            {/* 5. REPOSICIONAMENTO (OS - 4 Pilares) */}
-            <section id="os" className="py-32 px-6 bg-bg-surface relative border-y border-white/5">
-                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-
-                <div className="max-w-7xl mx-auto">
-                    <RevealOnScroll>
-                        <div className="text-center mb-24 flex flex-col items-center">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Infraestrutura</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 max-w-4xl mx-auto text-center">Sistema Operacional da Gestão de Milhas</h2>
-                            <p className="text-slate-400 text-lg max-w-2xl mx-auto text-center">Não é uma ferramenta. É a espinha dorsal da sua nova vertical de receita.</p>
-                        </div>
-                    </RevealOnScroll>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {[
-                            {
-                                title: "Inteligência",
-                                icon: "psychology",
-                                desc: "AI Advisor que identifica oportunidades ocultas.",
-                                detail: "Transforma dados em estratégia."
-                            },
-                            {
-                                title: "Automação",
-                                icon: "smart_toy",
-                                desc: "Scanner global de disponibilidade e preços.",
-                                detail: "Elimina o trabalho manual."
-                            },
-                            {
-                                title: "Controle",
-                                icon: "account_balance",
-                                desc: "Gestão financeira de ativos e margem real.",
-                                detail: "Domínio total do fluxo de caixa."
-                            },
-                            {
-                                title: "Marca",
-                                icon: "verified_user",
-                                desc: "White Label completo para autoridade.",
-                                detail: "Seu cliente vê apenas você."
-                            }
-                        ].map((item, i) => (
-                            <RevealOnScroll key={i} delay={i * 200}>
-                                <div className="h-full min-h-[220px] p-8 rounded-2xl bg-bg-card border border-white/5 hover:border-primary/30 transition-all duration-300 group hover:-translate-y-2 flex flex-col items-center text-center">
-                                    <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center mb-6 text-primary group-hover:scale-110 transition-transform shrink-0">
-                                        <span className="material-symbols-outlined text-2xl">{item.icon}</span>
-                                    </div>
-                                    <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
-                                    <p className="text-slate-400 text-sm mb-4 flex-1">{item.desc}</p>
-                                    <p className="text-xs text-primary/70 font-medium uppercase tracking-wider mt-auto">{item.detail}</p>
-                                </div>
-                            </RevealOnScroll>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* 5. AUTORIDADE (Movimento) */}
-            <section className="py-32 px-6 bg-bg-dark text-center">
-                <div className="max-w-4xl mx-auto">
-                    <RevealOnScroll>
-                        <h2 className="text-3xl font-black text-white mb-12">
-                            "Agências pioneiras já migraram para o modelo estruturado."
-                        </h2>
-                    </RevealOnScroll>
-
-                    <div className="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-30 grayscale hover:grayscale-0 transition-all duration-700 w-full overflow-visible">
-                        {['livelo', 'latam', 'smiles', 'azul', 'esfera'].map((brand, i) => (
-                            <RevealOnScroll key={brand} delay={i * 100} width="fit-content" direction="up">
-                                <BrandLogo name={brand} className="h-6 md:h-8 w-auto text-white" />
-                            </RevealOnScroll>
-                        ))}
-                    </div>
-
-                    <RevealOnScroll delay={300}>
-                        <div className="mt-16 mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-center">
-                                <p className="text-slate-300 text-base italic leading-relaxed mb-6">
-                                    "A diferença entre minha agência antes e depois do FL360 não é só o lucro. É a paz de espírito de ter controle total sobre uma operação que antes era caos."
-                                </p>
-                                <div className="text-sm font-bold text-white">Ricardo D.</div>
-                                <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">CEO TravelCorp</div>
-                            </div>
-                            
-                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-center">
-                                <p className="text-slate-300 text-base italic leading-relaxed mb-6">
-                                    "Tínhamos milhares de reais expirando na conta dos clientes sem saber. O sistema mapeou as datas e transformou essa 'perda' em emissões e margem real."
-                                </p>
-                                <div className="text-sm font-bold text-white">Marcela C.</div>
-                                <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Founders Viagens</div>
-                            </div>
-
-                            <div className="p-8 border border-white/5 bg-white/[0.02] rounded-2xl text-center">
-                                <p className="text-slate-300 text-base italic leading-relaxed mb-6">
-                                    "Finalmente abandonei as dezenas de planilhas de clientes. Tudo agora é visual e automático. O fechamento do mês ficou ridículo de tão fácil."
-                                </p>
-                                <div className="text-sm font-bold text-white">André L.</div>
-                                <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Diretor VoeMais</div>
-                            </div>
-                        </div>
-                    </RevealOnScroll>
-                </div>
-            </section>
-
-            {/* MERCADO - Dados Quantitativos */}
-            <section className="py-24 px-6 bg-bg-surface border-t border-white/5 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
-                <div className="max-w-7xl mx-auto">
-                    <RevealOnScroll>
-                        <div className="text-center mb-16 flex flex-col items-center">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Mercado Brasileiro de Milhagem</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-4 text-center">O dinheiro já está circulando.<br /><span className="text-primary">A questão é: quem está capturando?</span></h2>
-                            <p className="text-slate-400 max-w-3xl mx-auto text-center">Enquanto você lê isso, bilhões em milhas expiram sem gerar margem para nenhuma agência. Isso vai mudar — com ou sem você.</p>
-                        </div>
-                    </RevealOnScroll>
-
-                    {/* Números de Mercado */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-                        {[
-                            { value: "+100 mi", label: "de CPFs cadastrados em programas de fidelidade no Brasil", icon: "monitoring", color: "text-emerald-400", border: "border-emerald-500/20", bg: "bg-emerald-500/5" },
-                            { value: "33%", label: "dos pontos emitidos expiram sem ser resgatados — dinheiro que some sem gerar valor", icon: "trending_down", color: "text-red-400", border: "border-red-500/20", bg: "bg-red-500/5" },
-                            { value: "R$ 300-600", label: "de margem adicional por cliente ativo/mês que agências estruturadas capturam — e que a maioria ignora", icon: "savings", color: "text-primary", border: "border-primary/20", bg: "bg-primary/5" },
-                        ].map((stat, i) => (
-                            <RevealOnScroll key={i} delay={i * 150}>
-                                <div className={`p-8 rounded-2xl border ${stat.border} ${stat.bg} text-center group hover:scale-105 transition-transform duration-300`}>
-                                    <span className={`material-symbols-outlined text-4xl ${stat.color} mb-4 block`}>{stat.icon}</span>
-                                    <div className={`text-4xl md:text-5xl font-black ${stat.color} mb-3`}>{stat.value}</div>
-                                    <p className="text-slate-400 text-sm leading-relaxed">{stat.label}</p>
-                                </div>
-                            </RevealOnScroll>
-                        ))}
-                    </div>
-
-                    {/* Textos de Dor com Setas */}
-                    <RevealOnScroll delay={200}>
-                        <div className="bg-bg-card border border-white/5 rounded-3xl p-10 md:p-14">
-                            <p className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-8 text-center">Reconhece algum desses cenários?</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {[
-                                    { pain: "Você não sabe exatamente quanto lucrou com milhas no último mês", arrow: true },
-                                    { pain: "Seu cliente acumula pontos mas você não tem sistema para gerenciar isso", arrow: true },
-                                    { pain: "Você perde negócios para concorrentes que oferecem resgate estruturado", arrow: true },
-                                    { pain: "A operação depende de você — se você para, tudo para", arrow: true },
-                                    { pain: "Você não tem como escalar sem contratar mais gente", arrow: true },
-                                    { pain: "Milhas expiram na carteira dos seus clientes sem você saber", arrow: true },
-                                ].map((item, i) => (
-                                    <div key={i} className="flex flex-col items-center justify-center text-center gap-3 p-4 rounded-xl bg-red-500/5 border border-red-500/10 hover:border-red-500/30 transition-all group">
-                                        <div className="shrink-0">
-                                            <span className="material-symbols-outlined text-red-400 text-lg group-hover:animate-bounce transform rotate-90 md:rotate-0 md:hidden">arrow_drop_down</span>
-                                            <span className="material-symbols-outlined text-red-400 text-lg group-hover:animate-bounce hidden md:block">arrow_downward</span>
-                                        </div>
-                                        <p className="text-slate-300 text-sm leading-relaxed">{item.pain}</p>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="mt-10 pt-8 border-t border-white/5 flex flex-col items-center justify-center gap-6 text-center">
-                                <p className="text-white font-bold text-lg">Se você marcou 2 ou mais — <span className="text-primary">é exatamente para isso que o FL360 existe.</span></p>
-                                <button
-                                    onClick={() => document.getElementById('levels')?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="flex items-center gap-2 px-8 py-4 bg-primary text-bg-dark font-black text-xs uppercase tracking-widest rounded-xl hover:bg-white transition-all whitespace-nowrap"
-                                >
-                                    Ver Solução
-                                    <span className="material-symbols-outlined text-base">arrow_downward</span>
-                                </button>
-                            </div>
-                        </div>
-                    </RevealOnScroll>
-                </div>
-            </section>
-
-            {/* 5.5 FAQ - QUEBRA DE OBJEÇÕES */}
-            <section className="py-32 px-6 bg-bg-dark relative border-t border-white/5">
-                <div className="max-w-4xl mx-auto">
-                    <RevealOnScroll>
-                        <div className="text-center mb-16 flex flex-col items-center">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Perguntas Frequentes</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 text-center">Ainda gerenciando na planilha e caderninho?</h2>
-                            <p className="text-slate-400 text-lg text-center">Entenda como o FL360 transforma o amadorismo em uma operação elegante e lucrativa.</p>
-                        </div>
-                    </RevealOnScroll>
-
-                    <div className="space-y-4">
-                        {[
-                            {
-                                q: "Por que eu preciso de um sistema se uso planilhas do Excel gratuitamente?",
-                                a: "Planilhas dependem de alimentação manual constância. E se você esquecer de atualizar? E se o cliente te ligar no fim de semana perguntando o saldo? Com o FL360, você substitui o amadorismo da planilha por um painel elegante, profissional e sempre atualizado. Você economiza horas de trabalho braçal e eleva a percepção de valor do seu cliente."
-                            },
-                            {
-                                q: "Como o sistema ajuda a não perder milhas expiradas?",
-                                a: "O FL360 monitora constantemente as datas de expiração das milhas cadastradas no sistema. Ele funciona como um alarme preditivo, permitindo que você entre em contato com seu cliente antes dos pontos vencerem para sugerir uma emissão, gerando receita onde antes haveria apenas perda."
-                            },
-                            {
-                                q: "A plataforma faz a emissão de passagens aéreas e venda direta de balcão?",
-                                a: "Não. Nós somos um Sistema Operacional de Gestão. Não competimos com consolidadores, companhias aéreas ou plataformas de venda de milhas do mercado (ex: MaxMilhas). Nosso foco é 100% no B2B: fornecer a inteligência de negócios para a sua agência organizar, relatar e monetizar a carteira de pontos dos SEUS clientes final de forma elegante."
-                            },
-                            {
-                                q: "Consigo cancelar a qualquer momento?",
-                                a: "Sim, sem fidelidade escondida. O modelo é SaaS (Software as a Service) por assinatura mensal. Se a plataforma não gerar no mínimo 5x mais lucro do que custa, você pode cancelar a assinatura direto no painel com um clique."
-                            }
-                        ].map((faq, i) => (
-                            <RevealOnScroll key={i} delay={i * 100}>
-                                <div 
-                                    className={`border border-white/5 rounded-2xl bg-bg-card overflow-hidden transition-all duration-300 ${openFaq === i ? 'border-primary/30 shadow-[0_0_30px_rgba(226,190,106,0.1)]' : 'hover:border-white/10'}`}
-                                >
-                                    <button 
-                                        onClick={() => toggleFaq(i)}
-                                        className="w-full flex flex-col md:flex-row items-center justify-center gap-4 p-6 md:p-8 text-center focus:outline-none focus:ring-none"
+                                    <button
+                                        onClick={() => scrollToSection('demo')}
+                                        className="w-full py-4 rounded-xl bg-primary text-[#060911] font-black text-xs uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-primary/20"
                                     >
-                                        <h3 className={`text-lg md:text-xl font-bold transition-colors ${openFaq === i ? 'text-primary' : 'text-slate-300'}`}>
-                                            {faq.q}
-                                        </h3>
-                                        <span className={`material-symbols-outlined shrink-0 text-2xl transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-primary' : 'text-slate-500'}`}>
-                                            keyboard_arrow_down
-                                        </span>
+                                        Solicitar demonstração →
                                     </button>
-                                    
-                                    <div 
-                                        className={`overflow-hidden transition-all duration-500 ease-in-out ${openFaq === i ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
-                                    >
-                                        <div className="p-6 md:p-8 pt-0 text-slate-400 leading-relaxed border-t border-white/5 text-center">
-                                            {faq.a}
-                                        </div>
-                                    </div>
                                 </div>
-                            </RevealOnScroll>
-                        ))}
-                    </div>
+                            </div>
+                        </div>
+                    </RevealOnScroll>
                 </div>
             </section>
 
-            {/* 6. INVESTIMENTO (Ancoragem) */}
-            <section id="pricing" className="py-32 px-6 bg-bg-dark border-t border-white/5 relative">
-                <div className="max-w-7xl mx-auto">
+            {/* ─── SOLUÇÃO (APRESENTAÇÃO DO SAAS) ─────────────────── */}
+            <section id="solucao" className="py-28 px-6 relative border-t border-white/[0.04]">
+                <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/[0.03] to-[#060911]"></div>
+                <div className="max-w-6xl mx-auto relative z-10">
                     <RevealOnScroll>
-                        <div className="text-center mb-20 flex flex-col items-center w-full">
-                            <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block text-center">Investimento no Negócio</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 text-center w-full">Escolha seu Nível de Acesso</h2>
-                            <p className="text-slate-400 text-center">O custo de oportunidade de não começar hoje é muito maior.</p>
-                        </div>
-                    </RevealOnScroll>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                        {/* Start */}
-                        <RevealOnScroll delay={200}>
-                            <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-white/5 hover:border-white/10 transition-all group flex flex-col items-center text-center">
-                                <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Nível 1</div>
-                                <h3 className="text-xl font-bold text-white mb-2">Plano Starter</h3>
-                                <p className="text-slate-400 text-sm mb-6 h-10">Para agências que querem abrir a vertical de milhas com organização.</p>
-                                    <span className="text-sm text-slate-400">R$</span>
-                                    <span className="text-4xl font-black text-white">499,00</span>
-                                    <span className="text-sm text-slate-400">/mês</span>
-                                <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
-                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Até 20 Clientes</li>
-                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Scanner Award</li>
-                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Relatórios Padrão</li>
-                                    <li className="flex items-center gap-3 text-sm text-slate-500 opacity-60"><span className="material-symbols-outlined text-red-500/50 text-sm">close</span>Sem Acesso à IA</li>
-                                </ul>
-                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl bg-white/5 text-white hover:bg-white/10 font-bold uppercase text-xs transition-all">Começar Agora</button>
-                            </div>
-                        </RevealOnScroll>
-
-                        {/* Pro */}
-                        <RevealOnScroll delay={400}>
-                            <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-primary/30 relative shadow-2xl shadow-primary/5 group transform md:-translate-y-4 flex flex-col items-center text-center overflow-hidden">
-                                <div className="absolute top-0 right-0 bg-primary text-bg-dark px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-bl-xl rounded-tr-2xl">Mais Escolhido</div>
-                                <div className="text-xs font-bold text-primary uppercase tracking-widest mb-4">Nível 2</div>
-                                <h3 className="text-xl font-bold text-white mb-2">Plano Profissional</h3>
-                                <p className="text-slate-300 text-sm mb-6 h-10">Para agências que já vendem milhas e querem previsibilidade.</p>
-                                <div className="flex items-baseline justify-center gap-1 mb-2">
-                                    <span className="text-sm text-slate-400">R$</span>
-                                    <span className="text-4xl font-black text-white">899,00</span>
-                                    <span className="text-sm text-slate-400">/mês</span>
-                                </div>
-                                <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wide mb-6">
-                                    Recuperação média: 1 a 2 clientes ativos
-                                </p>
-                                <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
-                                    <li className="flex items-center gap-3 text-sm text-emerald-400 font-bold"><span className="material-symbols-outlined text-emerald-400 text-sm">add_circle</span>Tudo do Starter +</li>
-                                    <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Até 100 Clientes</li>
-                                    <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Acesso à Inteligência (IA)</li>
-                                    <li className="flex items-center gap-3 text-sm text-white"><span className="material-symbols-outlined text-primary text-sm">check_circle</span>Múltiplos Usuários</li>
-                                </ul>
-                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl bg-primary text-bg-dark font-bold uppercase text-xs hover:bg-white transition-all shadow-lg shadow-primary/20">Acessar Sistema</button>
-                            </div>
-                        </RevealOnScroll>
-
-                        {/* Elite */}
-                        <RevealOnScroll delay={600}>
-                            <div className="p-8 h-full min-h-[520px] rounded-2xl bg-bg-card border border-white/5 hover:border-primary/30 transition-all group flex flex-col items-center text-center">
-                                <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-4">Nível 3</div>
-                                <h3 className="text-xl font-bold text-white mb-2">Plano White Label</h3>
-                                <p className="text-slate-400 text-sm mb-6 h-10">Para agências que querem posicionamento e autoridade (Marca Própria).</p>
-                                <div className="flex items-baseline justify-center gap-1 mb-6">
-                                    <span className="text-sm text-slate-400">R$</span>
-                                    <span className="text-4xl font-black text-white">1.999,00</span>
-                                    <span className="text-sm text-slate-400">/mês</span>
-                                </div>
-                                <ul className="space-y-3 mb-8 flex-1 w-full flex flex-col items-center">
-                                    <li className="flex items-center gap-3 text-sm text-emerald-400 font-bold"><span className="material-symbols-outlined text-emerald-400 text-sm">all_inclusive</span>Acesso Total Sistema +</li>
-                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>Clientes Ilimitados</li>
-                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>White Label Total</li>
-                                    <li className="flex items-center gap-3 text-sm text-slate-400"><span className="material-symbols-outlined text-primary text-sm">check</span>API Dedicada</li>
-                                </ul>
-                                <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-xl bg-white/5 text-white hover:bg-white/10 font-bold uppercase text-xs transition-all">Consulte-nos</button>
-                            </div>
-                        </RevealOnScroll>
-                    </div>
-                </div>
-            </section>
-
-            {/* 6. ESCASSEZ & POLARIZAÇÃO (CTA FINAL) */}
-            <section className="py-32 px-6 relative overflow-hidden flex items-center justify-center min-h-[80vh]">
-                <div className="absolute inset-0 bg-bg-card"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/10 via-bg-dark to-bg-dark opacity-60"></div>
-
-                <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center text-center">
-                    <RevealOnScroll>
-                        <div className="mb-12 flex justify-center w-full">
-                            <span className="px-4 py-2 rounded-full border border-primary/30 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-[0.2em] animate-pulse-glow">
-                                Seleção Limitada de Agências
-                            </span>
-                        </div>
-                    </RevealOnScroll>
-
-                    <RevealOnScroll delay={200}>
-                        <div className="w-full flex justify-center">
-                            <h2 className="text-4xl md:text-6xl font-black text-white mb-10 leading-tight text-center">
-                                Você pode continuar <br />competindo por comissão.<br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">Ou pode estruturar margem.</span>
+                        <div className="text-center mb-20">
+                            <span className="text-emerald-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-4 block">A solução existe</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
+                                Tudo em <span className="text-emerald-400">um único sistema,</span><br />
+                                feito para quem vive de milhas
                             </h2>
-                        </div>
-                    </RevealOnScroll>
-
-                    <RevealOnScroll delay={400}>
-                        <div className="w-full flex justify-center">
-                            <p className="text-xl text-slate-400 mb-16 max-w-2xl text-center font-light">
-                                Estamos estruturando um número limitado de novas agências por ciclo para manter nosso padrão estratégico.
+                            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                                O FL360 Miles é o sistema operacional que transforma operações caóticas em máquinas de faturamento previsível.
                             </p>
                         </div>
                     </RevealOnScroll>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {[
+                            { icon: "group", title: "CRM de Milhas", benefit: "Nunca mais perca um cliente", desc: "Controle total da carteira de clientes, milhas por programa, vencimentos e histórico completo." },
+                            { icon: "bolt", title: "Cálculo Automatizado", benefit: "Saiba exatamente quanto você ganha", desc: "Economia de emissão, lucro por venda, ROI por cliente — tudo calculado automaticamente." },
+                            { icon: "smart_toy", title: "IA Concierge", benefit: "Atenda mais em menos tempo", desc: "Inteligência artificial que analisa voos, compara preços e sugere as melhores estratégias." },
+                            { icon: "analytics", title: "Relatórios Prontos", benefit: "Impressione seus clientes", desc: "Relatórios em PDF com a sua marca. Envie no WhatsApp e aumente a percepção de valor." },
+                            { icon: "notifications_active", title: "Alertas Inteligentes", benefit: "Nunca mais perca milhas", desc: "Sistema monitora vencimentos e oportunidades. Você é avisado antes de expirar." },
+                            { icon: "palette", title: "White Label", benefit: "Sua operação, sua marca", desc: "Logo, cores e domínio personalizados. O cliente vê somente a sua marca." },
+                        ].map((item, i) => (
+                            <RevealOnScroll key={i} delay={i * 100}>
+                                <div className="h-full p-7 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-emerald-500/20 transition-all duration-300 group hover:-translate-y-1">
+                                    <div className="flex items-center gap-4 mb-5">
+                                        <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                                            <span className="material-symbols-outlined text-emerald-400 text-xl">{item.icon}</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">{item.title}</p>
+                                        </div>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-white mb-2">{item.benefit}</h3>
+                                    <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                                </div>
+                            </RevealOnScroll>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ─── TRANSFORMAÇÃO — ANTES vs DEPOIS ────────────────── */}
+            <section className="py-28 px-6 relative overflow-hidden">
+                <div className="max-w-5xl mx-auto">
+                    <RevealOnScroll>
+                        <div className="text-center mb-16">
+                            <span className="text-primary text-[11px] font-bold uppercase tracking-[0.25em] mb-4 block">Transformação Real</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">
+                                De operação no caos<br />para <span className="text-primary">escala com controle</span>
+                            </h2>
+                        </div>
+                    </RevealOnScroll>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* ANTES */}
+                        <RevealOnScroll delay={200}>
+                            <div className="p-8 rounded-3xl border border-red-500/15 bg-red-500/[0.02] relative overflow-hidden h-full">
+                                <div className="text-[11px] font-black text-red-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">close</span>
+                                    Antes do FL360
+                                </div>
+                                <div className="space-y-5">
+                                    {[
+                                        "Planilhas manuais que vivem desatualizadas",
+                                        "WhatsApp bagunçado e sem controle",
+                                        "Esquece follow-up e perde clientes",
+                                        "Não sabe seu lucro real por cliente",
+                                        "Emissões calculadas na mão (com erros)",
+                                        "Crescimento travado — depende 100% de você",
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex items-start gap-3">
+                                            <span className="material-symbols-outlined text-red-500/40 text-lg mt-0.5 shrink-0">remove_circle</span>
+                                            <p className="text-slate-400 text-sm leading-relaxed">{item}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </RevealOnScroll>
+
+                        {/* DEPOIS */}
+                        <RevealOnScroll delay={400}>
+                            <div className="p-8 rounded-3xl border border-emerald-500/20 bg-emerald-500/[0.02] relative overflow-hidden h-full">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/[0.04] rounded-full blur-[60px]"></div>
+                                <div className="text-[11px] font-black text-emerald-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-2 relative z-10">
+                                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                                    Com o FL360 Miles
+                                </div>
+                                <div className="space-y-5 relative z-10">
+                                    {[
+                                        "CRM completo com todos os ativos em tempo real",
+                                        "Tudo organizado em um painel profissional",
+                                        "Alertas automáticos de vencimento e oportunidades",
+                                        "Lucro por cliente, por emissão, por mês — tudo visível",
+                                        "Economia calculada automaticamente em cada emissão",
+                                        "Escale para 50, 100+ clientes sem contratar mais gente",
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex items-start gap-3">
+                                            <span className="material-symbols-outlined text-emerald-400 text-lg mt-0.5 shrink-0">check_circle</span>
+                                            <p className="text-white text-sm font-medium leading-relaxed">{item}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </RevealOnScroll>
+                    </div>
+
                     <RevealOnScroll delay={600}>
-                        <div className="w-full flex flex-col items-center justify-center gap-6">
+                        <div className="text-center mt-12">
                             <button
-                                onClick={() => navigate('/signup')}
-                                className="bg-primary text-bg-dark text-lg font-black uppercase tracking-[0.15em] px-12 py-6 rounded-none hover:bg-white transition-all duration-300 shadow-[0_0_40px_rgba(226,190,106,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.3)] min-w-[300px] text-center"
+                                onClick={() => scrollToSection('demo')}
+                                className="inline-flex items-center gap-3 px-10 py-5 bg-primary text-[#060911] rounded-xl text-sm font-black uppercase tracking-widest hover:bg-white transition-all shadow-[0_0_30px_rgba(226,190,106,0.2)]"
                             >
-                                Estruturar Minha Agência Agora
+                                Agendar reunião
+                                <span className="material-symbols-outlined text-lg">arrow_forward</span>
                             </button>
-                            <span className="text-xs text-slate-600 uppercase tracking-widest text-center">Acesso Imediato ao Sistema Operacional</span>
                         </div>
                     </RevealOnScroll>
                 </div>
             </section>
 
-            {/* Footer Minimalista */}
-            <footer className="py-8 border-t border-white/5 bg-bg-dark text-center">
-                <div className="flex items-center justify-center gap-4 mb-3">
-                    <Link to="/terms" className="text-[10px] text-slate-500 hover:text-primary uppercase tracking-widest transition-colors">Termos de Uso</Link>
-                    <span className="text-slate-700">•</span>
-                    <Link to="/privacy" className="text-[10px] text-slate-500 hover:text-primary uppercase tracking-widest transition-colors">Política de Privacidade</Link>
+            {/* ─── PROVA SOCIAL / TESTEMUNHOS ──────────────────────── */}
+            <section className="py-24 px-6 relative border-t border-white/[0.04]">
+                <div className="max-w-6xl mx-auto">
+                    <RevealOnScroll>
+                        <div className="text-center mb-16">
+                            <span className="text-primary text-[11px] font-bold uppercase tracking-[0.25em] mb-4 block">Quem usa, aprova</span>
+                            <h2 className="text-3xl md:text-4xl font-black text-white">
+                                Gestores já aumentaram faturamento<br />usando esse modelo
+                            </h2>
+                        </div>
+                    </RevealOnScroll>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {[
+                            {
+                                quote: "Antes eu perdia horas em planilhas e ainda assim cometia erros. Com o FL360 eu sei exatamente quanto lucro por cliente e minha operação triplicou em 4 meses.",
+                                name: "Ricardo D.",
+                                role: "CEO TravelCorp",
+                                stat: "+210% lucro"
+                            },
+                            {
+                                quote: "Tínhamos milhares de reais em milhas expirando sem saber. O sistema mapeou tudo e transformou 'perda' em emissões e margem real pros clientes.",
+                                name: "Marcela C.",
+                                role: "Founders Viagens",
+                                stat: "R$ 0 milhas expiradas"
+                            },
+                            {
+                                quote: "Finalmente abandonei as planilhas. Tudo é visual e automático. O fechamento do mês ficou ridículo de tão fácil. Meus clientes ficaram impressionados.",
+                                name: "André L.",
+                                role: "Diretor VoeMais",
+                                stat: "+85 clientes"
+                            },
+                        ].map((item, i) => (
+                            <RevealOnScroll key={i} delay={i * 150}>
+                                <div className="h-full p-8 rounded-2xl border border-white/[0.05] bg-white/[0.015] relative overflow-hidden group hover:border-primary/20 transition-all">
+                                    <div className="absolute top-6 right-6 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+                                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{item.stat}</span>
+                                    </div>
+                                    <div className="text-primary/30 text-5xl font-black mb-4 leading-none">"</div>
+                                    <p className="text-slate-300 text-sm leading-relaxed mb-8 italic">{item.quote}</p>
+                                    <div className="mt-auto">
+                                        <p className="text-sm font-bold text-white">{item.name}</p>
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">{item.role}</p>
+                                    </div>
+                                </div>
+                            </RevealOnScroll>
+                        ))}
+                    </div>
+
+                    {/* Brand Logos */}
+                    <RevealOnScroll delay={500}>
+                        <div className="mt-16 pt-12 border-t border-white/[0.04]">
+                            <p className="text-[10px] text-slate-600 uppercase tracking-[0.2em] mb-8 text-center font-semibold">Integrado com os maiores programas</p>
+                            <div className="flex flex-wrap justify-center gap-8 md:gap-14 opacity-30 grayscale hover:grayscale-0 hover:opacity-60 transition-all duration-700">
+                                {['livelo', 'latam', 'smiles', 'azul', 'esfera'].map((brand) => (
+                                    <BrandLogo key={brand} name={brand} className="h-5 md:h-7 w-auto text-white" />
+                                ))}
+                            </div>
+                        </div>
+                    </RevealOnScroll>
                 </div>
-                <p className="text-[10px] text-slate-600 uppercase tracking-widest">
-                    © 2026 FL360 Miles. Infraestrutura para Agências de Elite.
-                </p>
+            </section>
+
+            {/* ─── FAQ ────────────────────────────────────────────── */}
+            <section className="py-24 px-6 relative border-t border-white/[0.04]">
+                <div className="max-w-3xl mx-auto">
+                    <RevealOnScroll>
+                        <div className="text-center mb-14">
+                            <h2 className="text-3xl md:text-4xl font-black text-white">Perguntas frequentes</h2>
+                        </div>
+                    </RevealOnScroll>
+
+                    <div className="space-y-3">
+                        {[
+                            { q: "Preciso mesmo de um sistema se uso planilhas?", a: "Planilhas não escalam. Elas dependem de você alimentar manualmente, são propensas a erros e não impressionam clientes. Com o FL360, cada emissão calcula lucro automaticamente, cada cliente recebe relatórios profissionais, e você ganha horas de volta toda semana." },
+                            { q: "O sistema faz a emissão de passagens?", a: "Não. O FL360 é um Sistema Operacional de Gestão. Ele organiza, calcula e monitora sua operação de milhas — não compete com consolidadores ou cias aéreas. Nosso foco é 100% em dar a você controle, inteligência e escala." },
+                            { q: "Consigo cancelar a qualquer momento?", a: "Sim, sem fidelidade. O modelo é SaaS por assinatura mensal. Se a plataforma não gerar no mínimo 5x mais lucro do que custa, cancele com um clique no painel." },
+                            { q: "Quanto tempo leva para configurar?", a: "Menos de 15 minutos. Crie a conta, cadastre seus clientes e comece a operar. Sem instalação, sem configurações complexas. O sistema é web e funciona em qualquer dispositivo." },
+                        ].map((faq, i) => (
+                            <RevealOnScroll key={i} delay={i * 80}>
+                                <div className={`border rounded-2xl overflow-hidden transition-all duration-300 ${openFaq === i ? 'border-primary/20 bg-primary/[0.02]' : 'border-white/[0.05] bg-white/[0.01] hover:border-white/10'}`}>
+                                    <button
+                                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                        className="w-full flex items-center justify-between gap-4 p-6 text-left"
+                                    >
+                                        <h3 className={`text-base font-bold transition-colors ${openFaq === i ? 'text-primary' : 'text-white'}`}>{faq.q}</h3>
+                                        <span className={`material-symbols-outlined shrink-0 text-xl transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-primary' : 'text-slate-600'}`}>
+                                            keyboard_arrow_down
+                                        </span>
+                                    </button>
+                                    <div className={`overflow-hidden transition-all duration-500 ${openFaq === i ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                        <div className="px-6 pb-6 text-slate-400 text-sm leading-relaxed">{faq.a}</div>
+                                    </div>
+                                </div>
+                            </RevealOnScroll>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ─── DEMONSTRAÇÃO ────────────────────────────────────────── */}
+            <section id="demo" className="py-28 px-6 relative border-t border-white/[0.04]">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#060911] via-primary/[0.02] to-[#060911]"></div>
+                <div className="max-w-6xl mx-auto relative z-10">
+                    <RevealOnScroll>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                            
+                            {/* Text Content */}
+                            <div>
+                                <span className="text-primary text-[11px] font-bold uppercase tracking-[0.25em] mb-4 block">Acesso ao Sistema</span>
+                                <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
+                                    Solicite uma demonstração e descubra como <span className="text-primary">escalar sua operação</span> de milhas
+                                </h2>
+                                <p className="text-slate-400 text-lg leading-relaxed mb-8">
+                                    Veja na prática como organizar seus atendimentos, automatizar processos e aumentar seu faturamento com um sistema profissional feito para gestores que querem escala.
+                                </p>
+                                
+                                <ul className="space-y-4 mb-8">
+                                    {[
+                                        "Pare de perder clientes por falta de organização",
+                                        "Automatize seu atendimento e ganhe escala",
+                                        "Tenha controle total da sua operação de milhas",
+                                        "Aumente seu faturamento com previsibilidade"
+                                    ].map((bullet, i) => (
+                                        <li key={i} className="flex items-center gap-3 text-slate-300">
+                                            <span className="material-symbols-outlined text-primary">check_circle</span>
+                                            {bullet}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            
+                            {/* Form Card */}
+                            <div className="bg-[#0B0F19]/90 border border-white/[0.06] p-8 md:p-10 rounded-3xl shadow-[0_20px_80px_-20px_rgba(226,190,106,0.15)] relative overflow-hidden backdrop-blur-xl">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                                
+                                {!demoEnviada ? (
+                                    <form onSubmit={handleDemoSubmit} className="space-y-5">
+                                        <h3 className="text-xl font-bold text-white mb-6">Agendar demonstração</h3>
+                                        
+                                        <div>
+                                            <label className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-2">Nome Completo</label>
+                                            <input required type="text" value={demoForm.nome} onChange={e => setDemoForm({...demoForm, nome: e.target.value})} className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-600" placeholder="Seu nome completo" />
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            <div>
+                                                <label className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-2">WhatsApp</label>
+                                                <input required type="tel" value={demoForm.whatsapp} onChange={e => setDemoForm({...demoForm, whatsapp: e.target.value})} className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-600" placeholder="(11) 99999-9999" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-2">E-mail</label>
+                                                <input required type="email" value={demoForm.email} onChange={e => setDemoForm({...demoForm, email: e.target.value})} className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-600" placeholder="seu@email.com" />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-2">Nome da Empresa / Agência</label>
+                                            <input required type="text" value={demoForm.agencia} onChange={e => setDemoForm({...demoForm, agencia: e.target.value})} className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-600" placeholder="Nome da sua agência" />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-2">Principal dificuldade hoje</label>
+                                            <textarea required rows={3} value={demoForm.dificuldade} onChange={e => setDemoForm({...demoForm, dificuldade: e.target.value})} className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-600 resize-none" placeholder="Ex: Desorganização no whatsapp, cálculos de emissão..." />
+                                        </div>
+
+                                        <button type="submit" className="w-full mt-4 py-4 rounded-xl bg-primary text-[#060911] font-black uppercase text-xs tracking-widest hover:bg-white transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 flex items-center justify-center gap-2">
+                                            Agendar demonstração
+                                            <span className="material-symbols-outlined text-sm">event_available</span>
+                                        </button>
+                                    </form>
+                                ) : (
+                                    <div className="text-center py-10 space-y-6">
+                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 mb-2">
+                                            <span className="material-symbols-outlined text-4xl text-emerald-400">check_circle</span>
+                                        </div>
+                                        <h3 className="text-2xl font-black text-white">Solicitação enviada com sucesso!</h3>
+                                        <p className="text-slate-400 text-sm">
+                                            Recebemos os seus dados. Se o WhatsApp não abriu automaticamente, fique tranquilo, nossa equipe entrará em contato em breve para agendar a sua demonstração.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </RevealOnScroll>
+                </div>
+            </section>
+
+            {/* ─── CTA FINAL ──────────────────────────────────────── */}
+            <section className="py-32 px-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#060911] via-primary/[0.04] to-[#060911]"></div>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/[0.06] rounded-full blur-[150px]"></div>
+
+                <div className="max-w-3xl mx-auto text-center relative z-10">
+                    <RevealOnScroll>
+                        <h2 className="text-3xl md:text-5xl font-black text-white mb-8 leading-tight">
+                            Cada dia sem sistema<br />
+                            é dinheiro que você <span className="text-red-400">não recupera.</span>
+                        </h2>
+                    </RevealOnScroll>
+
+                    <RevealOnScroll delay={200}>
+                        <p className="text-lg text-slate-400 mb-12 max-w-xl mx-auto">
+                            Gestores que usam o FL360 estão escalando enquanto você ainda faz conta na planilha.
+                            <span className="text-white font-semibold block mt-2">A decisão é sua.</span>
+                        </p>
+                    </RevealOnScroll>
+
+                    <RevealOnScroll delay={400}>
+                        <div className="flex flex-col items-center gap-6">
+                            <button
+                                onClick={() => scrollToSection('demo')}
+                                className="bg-primary text-[#060911] text-base font-black uppercase tracking-[0.15em] px-14 py-6 rounded-xl hover:bg-white transition-all duration-300 shadow-[0_0_50px_rgba(226,190,106,0.25)] hover:shadow-[0_0_70px_rgba(255,255,255,0.3)] hover:scale-[1.02]"
+                            >
+                                Agendar reunião
+                            </button>
+                            <span className="text-[11px] text-slate-600 uppercase tracking-widest">Solução sob medida para sua operação</span>
+                        </div>
+                    </RevealOnScroll>
+                </div>
+            </section>
+
+            {/* ─── FOOTER ─────────────────────────────────────────── */}
+            <footer className="py-10 border-t border-white/[0.04] bg-[#060911]">
+                <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="h-7 w-7 rounded-md overflow-hidden border border-white/5">
+                            <img src="/login-logo.png" alt="FL360" className="h-full w-full object-cover" />
+                        </div>
+                        <span className="text-[11px] text-slate-600 uppercase tracking-widest">© 2026 FL360 Miles</span>
+                    </div>
+                    <div className="flex items-center gap-6">
+                        <Link to="/terms" className="text-[11px] text-slate-600 hover:text-primary uppercase tracking-widest transition-colors">Termos</Link>
+                        <Link to="/privacy" className="text-[11px] text-slate-600 hover:text-primary uppercase tracking-widest transition-colors">Privacidade</Link>
+                    </div>
+                </div>
             </footer>
         </div>
     );
