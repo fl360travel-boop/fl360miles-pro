@@ -409,7 +409,130 @@ const Landing: React.FC = () => {
                 </div>
             </section>
 
+            {/* ─── BLOCO PREMIUM: RELATÓRIOS + CONCIERGE ───────────── */}
+            <section className="py-32 px-6 relative overflow-hidden border-t border-white/[0.04]">
+                {/* Background */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#060911] via-primary/[0.025] to-[#060911]" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-primary/[0.04] rounded-full blur-[120px] pointer-events-none" />
+
+                <div className="max-w-6xl mx-auto relative z-10">
+                    {/* Header */}
+                    <RevealOnScroll>
+                        <div className="text-center mb-20">
+                            <span className="text-primary text-[11px] font-bold uppercase tracking-[0.3em] mb-5 block">Experiência de Elite</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
+                                Transforme seu atendimento<br />
+                                em um <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#D4AF37]">serviço de alto padrão</span>
+                            </h2>
+                            <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+                                Encante seus clientes com relatórios personalizados e um atendimento de concierge — com todas as ferramentas de emissão em um único lugar.
+                            </p>
+                        </div>
+                    </RevealOnScroll>
+
+                    {/* Two-column cards */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+
+                        {/* Card 1 — Relatórios */}
+                        <RevealOnScroll delay={150}>
+                            <div className="relative h-full p-10 rounded-3xl bg-white/[0.02] border border-white/[0.06] hover:border-primary/30 transition-all duration-500 group overflow-hidden">
+                                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+                                <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/[0.06] rounded-full blur-2xl group-hover:bg-primary/[0.1] transition-all duration-700" />
+                                {/* Icon */}
+                                <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300">
+                                    <span className="material-symbols-outlined text-primary text-2xl">description</span>
+                                </div>
+                                {/* Label + Title */}
+                                <p className="text-[10px] text-primary font-bold uppercase tracking-[0.3em] mb-3">Relatórios Personalizados</p>
+                                <h3 className="text-2xl md:text-3xl font-black text-white mb-5 leading-snug">
+                                    Relatórios exclusivos<br />para cada cliente
+                                </h3>
+                                <p className="text-slate-400 text-[15px] leading-relaxed mb-8">
+                                    Apresente opções de voos, estratégias e economia de forma profissional, organizada e clara. Mostre valor antes mesmo da emissão e aumente suas chances de fechamento.
+                                </p>
+                                {/* Benefits */}
+                                <ul className="space-y-3">
+                                    {[
+                                        { icon: "verified", label: "Mais credibilidade no atendimento" },
+                                        { icon: "diamond", label: "Percepção de serviço premium" },
+                                        { icon: "touch_app", label: "Facilita a decisão do cliente" },
+                                        { icon: "trending_up", label: "Aumenta sua taxa de conversão" },
+                                    ].map((b, i) => (
+                                        <li key={i} className="flex items-center gap-3">
+                                            <span className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                                <span className="material-symbols-outlined text-primary text-sm">{b.icon}</span>
+                                            </span>
+                                            <span className="text-slate-300 text-sm font-medium">{b.label}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </RevealOnScroll>
+
+                        {/* Card 2 — Concierge */}
+                        <RevealOnScroll delay={300}>
+                            <div className="relative h-full p-10 rounded-3xl bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition-all duration-500 group overflow-hidden">
+                                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
+                                <div className="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/[0.06] rounded-full blur-2xl group-hover:bg-emerald-500/[0.1] transition-all duration-700" />
+                                {/* Icon */}
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300">
+                                    <span className="material-symbols-outlined text-emerald-400 text-2xl">smart_toy</span>
+                                </div>
+                                {/* Label + Title */}
+                                <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-[0.3em] mb-3">Concierge de Milhas</p>
+                                <h3 className="text-2xl md:text-3xl font-black text-white mb-5 leading-snug">
+                                    Inteligência de emissão<br />em tempo real
+                                </h3>
+                                <p className="text-slate-400 text-[15px] leading-relaxed mb-8">
+                                    Tenha todas as ferramentas de voo em um único lugar — da pesquisa à emissão. Compare programas e entregue a melhor solução para o cliente em segundos.
+                                </p>
+                                {/* Benefits */}
+                                <ul className="space-y-3">
+                                    {[
+                                        { icon: "flight_search", label: "Pesquisa otimizada de voos" },
+                                        { icon: "compare_arrows", label: "Comparação entre programas de milhas" },
+                                        { icon: "rocket_launch", label: "Emissão mais rápida e eficiente" },
+                                        { icon: "savings", label: "Economia real para o seu cliente" },
+                                    ].map((b, i) => (
+                                        <li key={i} className="flex items-center gap-3">
+                                            <span className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                                                <span className="material-symbols-outlined text-emerald-400 text-sm">{b.icon}</span>
+                                            </span>
+                                            <span className="text-slate-300 text-sm font-medium">{b.label}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </RevealOnScroll>
+                    </div>
+
+                    {/* Impact Quote Banner */}
+                    <RevealOnScroll delay={400}>
+                        <div className="relative rounded-3xl overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/20" />
+                            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+                            <div className="relative z-10 px-10 py-12 text-center">
+                                <span className="material-symbols-outlined text-primary/40 text-5xl mb-4 block">format_quote</span>
+                                <p className="text-xl md:text-3xl font-black text-white max-w-3xl mx-auto leading-tight mb-6">
+                                    Deixe de ser apenas um emissor de passagens<br className="hidden md:block" />
+                                    e se torne um <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#D4AF37]">consultor estratégico de viagens.</span>
+                                </p>
+                                <button
+                                    onClick={() => scrollToSection('demo')}
+                                    className="inline-flex items-center gap-3 px-10 py-4 bg-primary text-[#060911] rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white transition-all duration-300 shadow-[0_0_30px_rgba(226,190,106,0.3)] hover:scale-[1.03]"
+                                >
+                                    Quero esse nível de atendimento
+                                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                                </button>
+                            </div>
+                        </div>
+                    </RevealOnScroll>
+                </div>
+            </section>
+
             {/* ─── TRANSFORMAÇÃO — ANTES vs DEPOIS ────────────────── */}
+
             <section className="py-28 px-6 relative overflow-hidden">
                 <div className="max-w-5xl mx-auto">
                     <RevealOnScroll>
