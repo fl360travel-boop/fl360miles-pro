@@ -440,23 +440,23 @@ const Landing: React.FC = () => {
                                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/[0.06] rounded-full blur-2xl group-hover:bg-primary/[0.1] transition-all duration-700" />
                                 {/* Icon */}
                                 <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300">
-                                    <span className="material-symbols-outlined text-primary text-2xl">description</span>
+                                    <span className="material-symbols-outlined text-primary text-2xl">receipt_long</span>
                                 </div>
                                 {/* Label + Title */}
                                 <p className="text-[10px] text-primary font-bold uppercase tracking-[0.3em] mb-3">Relatórios Personalizados</p>
                                 <h3 className="text-2xl md:text-3xl font-black text-white mb-5 leading-snug">
-                                    Relatórios exclusivos<br />para cada cliente
+                                    Histórico completo<br />de cada cliente
                                 </h3>
                                 <p className="text-slate-400 text-[15px] leading-relaxed mb-8">
-                                    Apresente opções de voos, estratégias e economia de forma profissional, organizada e clara. Mostre valor antes mesmo da emissão e aumente suas chances de fechamento.
+                                    Entregue um relatório detalhado com todo o histórico de movimentações: compras, vendas, emissões e economia gerada. Transparente, profissional e com a cara do seu negócio.
                                 </p>
                                 {/* Benefits */}
                                 <ul className="space-y-3">
                                     {[
-                                        { icon: "verified", label: "Mais credibilidade no atendimento" },
-                                        { icon: "diamond", label: "Percepção de serviço premium" },
-                                        { icon: "touch_app", label: "Facilita a decisão do cliente" },
-                                        { icon: "trending_up", label: "Aumenta sua taxa de conversão" },
+                                        { icon: "shopping_cart", label: "Registro de compras e vendas de milhas" },
+                                        { icon: "airplane_ticket", label: "Histórico de emissões realizadas" },
+                                        { icon: "savings", label: "Economia total gerada para o cliente" },
+                                        { icon: "verified", label: "Atendimento com credibilidade e transparência" },
                                     ].map((b, i) => (
                                         <li key={i} className="flex items-center gap-3">
                                             <span className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -471,9 +471,9 @@ const Landing: React.FC = () => {
 
                         {/* Card 2 — Concierge */}
                         <RevealOnScroll delay={300}>
-                            <div className="relative h-full p-10 rounded-3xl bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition-all duration-500 group overflow-hidden">
+                            <div className="relative h-full p-10 rounded-3xl bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition-all duration-500 group" style={{overflow: 'hidden'}}>
                                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
-                                <div className="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/[0.06] rounded-full blur-2xl group-hover:bg-emerald-500/[0.1] transition-all duration-700" />
+                                <div className="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/[0.06] rounded-full blur-2xl group-hover:bg-emerald-500/[0.1] transition-all duration-700 pointer-events-none" />
                                 {/* Icon */}
                                 <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300">
                                     <span className="material-symbols-outlined text-emerald-400 text-2xl">smart_toy</span>
@@ -484,15 +484,15 @@ const Landing: React.FC = () => {
                                     Inteligência de emissão<br />em tempo real
                                 </h3>
                                 <p className="text-slate-400 text-[15px] leading-relaxed mb-8">
-                                    Tenha todas as ferramentas de voo em um único lugar — da pesquisa à emissão. Compare programas e entregue a melhor solução para o cliente em segundos.
+                                    Tenha todas as ferramentas de milhas em um único lugar. Compare programas, analise oportunidades e entregue a melhor solução para o cliente em segundos.
                                 </p>
                                 {/* Benefits */}
-                                <ul className="space-y-3">
+                                <ul className="space-y-3 relative z-10">
                                     {[
-                                        { icon: "flight_search", label: "Pesquisa otimizada de voos" },
                                         { icon: "compare_arrows", label: "Comparação entre programas de milhas" },
+                                        { icon: "analytics", label: "Análise inteligente de oportunidades" },
                                         { icon: "rocket_launch", label: "Emissão mais rápida e eficiente" },
-                                        { icon: "savings", label: "Economia real para o seu cliente" },
+                                        { icon: "trending_up", label: "Aumento real do seu faturamento" },
                                     ].map((b, i) => (
                                         <li key={i} className="flex items-center gap-3">
                                             <span className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
