@@ -16,7 +16,7 @@ const navItems = [
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
-  const { user, userRole, userProfile } = useAuth();
+  const { user, userRole, userProfile, isDemo } = useAuth();
   const { branding } = useBranding();
 
   const isMaster = ['fl360travel@gmail.com', 'adriano.moraesnr@gmail.com'].includes(user?.email?.trim().toLowerCase() || '') || userRole === 'owner';
@@ -80,16 +80,26 @@ const Sidebar: React.FC = () => {
           })}
 
           <div className="pt-4 mt-2 border-t border-white/5 space-y-1">
-            <Link
-              to="/plans"
-              className={`tour-step-plans flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${location.pathname === '/plans'
-                ? 'bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-2 border-primary'
-                : 'text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10'
-                }`}
-            >
-              <span className="material-symbols-outlined text-lg">workspace_premium</span>
-              Meu Plano
-            </Link>
+            {isDemo ? (
+              <div
+                className="flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl text-slate-600 bg-white/5 cursor-not-allowed"
+                title="Opção bloqueada no Modo Demonstração"
+              >
+                <span className="material-symbols-outlined text-lg">lock</span>
+                Meu Plano
+              </div>
+            ) : (
+              <Link
+                to="/plans"
+                className={`tour-step-plans flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all ${location.pathname === '/plans'
+                  ? 'bg-gradient-to-r from-primary/20 to-transparent text-primary border-l-2 border-primary'
+                  : 'text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10'
+                  }`}
+              >
+                <span className="material-symbols-outlined text-lg">workspace_premium</span>
+                Meu Plano
+              </Link>
+            )}
           </div>
         </nav>
       </div>

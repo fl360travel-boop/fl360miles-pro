@@ -3,10 +3,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AIAdvisorService, Opportunity, ChatMessage } from '../services/ai_advisor';
 import { AmadeusService, FlightSearchParams } from '../services/amadeus';
 import { getClients } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 const AIConciergeWidget: React.FC = () => {
+    const { isDemo } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', type?: 'opportunity', data?: Opportunity }[]>([]);
     const [input, setInput] = useState('');
@@ -170,7 +172,7 @@ const AIConciergeWidget: React.FC = () => {
                                 <h3 className="font-black text-white text-sm tracking-wider uppercase italic">Altitude AI</h3>
                                 <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-1">
                                     <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    {isSearchingFlights ? '✈️ Buscando voos...' : 'Gemini · Amadeus · Online'}
+                                    {isSearchingFlights ? '✈️ Buscando voos...' : 'Inteligência Artificial · Online'}
                                 </p>
                             </div>
                         </div>
@@ -293,26 +295,26 @@ const AIConciergeWidget: React.FC = () => {
                     <div className="p-3 bg-black/20 border-t border-white/5">
                         <div className="relative flex items-center gap-2">
                             <input
-                            id="chat-input"
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Pergunte algo à Altitude..."
-                            className="flex-1 bg-white/5 border border-white/10 rounded-xl pl-4 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-all font-medium disabled:opacity-50"
-                            disabled={isTyping || isSearchingFlights}
-                        />
-                        <button
-                            id="btn-send-chat"
-                            onClick={handleSend}
-                            disabled={isTyping || isSearchingFlights || !input.trim()}
-                            className="text-slate-400 hover:text-emerald-400 p-1.5 transition-colors disabled:opacity-50"
-                        >
-                            <span className="material-symbols-outlined text-lg">send</span>
-                        </button>
+                                id="chat-input"
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                                placeholder={isDemo ? "Modo de Demonstração (Somente Leitura)" : "Pergunte algo à Altitude..."}
+                                className="flex-1 bg-white/5 border border-white/10 rounded-xl pl-4 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={isTyping || isSearchingFlights || isDemo}
+                            />
+                            <button
+                                id="btn-send-chat"
+                                onClick={handleSend}
+                                disabled={isTyping || isSearchingFlights || !input.trim() || isDemo}
+                                className="text-slate-400 hover:text-emerald-400 p-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <span className="material-symbols-outlined text-lg">send</span>
+                            </button>
                         </div>
                         <p className="text-[9px] text-slate-600 text-center mt-1.5">
-                            ✈️ Preços reais via Amadeus · 🧠 Análise via ALTITUDE AI
+                            ✈️ Análise Profunda · 🧠 ALTITUDE AI
                         </p>
                     </div>
                 </div>
