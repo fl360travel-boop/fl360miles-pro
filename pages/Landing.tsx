@@ -106,15 +106,9 @@ const Landing: React.FC = () => {
             <nav className="fixed top-[40px] left-0 right-0 z-50 bg-[#060911]/90 backdrop-blur-2xl border-b border-white/[0.04]">
                 <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-                        <div
-                            className="h-10 w-10 rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-lg"
-                            style={{
-                                backgroundImage: 'url(/login-logo.png)',
-                                backgroundSize: '320%',
-                                backgroundPosition: '50% 37%',
-                            }}
-                            aria-label="FL360 MILES"
-                        />
+                        <div className="h-10 w-10 rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-lg">
+                            <img src="/navbar-logo.png" alt="FL360 MILES" className="h-full w-full object-cover object-top" />
+                        </div>
                         <span className="text-sm font-bold text-white/80 tracking-wider hidden md:block">FL360<span className="text-primary">MILES</span></span>
                     </div>
 
