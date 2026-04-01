@@ -229,8 +229,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Login automático com conta demo
     const signInAsDemo = async () => {
         const { error } = await supabase.auth.signInWithPassword({
-            email: 'demo@fl360miles.com.br',
-            password: 'Demo@FL360',
+            email: 'demo@fl360miles.com',
+            password: 'demo360',
         });
         return { error: error as Error | null };
     };
